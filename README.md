@@ -12,7 +12,7 @@ Thaere are more projects in development, so follow to be updated.
 
 
 
-English speaking users can join chat at Telegram [https://t.me/+GaER6aj8r3ZlMmM8](https://t.me/+M2G53lzLCIU1ODI0) to share their experience and talk with the author
+English speaking users can join chat at Telegram https://t.me/+M2G53lzLCIU1ODI0 to share their experience and talk with the author
 
 Russian speaking users can join chat at Telegram https://t.me/+GaER6aj8r3ZlMmM8 to share their experience and talk with the author
 
