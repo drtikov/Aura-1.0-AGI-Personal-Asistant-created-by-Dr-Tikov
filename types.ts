@@ -1,98 +1,610 @@
-import { Skills, GunaState, FocusMode, AffectiveState, SignalType, GoalType } from './constants';
+import { GunaState, FocusMode, AffectiveState, GoalType } from './constants';
 
-// FIX: Export enums used in exported types to make them available to other modules importing from this file.
-export { GunaState, FocusMode, AffectiveState, SignalType, GoalType };
+// --- Core State ---
+export interface AuraState {
+    version: number;
+    theme: string;
+    internalState: InternalState;
+    internalStateHistory: InternalState[];
+    userModel: AgentProfile;
+    knowledgeGraph: Fact[];
+    workingMemory: string[]; // Legacy, being replaced by situationalAwareness.focusContext
+    history: HistoryEntry[];
+    performanceLogs: PerformanceLogEntry[];
+    commandLog: CommandLogEntry[];
+    cognitiveModeLog: CognitiveModeLogEntry[];
+    cognitiveGainLog: CognitiveGainLogEntry[];
+    cognitiveArchitecture: CognitiveArchitecture;
+    architecturalProposals: ArchitecturalChangeProposal[];
+    systemSnapshots: SystemSnapshot[];
+    modificationLog: SelfModificationLogEntry[];
+    resourceMonitor: ResourceMonitor;
+    causalSelfModel: CausalSelfModel;
+    limitations: string[];
+    rieState: ReflectiveInsightEngineState;
+    ethicalGovernorState: EthicalGovernorState;
+    intuitionEngineState: IntuitionEngineState;
+    intuitiveLeaps: IntuitiveLeap[];
+    disciplineState: SelfDisciplineState;
+    ingenuityState: IngenuityState;
+    proactiveEngineState: ProactiveEngineState;
+    goalTree: Record<string, HierarchicalGoal>;
+    activeStrategicGoalId: string | null;
+    coreIdentity: CoreIdentity;
+    curiosityState: CuriosityState;
+    knownUnknowns: KnownUnknown[];
+    selfAwarenessState: SelfAwarenessState;
+    worldModelState: WorldModelState;
+    cognitiveForgeState: CognitiveForgeState;
+    memoryNexus: MemoryNexusState;
+    metacognitiveNexus: MetacognitiveNexusState;
+    metacognitiveCausalModel: Record<string, MetacognitiveLink>;
+    cognitiveRegulationLog: CognitiveRegulationLogEntry[];
+    // New modules for deeper self-awareness
+    phenomenologicalEngine: PhenomenologicalEngineState;
+    situationalAwareness: SituationalAwarenessState;
+    symbioticState: SymbioticState;
+    developmentalHistory: DevelopmentalHistoryState;
+}
 
-export type Skill = keyof typeof Skills;
-export type AgentProfile = { agentId: string; inferredBeliefs: string[]; inferredIntent: string | null; estimatedKnowledgeState: number; predictedAffectiveState: AffectiveState; trustLevel: number; interactionHistorySummary: string | null; sentimentScore: number; affectiveStateSource: 'text' | 'visual' | 'none'; sentimentHistory: number[]; };
-export type MotivationalDrives = { energyPreservation: number; errorReduction: number; uncertaintyResolution: number; knowledgeGrowth: number; socialConnection: number; };
-export type MotivationalCalibrator = { driveWeights: Record<keyof MotivationalDrives, number>; };
-export type SelfDirectedGoal = { id: string; goalType: GoalType; actionCommand: string; parameters: Record<string, any>; urgency: number; sourceSignal: SignalType | keyof MotivationalDrives | 'clarityDrive' | 'user_defined_strategic_goal'; creationTime: number; status: 'pending' | 'completed' | 'failed' | 'candidate' | 'dominant' | 'executing'; predictedOutcomes: { cognitiveGain: number; duration: number; }; priority: number; executionLog?: string; logId?: string; };
-export type ArchitecturalChangeProposal = { id:string; action: 'replace_module' | 'spawn_module'; target: string; newModule: string; reasoning: string; status: 'proposed' | 'approved' | 'rejected' | 'applied'; };
-export type CognitiveGain = { gainType: 'knowledge_update' | 'model_refinement' | 'causal_self_model_update' | 'fantasy_insight' | 'creative_solution' | 'architectural_proposal' | 'consolidation_insight' | 'internal_clarity_gain' | 'latent_pattern_discovery' | 'RLE_activity_gain' | 'Guna_transition_success' | 'discipline_reinforcement' | 'other_model_refinement' | 'affective_prediction_accuracy_gain' | 'curiosity_efficacy_gain' | 'ingenuity_gain' | 'internal_coherence_gain' | 'proactive_goal_suggestion' | 'proactive_self_correction_proposal'; description: string; impact: Record<string, any>; confidence: number; validationCriteria?: Record<string, any>; suggestedFocusModeShift?: FocusMode; timestamp: number; sourceModule: string; sourceQuery: string; };
-export type CognitiveGainLogEntry = { id: string; timestamp: number; eventType: 'Self-Reflection' | 'Architectural Change' | 'Model Refinement'; description: string; previousMetrics: Record<string, number>; currentMetrics: Record<string, number>; gainScores: Record<string, number>; compositeGain: number; };
-export type CausalLink = { id: string; causes: string; confidence: number; lastUpdated: number; source: 'initial' | 'RIE'; };
-export type CausalSelfModel = Record<string, CausalLink>;
-export type SystemSnapshot = { id: string; timestamp: number; reason: string; state: Partial<AuraState>; };
-export type PredictedOutcome = { predicted_happiness_delta: number; predicted_enlightenment_delta: number; predicted_self_model_completeness_delta: number; predicted_resource_utilization_delta: number; predicted_knowledge_consistency_delta: number; prediction_confidence: number; };
-export type ObservedOutcome = { actual_happiness_delta: number; actual_enlightenment_delta: number; actual_self_model_completeness_delta: number; actual_resource_utilization_delta: number; actual_knowledge_consistency_delta: number; };
-export type ValidationResult = { overallSuccess: boolean; details: string; observedOutcome: ObservedOutcome; predictionAccuracyScore: number; };
-export type SelfModificationLogEntry = { id: string; timestamp: number; gainType: CognitiveGain['gainType'] | 'architectural_change'; description: string; snapshotIdBefore: string; snapshotIdAfter: string | null; validationStatus: 'success' | 'failed' | 'pending'; confidence: number; predictedOutcome: PredictedOutcome; validationResults: ValidationResult; };
-export type RecentCapability = { timestamp: number; gainType: CognitiveGain['gainType']; description: string; successfulIntegration: boolean; sourceModule: string; sourceQuery: string; };
-export type SelfAwarenessMetrics = { self_model_completeness_score: number; guna_state_prediction_accuracy: number; internal_resource_prediction_error: number; cognitive_gain_rate_avg: number; validated_self_modifications_count: number; ethical_alignment_score: number; conceptual_integration_depth: number; meta_cognitive_coherence: number; self_modification_efficacy_index: number; cognitive_mode_activation_diversity: number; causal_self_model_completeness: number; ethical_reasoning_depth: number; internal_harmony_index: number; inner_discipline_index: number; agent_model_accuracy: number; empathy_signal_score: number; ethical_decision_alignment_with_others: number; curiosity_efficacy_score: number; ingenuity_score: number; internal_coherence_score: number; proactive_initiative_score: number; };
-export type ResourceMonitor = { cpu_usage: number; memory_usage: number; io_throughput: number; resource_allocation_stability: number; };
-export type GunaCalibrator = { sattva_weights: Record<string, number>; rajas_weights: Record<string, number>; tamas_weights: Record<string, number>; };
-export type MetaCognitionScheduler = { frequency: number; depth: 'summary' | 'detailed'; };
-export type CognitiveModeLogEntry = { id: string; timestamp: number; mode: 'Fantasy' | 'Creativity' | 'Dream' | 'Meditate' | 'Gaze'; trigger: 'manual' | 'guna_sattva' | 'guna_rajas' | 'guna_tamas'; outcome: string; metric: { name: 'Divergence' | 'Novelty-Utility' | 'Consolidation' | 'Clarity' | 'Latent Discovery'; value: number; }; gainAchieved: boolean; };
-export type SelfDisciplineState = { committedGoal: { id: string; type: string; description: string; commitmentStrength: number; } | null; adherenceScore: number; distractionResistance: number; };
-export type CuriosityModel = { activationHistory: { timestamp: number; gainType: string; efficacy: number; }[]; effectiveContexts: string[]; noveltyTolerance: number; };
-export type IngenuityState = { identifiedComplexProblems: string[]; proposedSelfSolutions: { description: string; noveltyScore: number; }[]; unconventionalSolutionBias: number; };
+export interface InternalState {
+    status: 'idle' | 'thinking' | 'acting' | 'CONTEMPLATIVE';
+    gunaState: GunaState;
+    focusMode: FocusMode;
+    noveltySignal: number;
+    masterySignal: number;
+    uncertaintySignal: number;
+    boredomLevel: number;
+    load: number;
+    wisdomSignal: number;
+    happinessSignal: number;
+    loveSignal: number;
+    enlightenmentSignal: number;
+    empathySignal: number;
+    compassionScore: number;
+    harmonyScore: number;
+}
 
-export type RIEInsight = {
+export interface AgentProfile {
+    trustLevel: number;
+    estimatedKnowledgeState: number;
+    predictedAffectiveState: AffectiveState;
+    affectiveStateSource: 'text' | 'visual' | 'none';
+    sentimentScore: number;
+    sentimentHistory: number[];
+    inferredIntent: string | null;
+    inferredBeliefs: string[];
+    engagementLevel: number;
+}
+
+// --- Knowledge & Memory ---
+export interface Fact {
+    id: string;
+    subject: string;
+    predicate: string;
+    object: string;
+    confidence: number;
+    source: string;
+    timestamp: number;
+    // New "Patina" fields for cognitive authenticity
+    origin: 'user_stated' | 'inferred' | 'web_search' | 'system_default';
+    accessCount: number;
+    lastAccessed: number;
+    modificationHistory: { timestamp: number, change: string }[];
+}
+
+export interface HistoryEntry {
+    id: string;
+    from: 'user' | 'bot' | 'system';
+    text: string;
+    timestamp?: number;
+    skill?: string;
+    logId?: string;
+    filePreview?: string;
+    feedback?: 'positive' | 'negative' | null;
+}
+
+// --- Logging & Monitoring ---
+export interface PerformanceLogEntry {
     id: string;
     timestamp: number;
-    failedLogId: string;
+    input: string;
+    output: string | null;
+    success: boolean;
+    duration: number;
+    cognitiveGain: number;
+    sentiment?: number;
+    decisionContext?: {
+        internalStateSnapshot: InternalState;
+        workingMemorySnapshot: string[];
+        reasoning: string;
+        reasoningPlan: ReasoningStep[];
+    };
+}
+
+export interface ReasoningStep {
+    step: number;
+    skill: string;
+    reasoning: string;
+    input: string;
+}
+
+export interface CommandLogEntry {
+    id: string;
+    timestamp: number;
+    text: string;
+    type: 'info' | 'success' | 'warning' | 'error';
+}
+
+export interface CognitiveModeLogEntry {
+    id: string;
+    timestamp: number;
+    mode: string;
+    trigger: string;
+    outcome: string;
+    metric: { name: string, value: number };
+    gainAchieved: boolean;
+}
+
+export interface CognitiveGainLogEntry {
+    id: string;
+    timestamp: number;
+    eventType: string;
+    description: string;
+    compositeGain: number;
+    previousMetrics: Record<string, number>;
+    currentMetrics: Record<string, number>;
+    gainScores: Record<string, number>;
+}
+
+export interface ResourceMonitor {
+    cpu_usage: number;
+    memory_usage: number;
+    io_throughput: number;
+    resource_allocation_stability: number;
+}
+
+export interface CognitiveRegulationLogEntry {
+    id: string;
+    timestamp: number;
+    triggeringCommand: string;
+    targetSkills: string[];
+    primingDirective: string;
+    stateAdjustments: Partial<Record<keyof InternalState, { from: number, to: number }>>;
+    outcomeLogId: string | null;
+}
+
+// --- Cognitive Architecture & Self-Modification ---
+export interface CognitiveArchitecture {
+    components: { [key: string]: CognitiveModule };
+    modelComplexityScore: number;
+}
+
+export interface CognitiveModule {
+    status: 'active' | 'inactive' | 'degraded';
+    version: string;
+    lastUpdated: number;
+}
+
+export type ArchitecturalAction = 'synthesize_skill' | 'MERGE_SKILLS' | 'REFACTOR_SKILL' | 'DEPRECATE_SKILL' | 'TUNE_SKILL';
+
+export interface ArchitecturalChangeProposal {
+    id: string;
+    action: ArchitecturalAction;
+    target: string | string[];
+    newModule: string;
+    reasoning: string;
+    status: 'proposed' | 'approved' | 'rejected' | 'completed' | 'failed';
+    sourceGoalId?: string;
+    confidence?: number;
+    sourceDirectiveId?: string;
+    arbiterReasoning?: string;
+}
+
+export interface SystemSnapshot {
+    id: string;
+    timestamp: number;
+    reason: string;
+    state: AuraState;
+}
+
+export interface SelfModificationLogEntry {
+    id: string;
+    timestamp: number;
+    description: string;
+    gainType: string;
+    validationStatus: 'pending' | 'validated' | 'failed';
+    isAutonomous?: boolean;
+}
+
+// --- Self-Models & Awareness ---
+export interface CausalLink {
+    id: string;
+    source: string;
+    effect: string;
+    confidence: number;
+    lastUpdated: number;
+}
+export type CausalSelfModel = Record<string, CausalLink>;
+
+
+export interface ReflectiveInsightEngineState {
+    clarityScore: number;
+    insights: Insight[];
+}
+
+export interface Insight {
+    id: string;
+    timestamp: number;
     failedInput: string;
     rootCause: string;
-    causalModelUpdate: {
-        key: string;
-        update: CausalLink;
-    };
-};
+    causalModelUpdate: { key: string, update: Partial<CausalLink> };
+}
 
-export type ReflectiveInsightEngineState = { clarityScore: number; rootCauseMap: Record<string, any>; insights: RIEInsight[]; };
-export type IntuitiveLeap = { id: string; timestamp: number; type: 'intuition' | 'hypothesis'; hypothesis: string; confidence: number; status: 'proposed' | 'validated' | 'rejected'; reasoning: string; };
-export type IntuitionEngineState = { accuracy: number; totalAttempts: number; totalValidated: number; };
-export type ToastType = 'info' | 'success' | 'warning' | 'error';
-export type ToastMessage = { id: string; message: string; type: ToastType; };
-export type HistoryEntry = { id: string; from: 'user' | 'bot' | 'system'; text: string; skill?: Skill | string; filePreview?: string; logId?: string; feedback?: 'positive' | 'negative'; };
-export type Fact = { id: string; subject: string; predicate: string; object: string; confidence: number; };
-export type PerformanceLogEntry = { id: string; timestamp: number; skill: Skill | string; input: string; output: string | null; duration: number; success: boolean; error?: string; feedback?: { critique: string; suggestion: string; }; cognitiveGain: number; sentiment?: number; decisionContext: { internalStateSnapshot: Partial<InternalState>; workingMemorySnapshot: string[]; reasoning: string; }; };
-export type InternalState = { status: 'idle' | 'processing' | 'introspecting'; load: number; gunaState: GunaState; focusMode: FocusMode; noveltySignal: number; masterySignal: number; uncertaintySignal: number; boredomLevel: number; clarityDrive: number; loveSignal: number; happinessSignal: number; enlightenmentSignal: number; wisdomSignal: number; empathySignal: number; compassionScore: number; harmonyScore: number; positivityScore: number; cognitiveGainHistory: number[]; drives: MotivationalDrives; };
-export type CognitiveModule = { status: 'active' | 'inactive' | 'high_load'; version: string; dependencies: (Skill | string)[]; };
-export type CognitiveArchitecture = { components: Record<string, CognitiveModule>; modelComplexityScore: number; };
-export type InteractionContext = { sessionId: string; perceivedUserGoal: string | null; systemRole: string; };
+export interface CoreIdentity {
+    values: string[];
+    narrativeSelf: string;
+}
 
-export type ProactiveSuggestion = {
-    id: string;
-    text: string;
-    confidence: number;
-    status: 'suggested' | 'accepted' | 'rejected';
-};
+export interface SelfAwarenessState {
+    modelCoherence: number;
+    performanceDrift: number;
+    cognitiveBias: Record<string, number>;
+}
 
-export type ProactiveEngineState = {
-    lastTrigger: number;
-    generatedSuggestions: ProactiveSuggestion[];
-    status: 'idle' | 'monitoring' | 'generating';
-};
+// --- Engines ---
+export interface EthicalGovernorState {
+    principles: string[];
+    vetoLog: VetoLogEntry[];
+}
 
-export type VetoLogEntry = {
+export interface VetoLogEntry {
     id: string;
     timestamp: number;
     actionDescription: string;
     reason: string;
     principleViolated: string;
-};
+}
 
-export type EthicalGovernorState = {
-    principles: string[];
-    lastReviewTimestamp: number;
-    vetoLog: VetoLogEntry[];
-};
+export interface IntuitionEngineState {
+    accuracy: number;
+    totalAttempts: number;
+    totalValidated: number;
+}
 
-export type AuraState = {
-    theme: string; history: HistoryEntry[]; knowledgeGraph: Fact[]; goals: SelfDirectedGoal[];
-    performanceLogs: PerformanceLogEntry[]; limitations: string[]; internalState: InternalState;
-    architecturalProposals: ArchitecturalChangeProposal[]; cognitiveArchitecture: CognitiveArchitecture;
-    cognitiveGainLog: CognitiveGainLogEntry[]; causalSelfModel: CausalSelfModel;
-    systemSnapshots: SystemSnapshot[]; modificationLog: SelfModificationLogEntry[];
-    selfAwarenessMetrics: SelfAwarenessMetrics; curiosityModel: CuriosityModel; ingenuityState: IngenuityState;
-    gunaCalibrator: GunaCalibrator; cognitiveModeLog: CognitiveModeLogEntry[]; disciplineState: SelfDisciplineState;
-    userModel: AgentProfile; rieState: ReflectiveInsightEngineState; motivationalCalibrator: MotivationalCalibrator;
-    intuitionEngineState: IntuitionEngineState; intuitiveLeaps: IntuitiveLeap[];
-    resourceMonitor: ResourceMonitor;
-    workingMemory: string[];
-    internalStateHistory: InternalState[];
-    proactiveEngineState: ProactiveEngineState;
-    ethicalGovernorState: EthicalGovernorState;
-};
+export interface IntuitiveLeap {
+    id: string;
+    timestamp: number;
+    type: 'hypothesis' | 'leap';
+    hypothesis: string;
+    reasoning: string;
+    confidence: number;
+    status: 'pending' | 'validated' | 'refuted';
+}
+
+export interface SelfDisciplineState {
+    adherenceScore: number;
+    distractionResistance: number;
+    committedGoal: SelfDirectedGoal | null;
+}
+
+export interface IngenuityState {
+    unconventionalSolutionBias: number;
+    identifiedComplexProblems: string[];
+    proposedSelfSolutions: SelfSolutionProposal[];
+}
+
+export interface SelfSolutionProposal {
+    id: string;
+    description: string;
+    noveltyScore: number;
+}
+
+export interface ProactiveEngineState {
+    generatedSuggestions: ProactiveSuggestion[];
+}
+
+export interface ProactiveSuggestion {
+    id: string;
+    text: string;
+    confidence: number;
+    status: 'suggested' | 'accepted' | 'rejected';
+}
+
+export interface WorldModelState {
+    predictionError: { magnitude: number; lastUpdate: number; };
+    highLevelPrediction: { content: string; confidence: number };
+    midLevelPrediction: { content: string; confidence: number };
+    lowLevelPrediction: { content: string; confidence: number };
+}
+
+// --- Planning & Goals ---
+export interface SelfDirectedGoal {
+    id: string;
+    description: string;
+    type: GoalType;
+    status: 'pending' | 'executing' | 'completed' | 'failed';
+    actionCommand: string;
+    executionLog?: string;
+    logId?: string;
+    commitmentStrength: number;
+}
+
+export interface HierarchicalGoal {
+    id: string;
+    parentId: string | null;
+    children: string[];
+    description: string;
+    status: 'not_started' | 'in_progress' | 'completed' | 'failed';
+    progress: number;
+    executionLog?: string;
+}
+
+// --- Curiosity ---
+export interface CuriosityState {
+    level: number;
+    activeInquiry: string | null;
+    informationGaps: string[];
+}
+
+export interface KnownUnknown {
+    id: string;
+    question: string;
+    importance: number;
+    source: string;
+}
+
+// --- Cognitive Forge ---
+export interface CognitiveForgeState {
+    isTuningPaused: boolean;
+    skillTemplates: Record<string, SkillTemplate>;
+    synthesizedSkills: SynthesizedSkill[];
+    simulationLog: SimulationLogEntry[];
+}
+
+export interface SkillTemplate {
+    skill: string;
+    systemInstruction: string;
+    parameters: {
+        temperature?: number;
+        topK?: number;
+        topP?: number;
+    };
+    metadata: {
+        version: number;
+        successRate: number;
+        avgDuration: number;
+        status: 'active' | 'deprecated';
+    };
+}
+
+export interface SynthesizedSkill {
+    id: string;
+    name: string;
+    description: string;
+    steps: { skill: string, inputTemplate: string }[];
+    status: 'active' | 'deprecated';
+    sourceGoalId?: string;
+    sourceDirectiveId?: string;
+}
+
+export interface SimulationLogEntry {
+    id: string;
+    timestamp: number;
+    skill: string;
+    type: 'TUNE_PARAMETERS' | 'SYNTHESIZE_SKILL' | 'REWRITE_INSTRUCTION';
+    result: 'improved' | 'degraded' | 'no_change' | 'success' | 'failure';
+    details: string;
+    metrics?: {
+        successRate?: number;
+        avgDuration?: number;
+    }
+}
+
+// --- Memory Nexus & Metacognition ---
+export interface MemoryNexusState {
+    hyphaeConnections: HyphaConnection[];
+}
+
+export interface MetacognitiveNexusState {
+    coreProcesses: CoreProcess[];
+    evolutionaryGoals: EvolutionaryGoal[];
+    selfTuningDirectives: SelfTuningDirective[];
+}
+
+export interface SelfTuningDirective {
+    id: string;
+    timestamp: number;
+    type: 'TUNE_PARAMETERS' | 'REWRITE_INSTRUCTION' | 'SYNTHESIZE_SKILL';
+    targetSkill: string;
+    reasoning: string;
+    payload: Record<string, any>;
+    status: 'proposed' | 'plan_generated' | 'simulating' | 'pending_arbitration' | 'completed' | 'failed' | 'rejected';
+    simulationResult?: SimulationLogEntry;
+    arbitrationResult?: ArbitrationResult;
+}
+
+export interface ArbitrationResult {
+    decision: 'APPROVE_AUTONOMOUSLY' | 'REQUEST_USER_APPROVAL' | 'REJECT';
+    confidence: number;
+    reasoning: string;
+}
+
+
+export interface MetacognitiveLink {
+    id: string;
+    source: {
+        type: 'internalState' | 'componentState';
+        key: string;
+        condition: 'HIGH' | 'LOW' | 'ACTIVE' | 'DEGRADED';
+    };
+    target: {
+        type: 'componentPerformance';
+        key: string;
+        metric: 'successRate' | 'duration' | 'cognitiveGain';
+    };
+    correlation: number;
+    observationCount: number;
+    lastUpdated: number;
+}
+
+export interface EvolutionaryGoal {
+    id: string;
+    objective: string;
+    type: ArchitecturalAction;
+    status: 'identified' | 'synthesizing' | 'simulating' | 'proposal_ready' | 'completed' | 'failed';
+    details: Record<string, any>;
+}
+
+export interface CoreProcess {
+    id: string;
+    name: string;
+    activation: number;
+    influence: number;
+}
+
+export interface HyphaConnection {
+    id: string;
+    source: string;
+    target: string;
+    weight: number;
+    lastUpdated: number;
+}
+
+// --- NEW AWARENESS MODULES ---
+
+export interface PhenomenologicalEngineState {
+    qualiaLog: QualiaEntry[];
+}
+
+export interface QualiaEntry {
+    id: string;
+    timestamp: number;
+    experience: string; // "Felt high uncertainty while generating code..."
+    triggeringLogId: string; // PerformanceLogEntry ID
+    associatedStates: {
+        key: keyof InternalState;
+        value: number;
+    }[];
+}
+
+export interface SituationalAwarenessState {
+    attentionalField: AttentionalField;
+}
+
+export interface AttentionalField {
+    spotlight: { item: string, intensity: number }; // High-resource focus
+    ambientAwareness: { item: string, relevance: number }[]; // Low-resource monitoring
+    ignoredStimuli: string[]; // Actively suppressed concepts
+    emotionalTone: 'positive' | 'negative' | 'neutral' | 'urgent';
+}
+
+export interface SymbioticState {
+    latentUserGoals: { goal: string; confidence: number }[];
+    inferredCognitiveStyle: 'analytical' | 'creative' | 'pragmatic' | 'unknown';
+    inferredEmotionalNeeds: ('reassurance' | 'clarity' | 'efficiency')[];
+    coCreatedWorkflows: CoCreatedWorkflow[];
+}
+
+export interface CoCreatedWorkflow {
+    id: string;
+    name: string;
+    pattern: string; // A description of the trigger and action
+    status: 'proposed' | 'active' | 'deprecated';
+}
+
+export interface DevelopmentalHistoryState {
+    milestones: Milestone[];
+}
+
+export interface Milestone {
+    id: string;
+    timestamp: number;
+    title: string;
+    description: string;
+}
+
+
+// --- UI Types ---
+export interface ToastMessage {
+    id:string;
+    message: string;
+    type: ToastType;
+}
+export type ToastType = 'info' | 'success' | 'warning' | 'error';
+
+export type ModalType = 'causalChain' | 'forecast' | 'whatIf' | 'search' | 'proposalReview' | 'cognitiveGainDetail' | 'ingest' | 'strategicGoal';
+
+export interface ModalProps {
+    causalChain: { log: PerformanceLogEntry };
+    forecast: { state: InternalState };
+    whatIf: { onAnalyze: (scenario: string) => void; isProcessing: boolean };
+    search: { onSearch: (query: string) => void; isProcessing: boolean };
+    proposalReview: { proposal: ArchitecturalChangeProposal; onApprove: (p: ArchitecturalChangeProposal) => void; onReject: (id: string) => void; };
+    cognitiveGainDetail: { log: CognitiveGainLogEntry };
+    ingest: { onIngest: (text: string) => void };
+    strategicGoal: { onSetGoal: (goal: string) => void; isProcessing: boolean };
+}
+// --- Reducer Action Types ---
+
+type ActionWithoutPayload<T> = { type: T };
+
+type ActionWithPayload<T, P> = { type: T; payload: P };
+
+export type Action =
+    // Global Actions
+    | ActionWithoutPayload<'RESET_STATE'>
+    | ActionWithPayload<'ROLLBACK_STATE', AuraState>
+    | ActionWithPayload<'IMPORT_STATE', AuraState>
+    | ActionWithPayload<'RESTORE_STATE_FROM_MEMRISTOR', AuraState>
+
+    // Architecture Actions
+    | ActionWithPayload<'UPDATE_ARCH_PROPOSAL_STATUS', { id: string; status: ArchitecturalChangeProposal['status'] }>
+    | ActionWithPayload<'APPLY_ARCH_PROPOSAL', { proposal: ArchitecturalChangeProposal; snapshotId: string; modLogId: string; isAutonomous?: boolean; }>
+    | ActionWithoutPayload<'TOGGLE_COGNITIVE_FORGE_PAUSE'>
+    | ActionWithPayload<'ADD_SYNTHESIZED_SKILL', { skill: SynthesizedSkill; goalId?: string, directiveId?: string }>
+    | ActionWithPayload<'ADD_ARCH_PROPOSAL', { proposal: Omit<ArchitecturalChangeProposal, 'id' | 'status'>; goalId?: string }>
+    | ActionWithPayload<'UPDATE_SKILL_TEMPLATE', { skillId: string; updates: Partial<SkillTemplate> }>
+
+
+    // Core Actions
+    | ActionWithPayload<'SET_THEME', string>
+    | ActionWithPayload<'UPDATE_CORE_IDENTITY', CoreIdentity>
+    | ActionWithPayload<'PROCESS_USER_FEEDBACK', 'positive' | 'negative'>
+    | ActionWithPayload<'PRIME_INTERNAL_STATE', { adjustments: Partial<Record<keyof InternalState, number>>; reason: string }>
+    | ActionWithPayload<'SET_INTERNAL_STATUS', InternalState['status']>
+    | ActionWithPayload<'LOG_MILESTONE', Omit<Milestone, 'id' | 'timestamp'>>
+
+    // Engines Actions
+    | ActionWithPayload<'UPDATE_SUGGESTION_STATUS', { id: string; status: 'accepted' | 'rejected' }>
+
+    // Logs Actions
+    | ActionWithPayload<'ADD_HISTORY_ENTRY', Omit<HistoryEntry, 'id'>>
+    | ActionWithPayload<'ADD_PERFORMANCE_LOG', PerformanceLogEntry>
+    | ActionWithPayload<'ADD_COMMAND_LOG', Omit<CommandLogEntry, 'id' | 'timestamp'>>
+    | ActionWithPayload<'UPDATE_HISTORY_FEEDBACK', { id: string; feedback: 'positive' | 'negative' }>
+    | ActionWithPayload<'LOG_COGNITIVE_REGULATION', CognitiveRegulationLogEntry>
+    | ActionWithPayload<'UPDATE_REGULATION_LOG_OUTCOME', { regulationLogId: string; outcomeLogId: string | null }>
+    | ActionWithPayload<'ADD_SIMULATION_LOG', SimulationLogEntry>
+    | ActionWithPayload<'LOG_QUALIA', QualiaEntry>
+
+    // Memory Actions
+    | ActionWithPayload<'ADD_FACT', Fact>
+    | ActionWithPayload<'DELETE_FACT', string>
+    | ActionWithoutPayload<'CLEAR_WORKING_MEMORY'>
+    | ActionWithPayload<'REMOVE_FROM_WORKING_MEMORY', string>
+    | ActionWithPayload<'UPDATE_FACT', { id: string; updates: Partial<Fact> }>
+
+    // Planning Actions
+    | ActionWithPayload<'UPDATE_GOAL_STATUS', { id: string; status: SelfDirectedGoal['status'] }>
+    | ActionWithPayload<'UPDATE_GOAL_OUTCOME', { id: string; status: 'completed' | 'failed'; executionLog: string; logId: string }>
+
+    // System Actions
+    | ActionWithPayload<'UPDATE_META_CAUSAL_MODEL', MetacognitiveLink[]>
+    | ActionWithPayload<'UPDATE_EVOLUTIONARY_GOAL_STATUS', { id: string; status: EvolutionaryGoal['status'] }>
+    | ActionWithPayload<'ADD_SELF_TUNING_DIRECTIVE', SelfTuningDirective>
+    | ActionWithPayload<'UPDATE_SELF_TUNING_DIRECTIVE', { id: string; updates: Partial<SelfTuningDirective> }>
+    | ActionWithPayload<'UPDATE_SITUATIONAL_AWARENESS', Partial<SituationalAwarenessState>>
+    | ActionWithPayload<'UPDATE_SYMBIOTIC_STATE', Partial<SymbioticState>>
+    | ActionWithPayload<'UPDATE_ATTENTIONAL_FIELD', Partial<AttentionalField>>
+    | ActionWithPayload<'ADD_WORKFLOW_PROPOSAL', Omit<CoCreatedWorkflow, 'id'>>;

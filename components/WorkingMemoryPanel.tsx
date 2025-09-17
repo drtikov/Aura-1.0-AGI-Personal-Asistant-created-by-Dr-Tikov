@@ -1,12 +1,17 @@
 import React from 'react';
-import { Action } from '../state/reducer';
+import { Action } from '../types';
+import { useMemoryState } from '../context/AuraContext';
 
-export const WorkingMemoryPanel = React.memo(({ memory, dispatch }: { memory: string[], dispatch: React.Dispatch<Action> }) => {
+export const WorkingMemoryPanel = React.memo(({ onDispatch }: { onDispatch: React.Dispatch<Action> }) => {
+    const { workingMemory: memory } = useMemoryState();
     if (memory.length === 0) return null;
     return (
         <div className="working-memory-panel">
-            <h4>Working Memory</h4>
-            <ul> {memory.map((item, index) => ( <li key={index}> <span>{item.substring(0, 100)}{item.length > 100 ? '...' : ''}</span> <button onClick={() => dispatch({ type: 'REMOVE_FROM_WORKING_MEMORY', payload: item })} title="Remove from memory">&times;</button> </li> ))} </ul>
+            <div className="working-memory-header">
+                <h4>Working Memory</h4>
+                {memory.length > 0 && <button className="clear-wm-button" onClick={() => onDispatch({ type: 'CLEAR_WORKING_MEMORY' })}>Clear All</button>}
+            </div>
+            <ul> {memory.map((item, index) => ( <li key={index}> <span>{item.substring(0, 100)}{item.length > 100 ? '...' : ''}</span> <button onClick={() => onDispatch({ type: 'REMOVE_FROM_WORKING_MEMORY', payload: item })} title="Remove from memory">&times;</button> </li> ))} </ul>
         </div>
     );
 });

@@ -1,81 +1,147 @@
-import { useReducer, useEffect } from 'react';
+
+import { useReducer, useEffect, useState } from 'react';
 import { getInitialState } from '../state/initialState';
 import { auraReducer } from '../state/reducer';
-import { AuraState } from '../types';
-import * as Keys from '../constants';
+import { AuraState, HistoryEntry } from '../types';
+import { CURRENT_STATE_VERSION } from '../constants';
+import { migrateState } from '../state/migrations';
 
-// Explicit mapping between state keys and localStorage keys for robust persistence.
-const STATE_TO_STORAGE_KEY_MAP: { [key in keyof Partial<AuraState>]: string } = {
-    theme: Keys.THEME_KEY,
-    history: Keys.CHAT_HISTORY_KEY,
-    knowledgeGraph: Keys.KNOWLEDGE_GRAPH_KEY,
-    goals: Keys.GOALS_KEY,
-    performanceLogs: Keys.PERFORMANCE_LOGS_KEY,
-    limitations: Keys.LIMITATIONS_KEY,
-    internalState: Keys.INTERNAL_STATE_KEY,
-    architecturalProposals: Keys.ARCH_PROPOSALS_KEY,
-    cognitiveArchitecture: Keys.COGNITIVE_ARCH_KEY,
-    cognitiveGainLog: Keys.COGNITIVE_GAIN_LOG_KEY,
-    causalSelfModel: Keys.CAUSAL_SELF_MODEL_KEY,
-    systemSnapshots: Keys.SYSTEM_SNAPSHOTS_KEY,
-    modificationLog: Keys.MODIFICATION_LOG_KEY,
-    selfAwarenessMetrics: Keys.SELF_AWARENESS_METRICS_KEY,
-    gunaCalibrator: Keys.GUNA_CALIBRATOR_KEY,
-    cognitiveModeLog: Keys.COGNITIVE_MODE_LOG_KEY,
-    disciplineState: Keys.DISCIPLINE_STATE_KEY,
-    userModel: Keys.USER_MODEL_KEY,
-    curiosityModel: Keys.CURIOSITY_MODEL_KEY,
-    ingenuityState: Keys.INGENUITY_STATE_KEY,
-    rieState: Keys.RIE_STATE_KEY,
-    motivationalCalibrator: Keys.MOTIVATIONAL_CALIBRATOR_KEY,
-    intuitionEngineState: Keys.INTUITION_ENGINE_KEY,
-    intuitiveLeaps: Keys.INTUITIVE_LEAPS_KEY,
-    resourceMonitor: Keys.RESOURCE_MONITOR_KEY,
-    workingMemory: Keys.WORKING_MEMORY_KEY,
-    internalStateHistory: Keys.INTERNAL_STATE_HISTORY_KEY,
-    proactiveEngineState: Keys.PROACTIVE_ENGINE_KEY,
-    ethicalGovernorState: Keys.ETHICAL_GOVERNOR_KEY,
-};
+// --- Memristor Logic (integrated from worker) ---
+const DB_NAME = 'AuraMemristorDB';
+const DB_VERSION = 1;
+const STORE_NAME = 'AuraStateStore';
+const STATE_KEY = 'latest_aura_state';
 
+let db: IDBDatabase | null = null;
 
-export const useAuraState = () => {
-    const [state, dispatch] = useReducer(auraReducer, getInitialState(), (initialState) => {
-        try {
-            const loadedState: Partial<AuraState> = {};
-            for (const key in STATE_TO_STORAGE_KEY_MAP) {
-                const stateKey = key as keyof AuraState;
-                const storageKey = STATE_TO_STORAGE_KEY_MAP[stateKey];
-                const item = localStorage.getItem(storageKey);
-                if (item !== null) {
-                    try {
-                        (loadedState as any)[stateKey] = JSON.parse(item);
-                    } catch (e) {
-                        console.warn(`Could not parse localStorage item ${storageKey}, it might be corrupted.`, e);
-                    }
-                }
+function getDB(): Promise<IDBDatabase> {
+    return new Promise((resolve, reject) => {
+        if (db) {
+            return resolve(db);
+        }
+        const request = indexedDB.open(DB_NAME, DB_VERSION);
+        request.onerror = () => {
+            console.error("Memristor: IndexedDB error:", request.error);
+            reject("IndexedDB error");
+        };
+        request.onsuccess = () => {
+            db = request.result;
+            resolve(db);
+        };
+        request.onupgradeneeded = (event) => {
+            const dbInstance = (event.target as IDBOpenDBRequest).result;
+            if (!dbInstance.objectStoreNames.contains(STORE_NAME)) {
+                dbInstance.createObjectStore(STORE_NAME);
             }
-             // Merge loaded state with initial state to ensure all keys are present
-            return { ...initialState, ...loadedState };
+        };
+    });
+}
+
+async function saveStateToDB(state: AuraState): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const dbInstance = await getDB();
+            const transaction = dbInstance.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            store.put(state, STATE_KEY);
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => {
+                 console.error('Memristor: Transaction error while saving state.', transaction.error);
+                 reject(transaction.error);
+            };
         } catch (error) {
-            console.error("Failed to load state from localStorage, using initial state.", error);
-            return initialState;
+            console.error('Memristor: Failed to save state.', error);
+            reject(error);
         }
     });
+}
 
-    useEffect(() => {
-        try {
-            for (const key in STATE_TO_STORAGE_KEY_MAP) {
-                const stateKey = key as keyof AuraState;
-                const storageKey = STATE_TO_STORAGE_KEY_MAP[stateKey];
-                const dataToStore = state[stateKey];
-                if (dataToStore !== undefined) {
-                    localStorage.setItem(storageKey, JSON.stringify(dataToStore));
-                }
-            }
+async function loadStateFromDB(): Promise<AuraState | null> {
+     return new Promise(async (resolve, reject) => {
+         try {
+            const dbInstance = await getDB();
+            const transaction = dbInstance.transaction(STORE_NAME, 'readonly');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.get(STATE_KEY);
+            request.onsuccess = () => resolve(request.result || null);
+            request.onerror = () => {
+                console.error('Memristor: Error loading state.', request.error);
+                reject(request.error);
+            };
         } catch (error) {
-            console.error("Failed to save state to localStorage", error);
+            console.error('Memristor: Failed to load state.', error);
+            reject(error);
         }
-    }, [state]);
+     });
+}
 
-    return { state, dispatch };
+// --- Hook Implementation ---
+
+export type MemoryStatus = 'saved' | 'saving' | 'error';
+
+const initializer = (): AuraState => {
+    const initialState = getInitialState();
+    const message: HistoryEntry = { id: self.crypto.randomUUID(), from: 'system', text: "SYSTEM: Initializing AGI instance. Accessing Memristor..." };
+    return { ...initialState, history: [...initialState.history, message] };
+};
+
+export const useAuraState = () => {
+    const [state, dispatch] = useReducer(auraReducer, null, initializer);
+    const [memoryStatus, setMemoryStatus] = useState<MemoryStatus>('saved');
+    const [isStateHydrated, setIsStateHydrated] = useState(false);
+
+    // Effect for loading the initial state from DB
+    useEffect(() => {
+        const hydrateState = async () => {
+            try {
+                const payload = await loadStateFromDB();
+                if (payload && payload.version === CURRENT_STATE_VERSION) {
+                    dispatch({ type: 'RESTORE_STATE_FROM_MEMRISTOR', payload });
+                } else if (payload && payload.version < CURRENT_STATE_VERSION) {
+                    console.warn(`Memristor state version mismatch. Found v${payload.version}, expected v${CURRENT_STATE_VERSION}. Starting migration...`);
+                    try {
+                        const migratedState = migrateState(payload);
+                        dispatch({ type: 'RESTORE_STATE_FROM_MEMRISTOR', payload: migratedState });
+                    } catch (migrationError) {
+                        console.error("State migration failed:", migrationError);
+                        dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: `SYSTEM: CRITICAL ERROR: Failed to upgrade Aura's memory. Resetting to a fresh state to prevent corruption.` } });
+                    }
+                } else if (payload) {
+                    console.error(`Memristor state version (v${payload.version}) is newer than the application version (v${CURRENT_STATE_VERSION}). This is unsupported. Resetting state.`);
+                    dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: 'SYSTEM: Detected a future state version. AGI has been reset.' } });
+                }
+            } catch (error) {
+                console.error("Memristor load error:", error);
+                dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: 'SYSTEM: Could not read from Memristor, initializing fresh AGI instance.' } });
+            } finally {
+                setIsStateHydrated(true);
+            }
+        };
+
+        hydrateState();
+    }, []); // Runs only once on mount
+
+    // Effect for saving the state to the DB whenever it changes
+    useEffect(() => {
+        if (!isStateHydrated) {
+            return;
+        }
+
+        setMemoryStatus('saving');
+        const timer = setTimeout(async () => {
+            try {
+                if (state) {
+                    await saveStateToDB(state);
+                    setMemoryStatus('saved');
+                }
+            } catch (error) {
+                console.error("Memristor save error:", error);
+                setMemoryStatus('error');
+            }
+        }, 250);
+
+        return () => clearTimeout(timer);
+    }, [state, isStateHydrated]);
+
+    return { state, dispatch, memoryStatus };
 };

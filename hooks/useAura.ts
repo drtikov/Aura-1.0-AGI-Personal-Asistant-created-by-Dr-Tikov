@@ -4,19 +4,38 @@ import { useAuraState } from './useAuraState';
 import { useGeminiAPI } from './useGeminiAPI';
 import { useAutonomousSystem } from './useAutonomousSystem';
 import { useUIHandlers } from './useUIHandlers';
-import { SelfDirectedGoal, ArchitecturalChangeProposal, ProactiveSuggestion } from '../types';
+import { SelfDirectedGoal, ArchitecturalChangeProposal, ProactiveSuggestion, PerformanceLogEntry } from '../types';
+import { useModal } from '../context/ModalContext';
 
 export const useAura = () => {
     const { toasts, addToast, removeToast } = useToasts();
-    const { state, dispatch } = useAuraState();
+    const { state, dispatch, memoryStatus } = useAuraState();
     const uiHandlers = useUIHandlers(state, dispatch, addToast);
-    const { handleSendCommand, handleEvolve, handleRunCognitiveMode, handleAnalyzeWhatIf, handleExecuteSearch, extractAndStoreKnowledge, handleHypothesize, handleIntuition, handleValidateModification, handleDecomposeGoal, handleAnalyzeVisualSentiment, handleGenerateProactiveSuggestion, handleRunRootCauseAnalysis } = useGeminiAPI(state, dispatch, addToast, uiHandlers.setProcessingState);
-    
-    const runProactiveCycle = useCallback(() => {
-        handleGenerateProactiveSuggestion();
-    }, [handleGenerateProactiveSuggestion]);
+    const apiHooks = useGeminiAPI(state, dispatch, addToast, uiHandlers.setProcessingState);
+    const { handleSendCommand } = apiHooks;
+    const modal = useModal();
 
-    const { handleIntrospect } = useAutonomousSystem(state, dispatch, addToast, uiHandlers.isPaused, runProactiveCycle, handleRunRootCauseAnalysis);
+    const { 
+        synthesizeNewSkill, 
+        runSkillSimulation, 
+        analyzePerformanceForEvolution, 
+        consolidateCoreIdentity, 
+        analyzeStateComponentCorrelation, 
+        runCognitiveArbiter 
+    } = apiHooks;
+
+    const { handleIntrospect } = useAutonomousSystem({
+        state,
+        dispatch,
+        addToast,
+        isPaused: uiHandlers.isPaused,
+        synthesizeNewSkill,
+        runSkillSimulation,
+        analyzePerformanceForEvolution,
+        consolidateCoreIdentity,
+        analyzeStateComponentCorrelation,
+        runCognitiveArbiter,
+    });
     const { isVisualAnalysisActive, setIsVisualAnalysisActive, videoRef, analysisIntervalRef, isRecording, setIsRecording, setCurrentCommand } = uiHandlers;
     const recognitionRef = useRef<any | null>(null);
 
@@ -36,12 +55,12 @@ export const useAura = () => {
     }, [addToast, handleSendCommand, dispatch]);
     
     const handleIngestData = useCallback(async (text: string) => {
-        uiHandlers.setShowIngest(false);
+        modal.close();
         uiHandlers.setProcessingState({ active: true, stage: 'Ingesting data...'});
-        const factsAdded = await extractAndStoreKnowledge(text, 0.8, false);
+        const factsAdded = await apiHooks.extractAndStoreKnowledge(text, 0.8, false);
         uiHandlers.setProcessingState({ active: false, stage: ''});
-        addToast(`Ingestion complete. ${factsAdded} new facts stored.`, 'success');
-    }, [extractAndStoreKnowledge, addToast, uiHandlers]);
+        addToast(`Ingestion complete. ${factsAdded.length} new facts stored.`, 'success');
+    }, [apiHooks.extractAndStoreKnowledge, addToast, uiHandlers, modal]);
     
     const wrappedAPICall = useCallback(async <T,>(apiFn: (...args: T[]) => Promise<void>, ...args: T[]) => {
         uiHandlers.setProcessingState({ active: true, stage: 'Processing...' });
@@ -49,23 +68,29 @@ export const useAura = () => {
         finally { uiHandlers.setProcessingState({ active: false, stage: '' }); }
     }, [uiHandlers]);
 
-    const handleSendCommandWrapper = (command: string, file?: File) => {
+    const handleSendCommandWrapper = useCallback((command: string, file?: File) => {
         handleSendCommand(command, file);
         uiHandlers.setCurrentCommand('');
         uiHandlers.handleRemoveAttachment();
-    };
+    }, [handleSendCommand, uiHandlers]);
 
-    const handleApproveProposal = (proposal: ArchitecturalChangeProposal) => {
+    const handleApproveProposal = useCallback((proposal: ArchitecturalChangeProposal) => {
         const snapshotId = self.crypto.randomUUID();
         const modLogId = self.crypto.randomUUID();
         
-        dispatch({ type: 'APPLY_ARCH_PROPOSAL', payload: { proposal, snapshotId, modLogId } });
-        addToast('Architectural change applied. Initiating validation...', 'success');
-        uiHandlers.setProposalToReview(null);
+        dispatch({ type: 'APPLY_ARCH_PROPOSAL', payload: { proposal, snapshotId, modLogId, isAutonomous: false } });
+        dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Architectural change applied. Initiating validation...', type: 'info' } });
+        modal.close();
 
         // Run validation in the background without blocking the UI
-        handleValidateModification(proposal, modLogId);
-    };
+        apiHooks.handleValidateModification(proposal, modLogId);
+    }, [dispatch, modal, apiHooks.handleValidateModification]);
+
+    const handleRejectProposal = useCallback((id: string) => {
+        dispatch({ type: 'UPDATE_ARCH_PROPOSAL_STATUS', payload: { id, status: 'rejected' } });
+        dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Architectural proposal rejected.', type: 'info' } });
+        modal.close();
+    }, [dispatch, modal]);
 
     const handleMicClick = useCallback(() => {
         if (isRecording) {
@@ -115,12 +140,12 @@ export const useAura = () => {
 
     }, [addToast, isRecording, setIsRecording, setCurrentCommand]);
 
-    const handleThemeChange = (e: React.ChangeEvent<HTMLSelectElement>) => dispatch({ type: 'SET_THEME', payload: e.target.value });
+    const handleThemeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => dispatch({ type: 'SET_THEME', payload: e.target.value }), [dispatch]);
 
-    const handleSetStrategicGoal = (goal: string) => {
-        uiHandlers.setShowStrategicGoalModal(false);
-        handleDecomposeGoal(goal);
-    };
+    const handleSetStrategicGoal = useCallback((goal: string) => {
+        modal.close();
+        apiHooks.handleDecomposeGoal(goal);
+    }, [modal, apiHooks.handleDecomposeGoal]);
 
     const handleToggleVisualAnalysis = useCallback(async () => {
         if (isVisualAnalysisActive) {
@@ -135,7 +160,7 @@ export const useAura = () => {
                 videoRef.current.srcObject = null;
             }
             setIsVisualAnalysisActive(false);
-            addToast('Visual analysis stopped.', 'info');
+            dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Visual analysis stopped.', type: 'info' } });
         } else {
             // Start
             try {
@@ -144,7 +169,7 @@ export const useAura = () => {
                     videoRef.current.srcObject = stream;
                     videoRef.current.onloadedmetadata = () => {
                         setIsVisualAnalysisActive(true);
-                        addToast('Visual analysis started.', 'success');
+                        dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Visual analysis started.', type: 'success' } });
 
                         analysisIntervalRef.current = window.setInterval(() => {
                             if (videoRef.current && videoRef.current.readyState >= 3) { // HAVE_FUTURE_DATA
@@ -158,7 +183,7 @@ export const useAura = () => {
                                     ctx.scale(-1, 1);
                                     ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
                                     const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
-                                    handleAnalyzeVisualSentiment(base64Image);
+                                    apiHooks.handleAnalyzeVisualSentiment(base64Image);
                                 }
                             }
                         }, 5000); // Analyze every 5 seconds
@@ -169,7 +194,7 @@ export const useAura = () => {
                 addToast('Camera access was denied. Please enable it in your browser settings.', 'error');
             }
         }
-    }, [isVisualAnalysisActive, videoRef, analysisIntervalRef, setIsVisualAnalysisActive, addToast, handleAnalyzeVisualSentiment]);
+    }, [isVisualAnalysisActive, videoRef, analysisIntervalRef, setIsVisualAnalysisActive, dispatch, apiHooks.handleAnalyzeVisualSentiment]);
 
     const handleFeedback = useCallback((historyId: string, feedback: 'positive' | 'negative') => {
         dispatch({ type: 'UPDATE_HISTORY_FEEDBACK', payload: { id: historyId, feedback } });
@@ -178,7 +203,7 @@ export const useAura = () => {
             ? 'Positive feedback registered. I will reinforce this approach.'
             : 'Corrective feedback registered. I am analyzing my response to improve.';
         addToast('Feedback received, thank you.', 'success');
-        dispatch({ type: 'ADD_HISTORY', payload: { id: self.crypto.randomUUID(), from: 'system', text: feedbackMessage } });
+        dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: feedbackMessage, type: 'info' } });
     }, [dispatch, addToast]);
 
     const handleSuggestionAction = useCallback((suggestionId: string, action: 'accepted' | 'rejected') => {
@@ -195,25 +220,36 @@ export const useAura = () => {
         }
     }, [state.proactiveEngineState.generatedSuggestions, dispatch, handleSendCommand, addToast]);
 
+    const handleTraceGoal = useCallback((logId: string) => {
+        const log = state.performanceLogs.find((l: PerformanceLogEntry) => l.id === logId);
+        if (log) {
+            modal.open('causalChain', { log });
+        } else {
+            addToast('Could not find the trace log for that goal.', 'warning');
+        }
+    }, [state.performanceLogs, modal, addToast]);
+
     return {
-        state, dispatch, toasts, removeToast, addToast, ...uiHandlers,
+        state, dispatch, toasts, removeToast, addToast, ...uiHandlers, memoryStatus,
         handleSendCommand: handleSendCommandWrapper,
-        handleEvolve: handleEvolve,
-        handleRunCognitiveMode: (mode: any) => wrappedAPICall(handleRunCognitiveMode, mode),
-        handleAnalyzeWhatIf: (scenario: string) => { uiHandlers.setShowWhatIfModal(false); wrappedAPICall(handleAnalyzeWhatIf, scenario); },
-        handleExecuteSearch: (query: string) => { uiHandlers.setShowSearchModal(false); wrappedAPICall(handleExecuteSearch, query); },
-        handleHypothesize: () => wrappedAPICall(handleHypothesize),
-        handleIntuition: () => wrappedAPICall(handleIntuition),
-        handleIntrospect, handleExecuteGoal, handleIngestData,
-        handleMicClick, handleThemeChange,
-        handleReviewProposal: uiHandlers.setProposalToReview,
-        handleApproveProposal,
-        handleRejectProposal: (id: string) => { dispatch({ type: 'UPDATE_ARCH_PROPOSAL_STATUS', payload: { id, status: 'rejected' } }); addToast('Proposal rejected.', 'info'); uiHandlers.setProposalToReview(null); },
-        handleSelectGainLog: uiHandlers.setSelectedGainLog,
-        handleValidateModification,
+        handleEvolve: () => wrappedAPICall(apiHooks.handleEvolve),
+        handleRunCognitiveMode: useCallback((mode: any) => wrappedAPICall(apiHooks.handleRunCognitiveMode, mode), [wrappedAPICall, apiHooks.handleRunCognitiveMode]),
+        handleAnalyzeWhatIf: useCallback((scenario: string) => { modal.close(); wrappedAPICall(apiHooks.handleAnalyzeWhatIf, scenario); }, [modal, wrappedAPICall, apiHooks.handleAnalyzeWhatIf]),
+        handleExecuteSearch: useCallback((query: string) => { modal.close(); wrappedAPICall(apiHooks.handleExecuteSearch, query); }, [modal, wrappedAPICall, apiHooks.handleExecuteSearch]),
+        handleHypothesize: () => wrappedAPICall(apiHooks.handleHypothesize),
+        handleIntuition: () => wrappedAPICall(apiHooks.handleIntuition),
+        handleIntrospect, 
+        handleExecuteGoal, 
+        handleIngestData,
+        handleMicClick, 
+        handleThemeChange,
+        handleReviewProposal: (proposal: ArchitecturalChangeProposal) => modal.open('proposalReview', { proposal, onApprove: handleApproveProposal, onReject: handleRejectProposal }),
+        handleSelectGainLog: (log: any) => modal.open('cognitiveGainDetail', { log }),
+        handleValidateModification: apiHooks.handleValidateModification,
         handleSetStrategicGoal,
         handleToggleVisualAnalysis,
         handleFeedback,
         handleSuggestionAction,
+        handleTraceGoal,
     };
 };

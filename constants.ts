@@ -1,34 +1,5 @@
-export const CHAT_HISTORY_KEY = 'aura-chat-history';
-export const KNOWLEDGE_GRAPH_KEY = 'aura-knowledge-graph';
-export const GOALS_KEY = 'aura-goals';
-export const PERFORMANCE_LOGS_KEY = 'aura-performance-logs';
-export const LIMITATIONS_KEY = 'aura-limitations';
-export const INTERNAL_STATE_KEY = 'aura-internal-state';
-export const ARCH_PROPOSALS_KEY = 'aura-arch-proposals';
-export const COGNITIVE_ARCH_KEY = 'aura-cognitive-arch';
-export const COGNITIVE_GAIN_LOG_KEY = 'aura-cognitive-gain-log';
-export const CAUSAL_SELF_MODEL_KEY = 'aura-causal-self-model';
-export const SYSTEM_SNAPSHOTS_KEY = 'aura-system-snapshots';
-export const MODIFICATION_LOG_KEY = 'aura-modification-log';
-export const RECENT_CAPABILITIES_KEY = 'aura-recent-capabilities';
-export const THEME_KEY = 'aura-theme';
-export const SELF_AWARENESS_METRICS_KEY = 'aura-self-awareness-metrics';
-export const GUNA_CALIBRATOR_KEY = 'aura-guna-calibrator';
-export const COGNITIVE_MODE_LOG_KEY = 'aura-cognitive-mode-log';
-export const DISCIPLINE_STATE_KEY = 'aura-discipline-state';
-export const USER_MODEL_KEY = 'aura-user-model';
-export const CURIOSITY_MODEL_KEY = 'aura-curiosity-model';
-export const INGENUITY_STATE_KEY = 'aura-ingenuity-state';
-export const RIE_STATE_KEY = 'aura-rie-state';
-export const MOTIVATIONAL_CALIBRATOR_KEY = 'aura-motivational-calibrator';
-export const INTUITION_ENGINE_KEY = 'aura-intuition-engine';
-export const INTUITIVE_LEAPS_KEY = 'aura-intuitive-leaps';
-export const RESOURCE_MONITOR_KEY = 'aura-resource-monitor';
-export const WORKING_MEMORY_KEY = 'aura-working-memory';
-export const INTERNAL_STATE_HISTORY_KEY = 'aura-internalStateHistory';
-export const PROACTIVE_ENGINE_KEY = 'aura-proactive-engine';
-export const ETHICAL_GOVERNOR_KEY = 'aura-ethical-governor';
 
+export const CURRENT_STATE_VERSION = 3;
 
 export const WORKING_MEMORY_CAPACITY = 5;
 
@@ -63,8 +34,10 @@ export const InternalStateEvents = {
 
 export const Skills = {
     DEDUCTIVE_REASONING: 'DEDUCTIVE_REASONING', HYBRID_REASONING: 'HYBRID_REASONING', HYPOTHETICAL_REASONING: 'HYPOTHETICAL_REASONING',
-    PROBABILISTIC_REASONING: 'PROBABILISTIC_REASONING', CALULATION: 'CALCULATION', INFORMATION_RETRIEVAL: 'INFORMATION_RETRIEVAL',
-    CODE_GENERATION: 'CODE_GENERATION', TEXT_GENERATION: 'TEXT_GENERATION', VISION: 'VISION', REFINEMENT: 'REFINEMENT', HELP: 'HELP', UNKNOWN: 'UNKNOWN'
+    PROBABILISTIC_REASONING: 'PROBABILISTIC_REASONING', CALCULATION: 'CALCULATION', INFORMATION_RETRIEVAL: 'INFORMATION_RETRIEVAL',
+    CODE_GENERATION: 'CODE_GENERATION', TEXT_GENERATION: 'TEXT_GENERATION', VISION: 'VISION', REFINEMENT: 'REFINEMENT', HELP: 'HELP',
+    // Add other awareness model as a skill to be selected by hybrid reasoning
+    OTHER_AWARENESS_MODEL: 'OTHER_AWARENESS_MODEL',
+    ETHICAL_GOVERNOR: 'ETHICAL_GOVERNOR',
+    UNKNOWN: 'UNKNOWN'
 } as const;
-
-export const ALL_AURA_KEYS = [ CHAT_HISTORY_KEY, KNOWLEDGE_GRAPH_KEY, GOALS_KEY, PERFORMANCE_LOGS_KEY, LIMITATIONS_KEY, INTERNAL_STATE_KEY, ARCH_PROPOSALS_KEY, COGNITIVE_ARCH_KEY, COGNITIVE_GAIN_LOG_KEY, CAUSAL_SELF_MODEL_KEY, SYSTEM_SNAPSHOTS_KEY, MODIFICATION_LOG_KEY, RECENT_CAPABILITIES_KEY, THEME_KEY, SELF_AWARENESS_METRICS_KEY, GUNA_CALIBRATOR_KEY, COGNITIVE_MODE_LOG_KEY, DISCIPLINE_STATE_KEY, USER_MODEL_KEY, CURIOSITY_MODEL_KEY, INGENUITY_STATE_KEY, RIE_STATE_KEY, MOTIVATIONAL_CALIBRATOR_KEY, INTUITION_ENGINE_KEY, INTUITIVE_LEAPS_KEY, RESOURCE_MONITOR_KEY, INTERNAL_STATE_HISTORY_KEY, WORKING_MEMORY_KEY, PROACTIVE_ENGINE_KEY, ETHICAL_GOVERNOR_KEY ];

@@ -1,7 +1,9 @@
 import React, { useMemo } from 'react';
+import { useLogsState } from '../context/AuraContext';
 import { CognitiveGainLogEntry } from '../types';
 
-export const CognitiveGainPanel = React.memo(({ log, onSelectLog }: { log: CognitiveGainLogEntry[]; onSelectLog: (log: CognitiveGainLogEntry) => void; }) => {
+export const CognitiveGainPanel = React.memo(({ onSelectLog }: { onSelectLog: (log: CognitiveGainLogEntry) => void; }) => {
+    const { cognitiveGainLog: log } = useLogsState();
     const summary = useMemo(() => {
         if (log.length === 0) return { totalEvents: 0, averageGain: 0 };
         const totalGain = log.reduce((acc, curr) => acc + curr.compositeGain, 0);

@@ -15,7 +15,6 @@ export const CognitiveGainDetailModal = ({ log, onClose }: { log: CognitiveGainL
                         <h4>Performance Metrics</h4>
                         <div className="gain-modal-grid">
                             <span className="grid-header">Metric</span> <span className="grid-header" style={{textAlign: 'right'}}>Before</span> <span className="grid-header" style={{textAlign: 'right'}}>After</span> <span className="grid-header" style={{textAlign: 'right'}}>Change</span>
-                            {/* FIX: Explicitly type 'metric' as string to fix type inference issues. */}
                             {Array.from(allMetrics).map((metric: string) => {
                                 const before = log.previousMetrics[metric] ?? 0; const after = log.currentMetrics[metric] ?? 0; const gain = log.gainScores[metric] ?? 0;
                                 return ( <React.Fragment key={metric}> <span className="metric-row">{metric.replace(/_/g, ' ')}</span> <span className="metric-row" style={{textAlign: 'right'}}>{formatMetric(metric, before)}</span> <span className="metric-row" style={{textAlign: 'right'}}>{formatMetric(metric, after)}</span> <span className={`metric-delta ${gain > 0 ? 'positive' : gain < 0 ? 'negative' : 'neutral'}`}> {gain > 0 ? '+' : ''}{formatMetric(metric, gain)} </span> </React.Fragment> );

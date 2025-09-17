@@ -1,7 +1,8 @@
 import React from 'react';
-import { CausalSelfModel } from '../types';
+import { useCoreState } from '../context/AuraContext';
 
-export const CausalSelfModelPanel = React.memo(({ model }: { model: CausalSelfModel }) => {
+export const CausalSelfModelPanel = React.memo(() => {
+    const { causalSelfModel: model } = useCoreState();
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         if (seconds < 60) return `${seconds}s ago`;
@@ -14,9 +15,9 @@ export const CausalSelfModelPanel = React.memo(({ model }: { model: CausalSelfMo
     return (
         <div className="side-panel causal-model-panel">
             <div className="causal-model-content">
-                {Object.values(model).length > 0 
+                {Object.values(model).length > 0
                     ? Object.entries(model).map(([causeKey, link]) => (
-                        <div key={link.id} className={`causal-link source-${link.source}`}>
+                        <div key={link.id} className={`causal-link source-${(link as any).source}`}>
                             <div className="causal-link-header">
                                 <span className="causal-cause" title={causeKey}>{causeKey.replace(/_/g, ' ')}</span>
                                 <span className="causal-confidence" title={`Confidence: ${link.confidence.toFixed(2)}`}>
@@ -25,13 +26,13 @@ export const CausalSelfModelPanel = React.memo(({ model }: { model: CausalSelfMo
                             </div>
                             <div className="causal-effect">
                                 <span className="causal-effect-arrow">→</span>
-                                {link.causes}
+                                {link.effect}
                             </div>
                             <div className="causal-link-footer">
-                                Learned via {link.source.toUpperCase()} ({timeAgo(link.lastUpdated)})
+                                Learned via {(link as any).source.toUpperCase()} ({timeAgo(link.lastUpdated)})
                             </div>
                         </div>
-                    )) 
+                    ))
                     : <div className="kg-placeholder">Causal self-model is empty.</div>
                 }
             </div>
