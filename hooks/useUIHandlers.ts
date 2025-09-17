@@ -3,8 +3,7 @@ import { AuraState, ToastType, Action } from '../types';
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
 
-
-export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, addToast: (msg: string, type?: ToastType) => void) => {
+export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string) => {
     const [currentCommand, setCurrentCommand] = useState('');
     const [attachedFile, setAttachedFile] = useState<{ file: File, previewUrl: string, type: 'image' | 'audio' | 'video' | 'other' } | null>(null);
     const [processingState, setProcessingState] = useState({ active: false, stage: '' });
@@ -22,30 +21,32 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
 
     useEffect(() => { dispatch({ type: 'SET_THEME', payload: state.theme }); document.body.className = state.theme; }, [state.theme, dispatch]);
     useEffect(() => { if (outputPanelRef.current) outputPanelRef.current.scrollTop = outputPanelRef.current.scrollHeight; }, [state.history]);
+    useEffect(() => { document.documentElement.lang = state.language; }, [state.language]);
+
 
     const handleRemoveAttachment = useCallback(() => { if (attachedFile) URL.revokeObjectURL(attachedFile.previewUrl); setAttachedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }, [attachedFile]);
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (file) { const previewUrl = URL.createObjectURL(file); const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other'; setAttachedFile({ file, previewUrl, type: fileType }); }
     }, []);
-    const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? 'Autonomous core resumed.' : 'Autonomous core paused.', 'info'); }, [isPaused, addToast]);
+    const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? t('toastAutonomousResumed') : t('toastAutonomousPaused'), 'info'); }, [isPaused, addToast, t]);
     const handleClearMemory = useCallback(() => {
-        if (window.confirm("Are you sure you want to reset Aura's AGI state? This will erase all memories and cannot be undone.")) {
+        if (window.confirm(t('toastResetConfirm'))) {
             try {
                 dispatch({ type: 'RESET_STATE' });
-                addToast('Aura has been reset. Reloading...', 'success');
+                addToast(t('toastResetSuccess'), 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } catch (e) {
                 console.error("Failed to clear memory:", e);
-                addToast('Failed to clear memory.', 'error');
+                addToast(t('toastResetFailed'), 'error');
             }
         }
-    }, [addToast, dispatch]);
+    }, [addToast, dispatch, t]);
     const handleExportState = useCallback(() => {
         try {
             const stateToExport = JSON.stringify(state, null, 2);
             if (!stateToExport) {
-                addToast('No state found to export.', 'warning');
+                addToast(t('placeholderNoData'), 'warning');
                 return;
             }
             const blob = new Blob([stateToExport], { type: 'application/json' });
@@ -55,19 +56,19 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             a.download = `aura_snapshot_${new Date().toISOString()}.json`;
             a.click();
             URL.revokeObjectURL(url);
-            addToast('State exported successfully.', 'success');
+            addToast(t('toastExportSuccess'), 'success');
         } catch (e) {
             console.error("Failed to export state:", e);
-            addToast('Failed to export state.', 'error');
+            addToast(t('toastExportFailed'), 'error');
         }
-    }, [addToast, state]);
+    }, [addToast, state, t]);
     const handleSaveAsCode = useCallback(() => {
         try {
             const stateString = JSON.stringify(state, null, 2);
             const fileContent = `// Aura State Snapshot - Saved on ${new Date().toISOString()}\n// This can be used for analysis or to bootstrap the application state.\n\nexport const savedAuraState = ${stateString};\n`;
             
             if (!stateString) {
-                addToast('No state found to export.', 'warning');
+                addToast(t('placeholderNoData'), 'warning');
                 return;
             }
             const blob = new Blob([fileContent], { type: 'application/typescript;charset=utf-8' });
@@ -79,12 +80,12 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             a.click();
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-            addToast('State saved as code file.', 'success');
+            addToast(t('toastExportSuccess'), 'success');
         } catch (e) {
             console.error("Failed to save state as code:", e);
-            addToast('Failed to save state as code.', 'error');
+            addToast(t('toastExportFailed'), 'error');
         }
-    }, [state, addToast]);
+    }, [state, addToast, t]);
     
     const processAndLoadState = useCallback((newState: any, source: 'file' | 'code file') => {
         if (!newState.version || typeof newState.version !== 'number') {
@@ -111,9 +112,9 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             }
 
             dispatch({ type: 'IMPORT_STATE', payload: stateToLoad });
-            addToast(`State imported successfully from ${source}.`, 'success');
+            addToast(t('toastImportSuccess', { source }), 'success');
         }
-    }, [dispatch, addToast]);
+    }, [dispatch, addToast, t]);
 
     const handleImportState = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader();
@@ -126,7 +127,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
                 console.error("Failed to import state:", err);
-                addToast(`Failed to import state. File may be corrupt or invalid. Error: ${errorMessage}`, 'error');
+                addToast(t('toastImportFailed', { error: errorMessage }), 'error');
             } finally {
                 if (importInputRef.current) {
                     importInputRef.current.value = '';
@@ -134,7 +135,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             }
         };
         reader.readAsText(file);
-    }, [processAndLoadState]);
+    }, [processAndLoadState, t]);
 
     const handleImportAsCode = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0]; if (!file) return;
@@ -154,7 +155,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
                 console.error("Failed to import state from code:", err);
-                addToast(`Failed to import state from code. File may be corrupt or invalid. Error: ${errorMessage}`, 'error');
+                addToast(t('toastImportFailed', { error: errorMessage }), 'error');
             } finally {
                 if (importAsCodeInputRef.current) {
                     importAsCodeInputRef.current.value = '';
@@ -162,15 +163,15 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             }
         };
         reader.readAsText(file);
-    }, [processAndLoadState]);
+    }, [processAndLoadState, t]);
 
     const handleRollback = useCallback((snapshotId: string) => {
         const snapshot = state.systemSnapshots.find(s => s.id === snapshotId);
         if (snapshot && snapshot.state && window.confirm(`Rollback to snapshot from ${new Date(snapshot.timestamp).toLocaleString()}? This is irreversible.`)) {
             dispatch({ type: 'ROLLBACK_STATE', payload: snapshot.state });
-            addToast('System state rolled back.', 'success');
-        } else { addToast('Rollback failed: Snapshot not found or invalid.', 'error'); }
-    }, [state.systemSnapshots, dispatch, addToast]);
+            addToast(t('toastRollbackSuccess'), 'success');
+        } else { addToast(t('toastRollbackFailed'), 'error'); }
+    }, [state.systemSnapshots, dispatch, addToast, t]);
     const handleToggleForgePause = useCallback(() => {
         dispatch({ type: 'TOGGLE_COGNITIVE_FORGE_PAUSE' });
         addToast(state.cognitiveForgeState.isTuningPaused ? 'Cognitive Forge tuning resumed.' : 'Cognitive Forge tuning paused.', 'info');

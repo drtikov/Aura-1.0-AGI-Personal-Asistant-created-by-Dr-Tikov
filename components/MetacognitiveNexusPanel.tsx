@@ -1,5 +1,5 @@
 import React from 'react';
-import { useSystemState } from '../context/AuraContext';
+import { useSystemState, useLocalization } from '../context/AuraContext';
 import { SelfTuningDirective } from '../types';
 
 const getStatusColor = (status: SelfTuningDirective['status']) => {
@@ -20,32 +20,33 @@ const getStatusColor = (status: SelfTuningDirective['status']) => {
 
 export const MetacognitiveNexusPanel = React.memo(() => {
     const { metacognitiveNexus: state } = useSystemState();
+    const { t } = useLocalization();
     return (
         <div className="side-panel">
             <div className="internal-state-content">
-                 <div className="panel-subsection-title">Core Processes</div>
+                 <div className="panel-subsection-title">{t('metaNexus_coreProcesses')}</div>
                  {(!state || !state.coreProcesses || state.coreProcesses.length === 0) ? (
-                    <div className="kg-placeholder">No core processes data available.</div>
+                    <div className="kg-placeholder">{t('placeholderNoData')}</div>
                 ) : (
                     state.coreProcesses.map(process => (
                         <div key={process.id} className="awareness-item">
                             <label>{process.name}</label>
                             <div className="state-bar-container">
-                                <div className="state-bar" style={{ width: `${process.activation * 100}%` }} title={`Activation: ${process.activation.toFixed(2)}`}></div>
+                                <div className="state-bar" style={{ width: `${process.activation * 100}%` }} title={`${t('metaNexus_activation')}: ${process.activation.toFixed(2)}`}></div>
                             </div>
                         </div>
                     ))
                 )}
-                <div className="panel-subsection-title">Self-Tuning Directives</div>
+                <div className="panel-subsection-title">{t('metaNexus_selfTuningDirectives')}</div>
                  {(!state || !state.selfTuningDirectives || state.selfTuningDirectives.length === 0) ? (
-                    <div className="kg-placeholder">No active self-tuning directives.</div>
+                    <div className="kg-placeholder">{t('metaNexus_noDirectives')}</div>
                 ) : (
                     state.selfTuningDirectives.map(d => (
                          <div key={d.id} className="gde-status" style={{ borderLeftColor: getStatusColor(d.status)}}>
                              <p title={d.reasoning}>
-                                <strong>[{d.type.replace(/_/g, ' ')}]</strong> on {d.targetSkill}
+                                <strong>[{d.type.replace(/_/g, ' ')}]</strong> {t('metaNexus_on')} {d.targetSkill}
                              </p>
-                            <small>Status: <span style={{ color: getStatusColor(d.status), fontWeight: 'bold' }}>{d.status}</span></small>
+                            <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(d.status), fontWeight: 'bold' }}>{d.status}</span></small>
                          </div>
                     ))
                 )}

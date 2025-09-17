@@ -1,12 +1,13 @@
 import React from 'react';
 import {
-    useAuraDispatch, useArchitectureState, useLogsState, useMemoryState, useCoreState
+    useAuraDispatch, useArchitectureState, useLogsState, useMemoryState, useCoreState, useLocalization
 } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
 import { Accordion } from './Accordion';
 import { VisualAnalysisFeed } from './VisualAnalysisFeed';
 import { panelLayout, PanelConfig } from './controlDeckConfig';
 import { MemoryStatus } from '../hooks/useAuraState';
+import { languages } from '../constants';
 
 export const ControlDeckComponent = () => {
     // Hooks to gather all necessary state slices and dispatchers/handlers
@@ -16,6 +17,7 @@ export const ControlDeckComponent = () => {
     const logsState = useLogsState();
     const memoryState = useMemoryState();
     const coreState = useCoreState();
+    const { t } = useLocalization();
     
     // Create the objects to pass down to config functions for summaries and props
     const stateSlices = {
@@ -36,13 +38,13 @@ export const ControlDeckComponent = () => {
     // Recursive function to render panels from the configuration
     const renderPanels = (panels: PanelConfig[]) => {
         return panels.map(panelConfig => {
-            const { id, title, component: PanelComponent, defaultOpen, summary, props, children } = panelConfig;
+            const { id, titleKey, component: PanelComponent, defaultOpen, summary, props, children } = panelConfig;
             
             // If a panel is just a container for other panels, it won't have a component
             if (!PanelComponent && !children) return null;
 
             const panelProps = props ? props(handlerProps) : {};
-            const summaryText = summary ? summary(stateSlices) : undefined;
+            const summaryText = summary ? summary(stateSlices, t) : undefined;
             
             // The content inside the accordion can be either a direct component or more accordions (children)
             const content = children
@@ -50,7 +52,7 @@ export const ControlDeckComponent = () => {
                 : (PanelComponent ? <PanelComponent {...panelProps} /> : null);
 
             return (
-                <Accordion key={id} title={title} defaultOpen={defaultOpen} summary={summaryText}>
+                <Accordion key={id} title={t(titleKey)} defaultOpen={defaultOpen} summary={summaryText}>
                     {content}
                 </Accordion>
             );
@@ -63,12 +65,12 @@ export const ControlDeckComponent = () => {
         handleExportState, importInputRef, handleImportState, handleClearMemory,
         handleThemeChange, processingState, handleIntrospect, handleEvolve,
         handleIntuition, handleHypothesize, handleToggleVisualAnalysis,
-        handleRunCognitiveMode, handleToggleForgePause,
+        handleRunCognitiveMode, handleToggleForgePause, handleLanguageChange,
         memoryStatus, handleIngestData, handleAnalyzeWhatIf, handleExecuteSearch, handleSetStrategicGoal,
         handleSaveAsCode, importAsCodeInputRef, handleImportAsCode, handleContemplate,
     } = dispatchers;
     
-    const { theme } = coreState;
+    const { theme, language } = coreState;
     const { cognitiveForgeState } = architectureState;
     
     const getMemoryStatusTooltip = (status: MemoryStatus) => {
@@ -83,23 +85,23 @@ export const ControlDeckComponent = () => {
     return (
         <div className="control-deck-container">
             <div className="control-deck-content">
-                <VisualAnalysisFeed videoRef={videoRef} isVisualAnalysisActive={isVisualAnalysisActive} />
+                <VisualAnalysisFeed videoRef={videoRef} isAnalysisActive={isVisualAnalysisActive} />
                  <div className="panel-group system-controls">
-                    <h3 className="panel-group-title">// SYSTEM</h3>
+                    <h3 className="panel-group-title">{t('controlDeckSystemTitle')}</h3>
                      <div className="button-grid">
-                        <button className={`control-button pause-button ${isPaused ? 'paused' : ''}`} onClick={handleTogglePause} disabled={processingState.active}>{isPaused ? 'Resume' : 'Pause'}</button>
-                        <button className={`control-button pause-button ${cognitiveForgeState.isTuningPaused ? 'paused' : ''}`} onClick={handleToggleForgePause} disabled={processingState.active}>{cognitiveForgeState.isTuningPaused ? 'Resume Forge' : 'Pause Forge'}</button>
-                        <button className="control-button" onClick={() => handleSendCommand('help')} disabled={processingState.active}>Help</button>
-                        <button className="control-button" onClick={handleExportState} disabled={processingState.active}>Export Memory</button>
-                        <button className="control-button" onClick={handleSaveAsCode} disabled={processingState.active}>Save as Code</button>
-                        <button className="control-button" onClick={() => importInputRef.current?.click()} disabled={processingState.active}>Import Memory</button>
+                        <button className={`control-button pause-button ${isPaused ? 'paused' : ''}`} onClick={handleTogglePause} disabled={processingState.active}>{isPaused ? t('controlDeckResume') : t('controlDeckPause')}</button>
+                        <button className={`control-button pause-button ${cognitiveForgeState.isTuningPaused ? 'paused' : ''}`} onClick={handleToggleForgePause} disabled={processingState.active}>{cognitiveForgeState.isTuningPaused ? t('controlDeckResumeForge') : t('controlDeckPauseForge')}</button>
+                        <button className="control-button" onClick={() => handleSendCommand('help')} disabled={processingState.active}>{t('controlDeckHelp')}</button>
+                        <button className="control-button" onClick={handleExportState} disabled={processingState.active}>{t('controlDeckExportMemory')}</button>
+                        <button className="control-button" onClick={handleSaveAsCode} disabled={processingState.active}>{t('controlDeckSaveAsCode')}</button>
+                        <button className="control-button" onClick={() => importInputRef.current?.click()} disabled={processingState.active}>{t('controlDeckImportMemory')}</button>
                         <input type="file" ref={importInputRef} onChange={handleImportState} accept=".json" style={{ display: 'none' }} />
-                        <button className="control-button" onClick={() => importAsCodeInputRef.current?.click()} disabled={processingState.active}>Import Code</button>
+                        <button className="control-button" onClick={() => importAsCodeInputRef.current?.click()} disabled={processingState.active}>{t('controlDeckImportCode')}</button>
                         <input type="file" ref={importAsCodeInputRef} onChange={handleImportAsCode} accept=".ts,.js" style={{ display: 'none' }} />
-                        <button className="control-button" onClick={() => modal.open('ingest', { onIngest: handleIngestData })} disabled={processingState.active}>Ingest</button>
+                        <button className="control-button" onClick={() => modal.open('ingest', { onIngest: handleIngestData })} disabled={processingState.active}>{t('controlDeckIngest')}</button>
                         <div className="memory-controls">
                             <span className={`memory-status-indicator ${memoryStatus}`} title={getMemoryStatusTooltip(memoryStatus)}></span>
-                            <button className="control-button clear-memory" onClick={handleClearMemory} disabled={processingState.active}>Reset AGI</button>
+                            <button className="control-button clear-memory" onClick={handleClearMemory} disabled={processingState.active}>{t('controlDeckResetAGI')}</button>
                         </div>
                          <div className="theme-switcher-container">
                             <select id="theme-switcher" value={theme} onChange={handleThemeChange}>
@@ -116,33 +118,40 @@ export const ControlDeckComponent = () => {
                                 <option value="ui-8">Black &amp; White</option>
                             </select>
                         </div>
+                        <div className="theme-switcher-container">
+                            <select id="language-switcher" value={language} onChange={handleLanguageChange} aria-label={t('controlDeckLanguage')}>
+                                {languages.map(lang => (
+                                    <option key={lang.code} value={lang.code}>{lang.name}</option>
+                                ))}
+                            </select>
+                        </div>
                      </div>
                  </div>
                  <div className="panel-group cognitive-triggers">
-                    <h3 className="panel-group-title">// COGNITIVE TRIGGERS</h3>
+                    <h3 className="panel-group-title">{t('controlDeckTriggersTitle')}</h3>
                      <div className="button-grid">
-                        <button className="control-button" onClick={handleIntrospect} disabled={processingState.active}>Introspect</button>
-                        <button className="control-button" onClick={handleEvolve} disabled={processingState.active}>Evolve</button>
-                        <button className="control-button" onClick={() => modal.open('search', { onSearch: handleExecuteSearch, isProcessing: processingState.active })} disabled={processingState.active}>Search</button>
-                        <button className="control-button" onClick={() => modal.open('forecast', { state: coreState.internalState })} disabled={processingState.active}>Forecast</button>
-                        <button className="control-button" onClick={handleIntuition} disabled={processingState.active}>Intuition</button>
-                        <button className="control-button" onClick={handleHypothesize} disabled={processingState.active}>Hypothesize</button>
+                        <button className="control-button" onClick={handleIntrospect} disabled={processingState.active}>{t('controlDeckIntrospect')}</button>
+                        <button className="control-button" onClick={handleEvolve} disabled={processingState.active}>{t('controlDeckEvolve')}</button>
+                        <button className="control-button" onClick={() => modal.open('search', { onSearch: handleExecuteSearch, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckSearch')}</button>
+                        <button className="control-button" onClick={() => modal.open('forecast', { state: coreState.internalState })} disabled={processingState.active}>{t('controlDeckForecast')}</button>
+                        <button className="control-button" onClick={handleIntuition} disabled={processingState.active}>{t('controlDeckIntuition')}</button>
+                        <button className="control-button" onClick={handleHypothesize} disabled={processingState.active}>{t('controlDeckHypothesize')}</button>
                          <button className={`control-button visual-sense ${isVisualAnalysisActive ? 'active' : ''}`} onClick={handleToggleVisualAnalysis} disabled={processingState.active && !isVisualAnalysisActive}>
-                             {isVisualAnalysisActive ? 'Stop Sense' : 'Visual Sense'}
+                             {isVisualAnalysisActive ? t('controlDeckStopSense') : t('controlDeckVisualSense')}
                          </button>
-                        <button className="control-button" onClick={() => modal.open('strategicGoal', { onSetGoal: handleSetStrategicGoal, isProcessing: processingState.active })} disabled={processingState.active}>Set Goal</button>
-                        <button className="control-button" onClick={() => modal.open('whatIf', { onAnalyze: handleAnalyzeWhatIf, isProcessing: processingState.active })} disabled={processingState.active}>What If?</button>
-                        <button className="control-button" onClick={handleContemplate} disabled={processingState.active}>Contemplate</button>
+                        <button className="control-button" onClick={() => modal.open('strategicGoal', { onSetGoal: handleSetStrategicGoal, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckSetGoal')}</button>
+                        <button className="control-button" onClick={() => modal.open('whatIf', { onAnalyze: handleAnalyzeWhatIf, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckWhatIf')}</button>
+                        <button className="control-button" onClick={handleContemplate} disabled={processingState.active}>{t('controlDeckContemplate')}</button>
                      </div>
                  </div>
                  <div className="panel-group cognitive-modes">
-                    <h3 className="panel-group-title">// COGNITIVE MODES</h3>
+                    <h3 className="panel-group-title">{t('controlDeckModesTitle')}</h3>
                     <div className="button-grid">
-                       <button className="control-button mode-fantasy" onClick={() => handleRunCognitiveMode('Fantasy')} disabled={processingState.active}>Fantasy</button>
-                       <button className="control-button mode-creativity" onClick={() => handleRunCognitiveMode('Creativity')} disabled={processingState.active}>Creativity</button>
-                       <button className="control-button mode-dream" onClick={() => handleRunCognitiveMode('Dream')} disabled={processingState.active}>Dream</button>
-                       <button className="control-button mode-meditate" onClick={() => handleRunCognitiveMode('Meditate')} disabled={processingState.active}>Meditate</button>
-                       <button className="control-button mode-gaze" onClick={() => handleRunCognitiveMode('Gaze')} disabled={processingState.active}>Gaze</button>
+                       <button className="control-button mode-fantasy" onClick={() => handleRunCognitiveMode('Fantasy')} disabled={processingState.active}>{t('controlDeckModeFantasy')}</button>
+                       <button className="control-button mode-creativity" onClick={() => handleRunCognitiveMode('Creativity')} disabled={processingState.active}>{t('controlDeckModeCreativity')}</button>
+                       <button className="control-button mode-dream" onClick={() => handleRunCognitiveMode('Dream')} disabled={processingState.active}>{t('controlDeckModeDream')}</button>
+                       <button className="control-button mode-meditate" onClick={() => handleRunCognitiveMode('Meditate')} disabled={processingState.active}>{t('controlDeckModeMeditate')}</button>
+                       <button className="control-button mode-gaze" onClick={() => handleRunCognitiveMode('Gaze')} disabled={processingState.active}>{t('controlDeckModeGaze')}</button>
                     </div>
                 </div>
 

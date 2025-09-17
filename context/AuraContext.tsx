@@ -5,14 +5,22 @@ import { AuraState } from '../types';
 // --- CONTEXT DEFINITIONS ---
 
 // The dispatch context provides all actions and handlers. It's stable and won't cause re-renders.
-type AuraDispatchers = Omit<ReturnType<typeof useAura>, 'state'>;
+type AuraDispatchers = ReturnType<typeof useAura>;
 export const AuraDispatchContext = createContext<AuraDispatchers | null>(null);
 
+// Localization Context
+type LocalizationContextType = {
+    language: string;
+    t: (key: string, options?: any) => string;
+};
+export const LocalizationContext = createContext<LocalizationContextType | null>(null);
+
+
 // State contexts are split into logical slices to prevent unnecessary re-renders.
-// Core state is expanded to include the new awareness modules.
-export const CoreStateContext = createContext<Pick<AuraState, 'internalState' | 'internalStateHistory' | 'rieState' | 'userModel' | 'coreIdentity' | 'selfAwarenessState' | 'worldModelState' | 'curiosityState' | 'knownUnknowns' | 'theme' | 'limitations' | 'causalSelfModel' | 'phenomenologicalEngine' | 'situationalAwareness' | 'symbioticState' | 'developmentalHistory'> | null>(null);
+// Core state is expanded to include the new awareness modules and evolution engines.
+export const CoreStateContext = createContext<Pick<AuraState, 'internalState' | 'internalStateHistory' | 'rieState' | 'userModel' | 'coreIdentity' | 'selfAwarenessState' | 'worldModelState' | 'curiosityState' | 'knownUnknowns' | 'theme' | 'language' | 'limitations' | 'causalSelfModel' | 'phenomenologicalEngine' | 'situationalAwareness' | 'symbioticState' | 'developmentalHistory' | 'telosEngine' | 'boundaryDetectionEngine' | 'aspirationalEngine' | 'noosphereInterface' | 'dialecticEngine' | 'cognitiveLightCone'> | null>(null);
 export const MemoryStateContext = createContext<Pick<AuraState, 'knowledgeGraph' | 'workingMemory' | 'memoryNexus'> | null>(null);
-export const ArchitectureStateContext = createContext<Pick<AuraState, 'cognitiveArchitecture' | 'architecturalProposals' | 'systemSnapshots' | 'modificationLog' | 'cognitiveForgeState'> | null>(null);
+export const ArchitectureStateContext = createContext<Pick<AuraState, 'cognitiveArchitecture' | 'architecturalProposals' | 'systemSnapshots' | 'modificationLog' | 'cognitiveForgeState' | 'architecturalSelfModel' | 'heuristicsForge' | 'somaticCrucible' | 'eidolonEngine'> | null>(null);
 export const PlanningStateContext = createContext<Pick<AuraState, 'goalTree' | 'activeStrategicGoalId' | 'disciplineState'> | null>(null);
 export const EngineStateContext = createContext<Pick<AuraState, 'proactiveEngineState' | 'ethicalGovernorState' | 'intuitionEngineState' | 'intuitiveLeaps' | 'ingenuityState'> | null>(null);
 export const LogsStateContext = createContext<Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 'cognitiveModeLog' | 'cognitiveGainLog' | 'cognitiveRegulationLog'> | null>(null);
@@ -33,6 +41,7 @@ function createUseContextHook<T>(context: React.Context<T | null>, contextName: 
 }
 
 export const useAuraDispatch = createUseContextHook(AuraDispatchContext, 'AuraDispatch');
+export const useLocalization = createUseContextHook(LocalizationContext, 'Localization');
 export const useCoreState = createUseContextHook(CoreStateContext, 'CoreState');
 export const useMemoryState = createUseContextHook(MemoryStateContext, 'MemoryState');
 export const useArchitectureState = createUseContextHook(ArchitectureStateContext, 'ArchitectureState');

@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { InternalState } from '../types';
 import { GunaState } from '../constants';
 
-export const useGunaAnalysis = (internalState: InternalState) => {
+export const useGunaAnalysis = (internalState: InternalState, t: (key: string, options?: any) => string) => {
     const gunaReason = useMemo(() => {
         const { gunaState, noveltySignal, masterySignal, uncertaintySignal, boredomLevel, load } = internalState;
 
@@ -19,19 +19,19 @@ export const useGunaAnalysis = (internalState: InternalState) => {
 
         switch (gunaState) {
             case GunaState.SATTVA:
-                return `Driven by high Mastery (${masterySignal.toFixed(2)}) and low Uncertainty (${uncertaintySignal.toFixed(2)}).`;
+                return t('gunaReasonSattva', { mastery: masterySignal.toFixed(2), uncertainty: uncertaintySignal.toFixed(2) });
             case GunaState.RAJAS:
-                return `Driven by high ${dominantSignal.name} (${dominantSignal.value.toFixed(2)}) and ${secondarySignal.name} (${secondarySignal.value.toFixed(2)}).`;
+                return t('gunaReasonRajas', { dominantSignal: dominantSignal.name, dominantValue: dominantSignal.value.toFixed(2), secondarySignal: secondarySignal.name, secondaryValue: secondarySignal.value.toFixed(2) });
             case GunaState.TAMAS:
-                return `Resulting from high Cognitive Load (${load.toFixed(2)}) or sustained Boredom (${boredomLevel.toFixed(2)}).`;
+                return t('gunaReasonTamas', { load: load.toFixed(2), boredom: boredomLevel.toFixed(2) });
             case GunaState.DHARMA:
-                return `Engaged in self-correction due to detected performance deviation.`;
+                return t('gunaReasonDharma');
             case GunaState.GUNA_TEETA:
-                return `A transcendent state where all signals are in dynamic equilibrium.`;
+                return t('gunaReasonGunaTeeta');
             default:
-                return 'Calculating state drivers...';
+                return t('gunaReasonCalculating');
         }
-    }, [internalState]);
+    }, [internalState, t]);
 
     return gunaReason;
 };

@@ -6,12 +6,27 @@ import { useAutonomousSystem } from './useAutonomousSystem';
 import { useUIHandlers } from './useUIHandlers';
 import { SelfDirectedGoal, ArchitecturalChangeProposal, ProactiveSuggestion, PerformanceLogEntry } from '../types';
 import { useModal } from '../context/ModalContext';
+import { resources } from '../constants';
 
 export const useAura = () => {
     const { toasts, addToast, removeToast } = useToasts();
     const { state, dispatch, memoryStatus } = useAuraState();
-    const uiHandlers = useUIHandlers(state, dispatch, addToast);
-    const apiHooks = useGeminiAPI(state, dispatch, addToast, uiHandlers.setProcessingState);
+    
+    const t = useCallback((key: string, options?: any) => {
+        const langResources = resources[state.language]?.translation || resources.en.translation;
+        let translation = langResources[key] || resources.en.translation[key] || key;
+        
+        if (options) {
+            Object.keys(options).forEach(optKey => {
+                const regex = new RegExp(`{{${optKey}}}`, 'g');
+                translation = translation.replace(regex, options[optKey]);
+            });
+        }
+        return translation;
+    }, [state.language]);
+
+    const uiHandlers = useUIHandlers(state, dispatch, addToast, t);
+    const apiHooks = useGeminiAPI(state, dispatch, addToast, uiHandlers.setProcessingState, t);
     const { handleSendCommand } = apiHooks;
     const modal = useModal();
 
@@ -40,7 +55,7 @@ export const useAura = () => {
     const recognitionRef = useRef<any | null>(null);
 
     const handleExecuteGoal = useCallback(async (goal: SelfDirectedGoal) => {
-        addToast(`Executing goal: ${goal.actionCommand}`, 'info');
+        addToast(t('toastExecutingGoal', { goal: goal.actionCommand }), 'info');
         dispatch({ type: 'UPDATE_GOAL_STATUS', payload: { id: goal.id, status: 'executing' } });
         
         const logEntry = await handleSendCommand(goal.actionCommand);
@@ -52,15 +67,15 @@ export const useAura = () => {
             const executionLog = 'Execution failed due to a system error.';
             dispatch({ type: 'UPDATE_GOAL_OUTCOME', payload: { id: goal.id, status: 'failed', executionLog, logId: '' } });
         }
-    }, [addToast, handleSendCommand, dispatch]);
+    }, [addToast, handleSendCommand, dispatch, t]);
     
     const handleIngestData = useCallback(async (text: string) => {
         modal.close();
         uiHandlers.setProcessingState({ active: true, stage: 'Ingesting data...'});
         const factsAdded = await apiHooks.extractAndStoreKnowledge(text, 0.8, false);
         uiHandlers.setProcessingState({ active: false, stage: ''});
-        addToast(`Ingestion complete. ${factsAdded.length} new facts stored.`, 'success');
-    }, [apiHooks.extractAndStoreKnowledge, addToast, uiHandlers, modal]);
+        addToast(t('toastIngestionComplete', { count: factsAdded.length }), 'success');
+    }, [apiHooks.extractAndStoreKnowledge, addToast, uiHandlers, modal, t]);
     
     const wrappedAPICall = useCallback(async <T,>(apiFn: (...args: T[]) => Promise<void>, ...args: T[]) => {
         uiHandlers.setProcessingState({ active: true, stage: 'Processing...' });
@@ -68,8 +83,8 @@ export const useAura = () => {
         finally { uiHandlers.setProcessingState({ active: false, stage: '' }); }
     }, [uiHandlers]);
 
-    const handleSendCommandWrapper = useCallback((command: string, file?: File) => {
-        handleSendCommand(command, file);
+    const handleSendCommandWrapper = useCallback(async (command: string, file?: File) => {
+        await handleSendCommand(command, file);
         uiHandlers.setCurrentCommand('');
         uiHandlers.handleRemoveAttachment();
     }, [handleSendCommand, uiHandlers]);
@@ -100,19 +115,19 @@ export const useAura = () => {
 
         const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
         if (!SpeechRecognition) {
-            addToast('Speech recognition is not supported in this browser.', 'warning');
+            addToast(t('toastSpeechNotSupported'), 'warning');
             return;
         }
 
         const recognition = new SpeechRecognition();
         recognition.continuous = false;
         recognition.interimResults = false;
-        recognition.lang = 'en-US';
+        recognition.lang = state.language;
         recognitionRef.current = recognition;
 
         recognition.onstart = () => {
             setIsRecording(true);
-            addToast('Listening...', 'info');
+            addToast(t('toastListening'), 'info');
         };
 
         recognition.onresult = (event: any) => {
@@ -122,11 +137,11 @@ export const useAura = () => {
         
         recognition.onerror = (event: any) => {
             console.error('Speech recognition error', event.error);
-            let errorMessage = 'An error occurred during speech recognition.';
+            let errorMessage = t('toastSRFail');
             if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
-                errorMessage = 'Microphone access denied. Please enable it in your browser settings.';
+                errorMessage = t('toastMicDenied');
             } else if (event.error === 'no-speech') {
-                errorMessage = 'No speech was detected.';
+                errorMessage = t('toastNoSpeech');
             }
             addToast(errorMessage, 'error');
         };
@@ -138,9 +153,11 @@ export const useAura = () => {
 
         recognition.start();
 
-    }, [addToast, isRecording, setIsRecording, setCurrentCommand]);
+    }, [addToast, isRecording, setIsRecording, setCurrentCommand, t, state.language]);
 
     const handleThemeChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => dispatch({ type: 'SET_THEME', payload: e.target.value }), [dispatch]);
+    const handleLanguageChange = useCallback((e: React.ChangeEvent<HTMLSelectElement>) => dispatch({ type: 'SET_LANGUAGE', payload: e.target.value }), [dispatch]);
+
 
     const handleSetStrategicGoal = useCallback((goal: string) => {
         modal.close();
@@ -191,20 +208,20 @@ export const useAura = () => {
                 }
             } catch (err) {
                 console.error("Camera access denied:", err);
-                addToast('Camera access was denied. Please enable it in your browser settings.', 'error');
+                addToast(t('toastCameraAccessDenied'), 'error');
             }
         }
-    }, [isVisualAnalysisActive, videoRef, analysisIntervalRef, setIsVisualAnalysisActive, dispatch, apiHooks.handleAnalyzeVisualSentiment]);
+    }, [isVisualAnalysisActive, videoRef, analysisIntervalRef, setIsVisualAnalysisActive, dispatch, apiHooks.handleAnalyzeVisualSentiment, addToast, t]);
 
     const handleFeedback = useCallback((historyId: string, feedback: 'positive' | 'negative') => {
-        dispatch({ type: 'UPDATE_HISTORY_FEEDBACK', payload: { id: historyId, feedback } });
+        dispatch({ type: 'UPDATE_HISTORY_FEEDBACK', payload: { id: historyId, feedback: feedback } });
         dispatch({ type: 'PROCESS_USER_FEEDBACK', payload: feedback });
         const feedbackMessage = feedback === 'positive' 
-            ? 'Positive feedback registered. I will reinforce this approach.'
-            : 'Corrective feedback registered. I am analyzing my response to improve.';
-        addToast('Feedback received, thank you.', 'success');
+            ? t('toastPositiveFeedbackReinforce')
+            : t('toastCorrectiveFeedbackImprove');
+        addToast(t('toastFeedbackReceived'), 'success');
         dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: feedbackMessage, type: 'info' } });
-    }, [dispatch, addToast]);
+    }, [dispatch, addToast, t]);
 
     const handleSuggestionAction = useCallback((suggestionId: string, action: 'accepted' | 'rejected') => {
         const suggestion = state.proactiveEngineState.generatedSuggestions.find(s => s.id === suggestionId);
@@ -213,21 +230,21 @@ export const useAura = () => {
         dispatch({ type: 'UPDATE_SUGGESTION_STATUS', payload: { id: suggestionId, status: action } });
         
         if (action === 'accepted') {
-            addToast(`Executing: "${suggestion.text}"`, 'info');
+            addToast(t('toastSuggestionAccepted', { text: suggestion.text }), 'info');
             handleSendCommand(suggestion.text);
         } else {
-            addToast('Suggestion dismissed.', 'info');
+            addToast(t('toastSuggestionDismissed'), 'info');
         }
-    }, [state.proactiveEngineState.generatedSuggestions, dispatch, handleSendCommand, addToast]);
+    }, [state.proactiveEngineState.generatedSuggestions, dispatch, handleSendCommand, addToast, t]);
 
     const handleTraceGoal = useCallback((logId: string) => {
         const log = state.performanceLogs.find((l: PerformanceLogEntry) => l.id === logId);
         if (log) {
             modal.open('causalChain', { log });
         } else {
-            addToast('Could not find the trace log for that goal.', 'warning');
+            addToast(t('toastTraceNotFound'), 'warning');
         }
-    }, [state.performanceLogs, modal, addToast]);
+    }, [state.performanceLogs, modal, addToast, t]);
 
     return {
         state, dispatch, toasts, removeToast, addToast, ...uiHandlers, memoryStatus,
@@ -243,6 +260,7 @@ export const useAura = () => {
         handleIngestData,
         handleMicClick, 
         handleThemeChange,
+        handleLanguageChange,
         handleReviewProposal: (proposal: ArchitecturalChangeProposal) => modal.open('proposalReview', { proposal, onApprove: handleApproveProposal, onReject: handleRejectProposal }),
         handleSelectGainLog: (log: any) => modal.open('cognitiveGainDetail', { log }),
         handleValidateModification: apiHooks.handleValidateModification,
@@ -251,5 +269,7 @@ export const useAura = () => {
         handleFeedback,
         handleSuggestionAction,
         handleTraceGoal,
+        t,
+        language: state.language
     };
 };

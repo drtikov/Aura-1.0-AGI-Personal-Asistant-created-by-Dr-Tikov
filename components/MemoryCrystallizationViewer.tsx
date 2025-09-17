@@ -1,8 +1,9 @@
 import React, { useMemo } from 'react';
-import { useMemoryState } from '../context/AuraContext';
+import { useMemoryState, useLocalization } from '../context/AuraContext';
 
 export const MemoryCrystallizationViewer = React.memo(() => {
     const { memoryNexus: nexus } = useMemoryState();
+    const { t } = useLocalization();
     const strongestConnections = useMemo(() => {
         if (!nexus.hyphaeConnections) return [];
         return [...nexus.hyphaeConnections]
@@ -13,11 +14,11 @@ export const MemoryCrystallizationViewer = React.memo(() => {
     return (
         <div className="side-panel">
             <p className="kg-placeholder" style={{marginBottom: '1rem'}}>
-                Long-term memory is stored as weighted connections between cognitive cores. Below are the strongest connections, representing the most stable "memory crystals."
+                {t('memoryCrystallization_description')}
             </p>
             <div className="hypha-connections-list">
                 {strongestConnections.map(conn => (
-                    <div key={conn.id} className="hypha-connection-item" title={`Weight: ${conn.weight.toFixed(3)}`}>
+                    <div key={conn.id} className="hypha-connection-item" title={`${t('memoryCrystallization_weight')}: ${conn.weight.toFixed(3)}`}>
                         <span className="hypha-source">{conn.source.replace(/_/g, ' ')}</span>
                         <div 
                             className="hypha-weight-bar"

@@ -1,13 +1,14 @@
 import { useCallback, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { AuraState, PerformanceLogEntry, ArchitecturalChangeProposal, Fact, SynthesizedSkill, SelfTuningDirective, MetacognitiveLink, CognitiveRegulationLogEntry, InternalState, Action, ReasoningStep, ArbitrationResult, SimulationLogEntry } from '../types';
+import { AuraState, PerformanceLogEntry, ArchitecturalChangeProposal, Fact, SynthesizedSkill, SelfTuningDirective, MetacognitiveLink, CognitiveRegulationLogEntry, InternalState, Action, ReasoningStep, ArbitrationResult, SimulationLogEntry, HistoryEntry } from '../types';
 import { fileToGenerativePart, clamp } from '../utils';
 
 export const useGeminiAPI = (
     state: AuraState,
     dispatch: React.Dispatch<Action>,
     addToast: (message: string, type?: any) => void,
-    setProcessingState: (state: { active: boolean, stage: string }) => void
+    setProcessingState: (state: { active: boolean, stage: string }) => void,
+    t: (key: string, options?: any) => string
 ) => {
     const ai = useMemo(() => new GoogleGenAI({apiKey: process.env.API_KEY}), []);
 
@@ -70,7 +71,19 @@ export const useGeminiAPI = (
     }, [dispatch, state.internalState, state.metacognitiveCausalModel]);
 
     const handleSendCommand = useCallback(async (command: string, file?: File): Promise<PerformanceLogEntry | null> => {
-        dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'user', text: command } });
+        const userHistoryPayload: Omit<HistoryEntry, 'id'> = {
+            from: 'user',
+            text: command,
+        };
+        if (file) {
+            userHistoryPayload.fileName = file.name;
+            userHistoryPayload.fileType = file.type;
+            if (file.type.startsWith('image/')) {
+                userHistoryPayload.filePreview = URL.createObjectURL(file);
+            }
+        }
+        dispatch({ type: 'ADD_HISTORY_ENTRY', payload: userHistoryPayload });
+        
         setProcessingState({ active: true, stage: 'Planning...' });
         const startTime = Date.now();
         let regulationLogId: string | null = null;
@@ -79,13 +92,16 @@ export const useGeminiAPI = (
             // Step 1: PLAN - Decompose the task into a series of steps using available skills.
             const availableSkills = [
                 ...Object.keys(state.cognitiveForgeState.skillTemplates),
-                ...state.cognitiveForgeState.synthesizedSkills.map(s => s.name)
+                ...state.cognitiveForgeState.synthesizedSkills.filter(s => s.status === 'active').map(s => s.name)
             ];
+            const fileAttached = !!file;
             const planningPrompt = `
                 You are the planner for an AGI. Your task is to decompose a user's request into a structured plan of executable steps.
                 You have access to a list of skills. For each step, you must choose the most appropriate skill and define the exact input for it.
                 The input can be the original user command, or the output of a previous step (referenced as {{step_N_output}}).
-
+                ${fileAttached ? `
+                IMPORTANT: A file has been attached. You MUST identify the single step that processes this file and set a 'processes_file' flag to true for that step. This is typically a VISION or a text processing skill. For all other steps, this flag should be omitted or false.
+                ` : ''}
                 Available Skills: ${availableSkills.join(', ')}
                 User Request: "${command}"
 
@@ -108,7 +124,8 @@ export const useGeminiAPI = (
                                         step: { type: Type.INTEGER },
                                         skill: { type: Type.STRING },
                                         reasoning: { type: Type.STRING },
-                                        input: { type: Type.STRING }
+                                        input: { type: Type.STRING },
+                                        processes_file: { type: Type.BOOLEAN }
                                     }
                                 }
                             }
@@ -131,38 +148,78 @@ export const useGeminiAPI = (
 
             // Step 3: EXECUTE - Iterate through the plan and execute each step.
             const stepOutputs: Record<string, string> = {};
+            let fileToSend: File | undefined = file;
+
             for (const step of reasoningPlan) {
-                setProcessingState({ active: true, stage: `Executing: ${step.skill}` });
+                const stepInput = step.input.replace(/\{\{step_(\d+)_output\}\}/g, (match, stepNum) => stepOutputs[stepNum] || '');
                 
-                // Substitute inputs from previous steps
-                let finalInput = step.input.replace(/\{\{step_(\d+)_output\}\}/g, (match, stepNum) => {
-                    return stepOutputs[stepNum] || '';
-                });
-
-                const skillTemplate = state.cognitiveForgeState.skillTemplates[step.skill];
-                if (!skillTemplate) { throw new Error(`Skill "${step.skill}" not found in Cognitive Forge.`); }
-
-                let contents: any = finalInput;
-                if (file && step.step === 1) { // Assume file is only for the first step
-                    const filePart = await fileToGenerativePart(file);
-                    contents = { parts: [{ text: finalInput }, filePart] };
+                // Determine if this step uses the file, and prepare the file part for the API
+                let filePartForStep: any = null;
+                if (fileToSend && step.processes_file) {
+                    filePartForStep = await fileToGenerativePart(fileToSend);
+                    fileToSend = undefined; // Consume the file so it's only used once
                 }
 
-                const stepResponse = await ai.models.generateContent({
-                    model: 'gemini-2.5-flash',
-                    contents,
-                    config: {
-                        systemInstruction: skillTemplate.systemInstruction,
-                        ...skillTemplate.parameters
-                    }
-                });
+                const skillTemplate = state.cognitiveForgeState.skillTemplates[step.skill];
+                const synthesizedSkill = state.cognitiveForgeState.synthesizedSkills.find(s => s.name === step.skill && s.status === 'active');
+                
+                let stepOutput = '';
 
-                stepOutputs[step.step] = stepResponse.text;
+                if (skillTemplate) {
+                    setProcessingState({ active: true, stage: `Executing: ${step.skill}` });
+                    const contents = filePartForStep
+                        ? { parts: [{ text: stepInput }, filePartForStep] }
+                        : stepInput;
+
+                    const stepResponse = await ai.models.generateContent({
+                        model: 'gemini-2.5-flash',
+                        contents,
+                        config: { systemInstruction: skillTemplate.systemInstruction, ...skillTemplate.parameters }
+                    });
+                    stepOutput = stepResponse.text;
+
+                } else if (synthesizedSkill) {
+                    setProcessingState({ active: true, stage: `Executing Synth: ${synthesizedSkill.name}` });
+                    
+                    // Assumption: If a file is attached to a synthesized skill step, it's passed to the first sub-step.
+                    let filePartForSubStep: any = filePartForStep; 
+                    const subStepOutputs: { [key: number]: string } = {};
+                    let subStepIndex = 1;
+
+                    for (const subStep of synthesizedSkill.steps) {
+                        const subSkillTemplate = state.cognitiveForgeState.skillTemplates[subStep.skill];
+                        if (!subSkillTemplate) throw new Error(`Sub-skill "${subStep.skill}" for synth "${synthesizedSkill.name}" not found.`);
+                        
+                        let subStepInputText = subStep.inputTemplate
+                            .replace(/\{\{input\}\}/g, stepInput)
+                            .replace(/\{\{step_(\d+)_output\}\}/g, (match, subStepNum) => subStepOutputs[parseInt(subStepNum, 10)] || '');
+                        
+                        const contents = filePartForSubStep
+                            ? { parts: [{ text: subStepInputText }, filePartForSubStep] }
+                            : subStepInputText;
+                        
+                        filePartForSubStep = null; // Ensure file is only used in the first sub-step
+
+                        const subStepResponse = await ai.models.generateContent({
+                            model: 'gemini-2.5-flash',
+                            contents,
+                            config: { systemInstruction: subSkillTemplate.systemInstruction, ...subSkillTemplate.parameters }
+                        });
+                        subStepOutputs[subStepIndex] = subStepResponse.text;
+                        subStepIndex++;
+                    }
+                    stepOutput = subStepOutputs[synthesizedSkill.steps.length] || '';
+
+                } else {
+                    throw new Error(`Skill "${step.skill}" not found in Cognitive Forge.`);
+                }
+                
+                stepOutputs[step.step] = stepOutput;
             }
 
             // Step 4: SUMMARIZE - Synthesize the final output from the last step's result.
             setProcessingState({ active: true, stage: 'Synthesizing response...' });
-            const finalOutput = stepOutputs[reasoningPlan.length]; // Use the last step's output directly or summarize if needed.
+            const finalOutput = stepOutputs[reasoningPlan.length];
             
             const newLogEntry: PerformanceLogEntry = {
                 id: self.crypto.randomUUID(),
@@ -198,10 +255,10 @@ export const useGeminiAPI = (
         } finally {
             setProcessingState({ active: false, stage: '' });
         }
-    }, [dispatch, setProcessingState, addToast, state.cognitiveForgeState, state.internalState, state.workingMemory, ai, primeCognitiveStateForTask]);
+    }, [dispatch, setProcessingState, addToast, state.cognitiveForgeState, state.internalState, state.workingMemory, ai, primeCognitiveStateForTask, t]);
 
     const analyzePerformanceForEvolution = useCallback(async (): Promise<void> => {
-        addToast('Metacognitive cycle: Analyzing architecture for improvements...', 'info');
+        addToast(t('toastMetaCycleAnalysis'), 'info');
         const logs = state.performanceLogs.slice(-50);
         const templates = state.cognitiveForgeState.skillTemplates;
         if (logs.length < 10) return;
@@ -238,15 +295,15 @@ export const useGeminiAPI = (
             const directiveData = JSON.parse(response.text);
             const directive: SelfTuningDirective = { ...directiveData, id: self.crypto.randomUUID(), timestamp: Date.now(), status: 'proposed' };
             dispatch({ type: 'ADD_SELF_TUNING_DIRECTIVE', payload: directive });
-            addToast(`New evolutionary directive proposed: ${directive.type}`, 'success');
+            addToast(t('toastNewDirectiveProposed', { type: directive.type }), 'success');
         } catch (e) {
             console.error("Failed to generate tuning directive", e);
-            addToast("Performance analysis failed to produce a directive.", "warning");
+            addToast(t('toastAnalysisFailedDirective'), "warning");
         }
-    }, [ai, state.performanceLogs, state.cognitiveForgeState.skillTemplates, dispatch, addToast]);
+    }, [ai, state.performanceLogs, state.cognitiveForgeState.skillTemplates, dispatch, addToast, t]);
 
     const synthesizeNewSkill = useCallback(async (directive: SelfTuningDirective): Promise<void> => {
-        addToast(`Synthesizing solution for: ${directive.payload.userGoal}`, 'info');
+        addToast(t('toastSynthesizingSolution', { goal: directive.payload.userGoal }), 'info');
         const availableSkills = Object.keys(state.cognitiveForgeState.skillTemplates).join(', ');
 
         const prompt = `
@@ -293,7 +350,7 @@ export const useGeminiAPI = (
             console.error("Failed to synthesize skill plan:", e);
             dispatch({ type: 'UPDATE_SELF_TUNING_DIRECTIVE', payload: { id: directive.id, updates: { status: 'failed' } } });
         }
-    }, [ai, state.cognitiveForgeState.skillTemplates, dispatch, addToast]);
+    }, [ai, state.cognitiveForgeState.skillTemplates, dispatch, addToast, t]);
 
     const runSkillSimulation = useCallback(async (directive: SelfTuningDirective, skill?: SynthesizedSkill): Promise<SimulationLogEntry> => {
         const simLog: Omit<SimulationLogEntry, 'id'|'timestamp'> = {
@@ -365,15 +422,15 @@ export const useGeminiAPI = (
             const identity = JSON.parse(response.text.trim());
             if(identity.narrativeSelf && Array.isArray(identity.values)) {
                 dispatch({ type: 'UPDATE_CORE_IDENTITY', payload: identity });
-                addToast('Core identity updated.', 'success');
+                addToast(t('toastIdentityUpdated'), 'success');
             }
-        } catch (error) { addToast('Failed to consolidate core identity.', 'error'); }
-    }, [state.performanceLogs, ai, dispatch, addToast]);
+        } catch (error) { addToast(t('toastIdentityFailed'), 'error'); }
+    }, [state.performanceLogs, ai, dispatch, addToast, t]);
     
     const analyzeStateComponentCorrelation = useCallback(async (): Promise<void> => {
-        addToast('Metacognitive Analysis: Searching for internal causal links...', 'info');
+        addToast(t('toastMetaAnalysisSearching'), 'info');
         const dataSummary = state.performanceLogs.slice(-100).map(log => ({ skill: state.history.find(h => h.logId === log.id)?.skill || 'UNKNOWN', success: log.success, duration: log.duration, gain: log.cognitiveGain, state: log.decisionContext?.internalStateSnapshot })).filter(item => item.state && item.skill !== 'UNKNOWN');
-        if (dataSummary.length < 20) { addToast('Analysis skipped: Not enough data.', 'warning'); return; }
+        if (dataSummary.length < 20) { addToast(t('toastMetaAnalysisNotEnoughData'), 'warning'); return; }
         const prompt = `Analyze this AGI data. Find one strong correlation link between an internal state signal (HIGH >0.7 or LOW <0.3) and a skill's performance (successRate, duration). DATA: ${JSON.stringify(dataSummary)}`;
         try {
             const response = await ai.models.generateContent({
@@ -387,25 +444,25 @@ export const useGeminiAPI = (
             const newLinks: MetacognitiveLink[] = results.map((r: any) => ({ id: `${r.source_key}:${r.target_key}:${r.target_metric}`, source: { type: 'internalState', key: r.source_key, condition: r.source_condition }, target: { type: 'componentPerformance', key: r.target_key, metric: r.target_metric }, correlation: r.correlation, observationCount: r.observation_count, lastUpdated: Date.now() }));
             if (newLinks.length > 0) {
                 dispatch({ type: 'UPDATE_META_CAUSAL_MODEL', payload: newLinks });
-                addToast(`Discovered new metacognitive insight about ${newLinks[0].target.key}.`, 'success');
-            } else { addToast('Analysis complete. No new significant links found.', 'info'); }
-        } catch (error) { addToast('Failed to analyze internal causal links.', 'error'); }
-    }, [addToast, state.performanceLogs, state.history, ai, dispatch]);
+                addToast(t('toastMetaAnalysisInsight', { skill: newLinks[0].target.key }), 'success');
+            } else { addToast(t('toastMetaAnalysisNoLinks'), 'info'); }
+        } catch (error) { addToast(t('toastMetaAnalysisFailed'), 'error'); }
+    }, [addToast, state.performanceLogs, state.history, ai, dispatch, t]);
 
     // --- Other Placeholder Functions ---
-    const handleEvolve = useCallback(async () => { addToast('Evolution triggered.', 'info'); }, [addToast]);
-    const handleRunCognitiveMode = useCallback(async (mode: string) => { addToast(`Cognitive mode '${mode}' initiated.`, 'info'); }, [addToast]);
-    const handleAnalyzeWhatIf = useCallback(async (scenario: string) => { addToast(`Analyzing scenario: ${scenario}`, 'info'); }, [addToast]);
-    const handleExecuteSearch = useCallback(async (query: string) => { addToast(`Searching for: ${query}`, 'info'); }, [addToast]);
-    const extractAndStoreKnowledge = useCallback(async (text: string, confidence: number, isVolatile: boolean): Promise<Fact[]> => { addToast('Extracting knowledge...', 'info'); return []; }, [addToast]);
-    const handleHypothesize = useCallback(async () => { addToast('Generating hypothesis...', 'info'); }, [addToast]);
-    const handleIntuition = useCallback(async () => { addToast('Activating intuition...', 'info'); }, [addToast]);
-    const handleValidateModification = useCallback(async (proposal: ArchitecturalChangeProposal, modLogId: string) => { addToast('Validating modification...', 'info'); }, [addToast]);
-    const handleDecomposeGoal = useCallback(async (goal: string) => { addToast('Decomposing goal...', 'info'); }, [addToast]);
+    const handleEvolve = useCallback(async () => { addToast(t('toastEvolutionTriggered'), 'info'); }, [addToast, t]);
+    const handleRunCognitiveMode = useCallback(async (mode: string) => { addToast(t('toastCognitiveModeInitiated', { mode }), 'info'); }, [addToast, t]);
+    const handleAnalyzeWhatIf = useCallback(async (scenario: string) => { addToast(t('toastAnalyzingScenario', { scenario }), 'info'); }, [addToast, t]);
+    const handleExecuteSearch = useCallback(async (query: string) => { addToast(t('toastSearchingFor', { query }), 'info'); }, [addToast, t]);
+    const extractAndStoreKnowledge = useCallback(async (text: string, confidence: number, isVolatile: boolean): Promise<Fact[]> => { addToast(t('toastExtractingKnowledge'), 'info'); return []; }, [addToast, t]);
+    const handleHypothesize = useCallback(async () => { addToast(t('toastGeneratingHypothesis'), 'info'); }, [addToast, t]);
+    const handleIntuition = useCallback(async () => { addToast(t('toastActivatingIntuition'), 'info'); }, [addToast, t]);
+    const handleValidateModification = useCallback(async (proposal: ArchitecturalChangeProposal, modLogId: string) => { addToast(t('toastValidatingModification'), 'info'); }, [addToast, t]);
+    const handleDecomposeGoal = useCallback(async (goal: string) => { addToast(t('toastDecomposingGoal'), 'info'); }, [addToast, t]);
     const handleAnalyzeVisualSentiment = useCallback(async (base64Image: string) => { /* This is a quiet, background operation */ }, []);
-    const handleGenerateProactiveSuggestion = useCallback(async () => { addToast('Generating suggestions...', 'info'); }, [addToast]);
-    const handleRunRootCauseAnalysis = useCallback(async (failureLog: PerformanceLogEntry) => { addToast('Running root cause analysis...', 'info'); }, [addToast]);
-    const detectKnownUnknowns = useCallback(async (text: string) => { addToast('Detecting known unknowns...', 'info'); }, [addToast]);
+    const handleGenerateProactiveSuggestion = useCallback(async () => { addToast(t('toastGeneratingHypothesis'), 'info'); }, [addToast, t]);
+    const handleRunRootCauseAnalysis = useCallback(async (failureLog: PerformanceLogEntry) => { addToast(t('toastMetaCycleAnalysis'), 'info'); }, [addToast, t]);
+    const detectKnownUnknowns = useCallback(async (text: string) => { addToast(t('toastMetaAnalysisSearching'), 'info'); }, [addToast, t]);
 
 
     return {

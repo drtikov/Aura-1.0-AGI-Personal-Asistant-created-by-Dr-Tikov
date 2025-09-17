@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLogsState, useMemoryState, useAuraDispatch } from '../context/AuraContext';
+import { useLogsState, useMemoryState, useAuraDispatch, useLocalization } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
 import { CoreMonitor } from './CoreMonitor';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -16,25 +16,32 @@ export const LeftColumnComponent = () => {
         isRecording, processingState, handleSendCommand, dispatch, handleFeedback
     } = useAuraDispatch();
     const modal = useModal();
+    const { t } = useLocalization();
 
     return (
         <div className="left-column">
             <div className="left-column-tabs">
-                <button className={`tab-button ${activeLeftTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveLeftTab('chat')}>Chat</button>
-                <button className={`tab-button ${activeLeftTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveLeftTab('monitor')}>Monitor</button>
+                <button className={`tab-button ${activeLeftTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveLeftTab('chat')}>{t('chatTab')}</button>
+                <button className={`tab-button ${activeLeftTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveLeftTab('monitor')}>{t('monitorTab')}</button>
             </div>
 
             {activeLeftTab === 'chat' && (
                 <div className="chat-container">
                     <header className="chat-header">
                         <h1 data-text="AURA">AURA</h1>
-                        <p>Symbiotic AGI assistant Created By Dr Tikov</p>
+                        <p>{t('chatHeaderTagline')}</p>
                     </header>
                     <div className="output-panel" ref={outputPanelRef}>
                         {history.map((entry: HistoryEntry) => (
                             <div key={entry.id} className={`history-entry from-${entry.from}`}>
                                 <div className="entry-content">
-                                    <SafeMarkdown text={entry.text} />
+                                    {entry.text && <SafeMarkdown text={entry.text} />}
+                                    {entry.from === 'user' && entry.fileName && (
+                                        <div className="file-attachment-display">
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
+                                            <span>{entry.fileName}</span>
+                                        </div>
+                                    )}
                                     {entry.filePreview && ( <div className="file-preview"><img src={entry.filePreview} alt="File preview" /></div> )}
                                     {entry.skill && (
                                         <span className="skill-tag" title={`Skill used: ${entry.skill}`}>
@@ -44,10 +51,10 @@ export const LeftColumnComponent = () => {
                                     )}
                                     {entry.from === 'bot' && (
                                         <div className="feedback-controls">
-                                            <button className={`feedback-button positive ${entry.feedback === 'positive' ? 'selected' : ''}`} onClick={() => handleFeedback(entry.id, 'positive')} disabled={!!entry.feedback} title="Good response" aria-label="Good response">
+                                            <button className={`feedback-button positive ${entry.feedback === 'positive' ? 'selected' : ''}`} onClick={() => handleFeedback(entry.id, 'positive')} disabled={!!entry.feedback} title={t('feedbackGood')} aria-label={t('feedbackGood')}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>
                                             </button>
-                                            <button className={`feedback-button negative ${entry.feedback === 'negative' ? 'selected' : ''}`} onClick={() => handleFeedback(entry.id, 'negative')} disabled={!!entry.feedback} title="Bad response" aria-label="Bad response">
+                                            <button className={`feedback-button negative ${entry.feedback === 'negative' ? 'selected' : ''}`} onClick={() => handleFeedback(entry.id, 'negative')} disabled={!!entry.feedback} title={t('feedbackBad')} aria-label={t('feedbackBad')}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M15 3H6c-.83 0-1.54.5-1.84 1.22l-3.02 7.05c-.09.23-.14.47-.14.73v2c0 1.1.9 2 2 2h6.31l-.95 4.57-.03.32c0 .41-.17-.79-.44-1.06L9.83 23l6.59-6.59c.36-.36.58-.86.58-1.41V5c0-1.1-.9-2-2-2zm4 0v12h4V3h-4z"/></svg>
                                             </button>
                                         </div>
@@ -67,12 +74,12 @@ export const LeftColumnComponent = () => {
                             </div>
                         )}
                         <div className="input-area-content">
-                            <textarea value={currentCommand} onChange={(e) => setCurrentCommand(e.target.value)} placeholder="Interact with Aura..." rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); } }} disabled={processingState.active} />
+                            <textarea value={currentCommand} onChange={(e) => setCurrentCommand(e.target.value)} placeholder={t('inputPlaceholder')} rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); } }} disabled={processingState.active} />
                             <div className="input-controls">
-                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={processingState.active} title="Attach File" aria-label="Attach File"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></button>
+                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={processingState.active} title={t('inputAttachFile')} aria-label={t('inputAttachFile')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></button>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
-                                <button type="button" onClick={handleMicClick} className={`mic-button ${isRecording ? 'recording' : ''}`} disabled={processingState.active} title={isRecording ? 'Stop Recording' : 'Start Recording'} aria-label={isRecording ? 'Stop Recording' : 'Start Recording'}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg></button>
-                                <button type="submit" disabled={processingState.active || (!currentCommand.trim() && !attachedFile)}>Send</button>
+                                <button type="button" onClick={handleMicClick} className={`mic-button ${isRecording ? 'recording' : ''}`} disabled={processingState.active} title={isRecording ? t('inputStopRecording') : t('inputStartRecording')} aria-label={isRecording ? t('inputStopRecording') : t('inputStartRecording')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg></button>
+                                <button type="submit" disabled={processingState.active || (!currentCommand.trim() && !attachedFile)}>{t('inputSend')}</button>
                             </div>
                         </div>
                     </form>

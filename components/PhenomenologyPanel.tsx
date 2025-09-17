@@ -1,24 +1,42 @@
 import React from 'react';
-import { useCoreState } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const PhenomenologyPanel = React.memo(() => {
     const { phenomenologicalEngine: state } = useCoreState();
+    const { t } = useLocalization();
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        if (seconds < 60) return `${seconds}s ago`;
+        if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
         const minutes = Math.floor(seconds / 60);
-        return `${minutes}m ago`;
+        return t('timeAgoMinutes', { count: minutes });
     };
 
     return (
         <div className="side-panel phenomenology-panel">
+            <div className="panel-subsection-title">{t('phenomenology_directives')}</div>
+            {state.phenomenologicalDirectives.length === 0 ? (
+                <div className="kg-placeholder" style={{marginBottom: '1rem'}}>{t('phenomenology_noDirectives')}</div>
+            ) : (
+                 state.phenomenologicalDirectives.map(entry => (
+                    <div key={entry.id} className="causal-link source-rie" style={{ background: 'rgba(187, 154, 247, 0.1)', borderLeftColor: 'var(--primary-color)'}}>
+                        <div className="causal-effect" style={{ fontStyle: 'italic', color: 'var(--text-color)' }}>
+                           "{entry.directive}"
+                        </div>
+                         <div className="causal-link-footer" style={{textAlign: 'left', marginTop: '0.5rem'}}>
+                            <strong>{t('phenomenology_source')}:</strong> {entry.sourcePattern}
+                        </div>
+                    </div>
+                ))
+            )}
+
+            <div className="panel-subsection-title">{t('phenomenology_qualiaLog')}</div>
             {state.qualiaLog.length === 0 ? (
-                <div className="kg-placeholder">No phenomenological data logged. The system generates "qualia" by reflecting on its performance and internal state after completing tasks.</div>
+                <div className="kg-placeholder">{t('phenomenology_noQualia')}</div>
             ) : (
                 state.qualiaLog.map(entry => (
                     <div key={entry.id} className="rie-insight-item" style={{ background: 'rgba(187, 154, 247, 0.05)', borderLeft: '3px solid var(--primary-color)' }}>
                         <div className="rie-insight-header">
-                            <span className="mod-log-type">Qualia Entry</span>
+                            <span className="mod-log-type">{t('phenomenology_qualiaEntry')}</span>
                             <small>{timeAgo(entry.timestamp)}</small>
                         </div>
                         <div className="rie-insight-body">

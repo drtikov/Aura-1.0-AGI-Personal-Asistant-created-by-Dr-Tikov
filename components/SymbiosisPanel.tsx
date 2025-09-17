@@ -1,45 +1,62 @@
 import React from 'react';
-import { useCoreState } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const SymbiosisPanel = React.memo(() => {
     const { symbioticState: state } = useCoreState();
+    const { t } = useLocalization();
 
     return (
         <div className="side-panel symbiosis-panel">
             <div className="awareness-item">
-                <label>Inferred Cognitive Style</label>
+                <label>{t('symbiosis_cognitiveStyle')}</label>
                 <strong>{state.inferredCognitiveStyle}</strong>
             </div>
              <div className="awareness-item">
-                <label>Inferred Emotional Needs</label>
+                <label>{t('symbiosis_emotionalNeeds')}</label>
                 <strong>{state.inferredEmotionalNeeds.join(', ') || 'N/A'}</strong>
             </div>
 
-            <div className="panel-subsection-title">Inferred Latent Goals</div>
+            <div className="panel-subsection-title">{t('symbiosis_metamorphosisProposals')}</div>
+            {state.metamorphosisProposals.filter(p => p.status === 'proposed').length === 0 ? (
+                 <div className="kg-placeholder">{t('symbiosis_noProposals')}</div>
+            ) : (
+                state.metamorphosisProposals.filter(p => p.status === 'proposed').map(proposal => (
+                     <div key={proposal.id} className="suggestion-item" style={{background: 'rgba(187, 154, 247, 0.1)', border: '1px solid var(--primary-color)'}}>
+                        <p className="suggestion-text"><strong>{proposal.title}</strong></p>
+                        <p style={{fontSize: '0.85rem', margin: '0.3rem 0'}}>{proposal.description}</p>
+                        <p className="suggestion-footer" style={{ justifyContent: 'start', fontStyle: 'italic', fontSize: '0.8rem' }}>
+                           {proposal.rationale}
+                        </p>
+                    </div>
+                ))
+            )}
+
+            <div className="panel-subsection-title">{t('symbiosis_userDevelopmentModel')}</div>
+            {Object.keys(state.userDevelopmentalModel.trackedSkills).length === 0 ? (
+                <div className="kg-placeholder">{t('symbiosis_noTrackedSkills')}</div>
+            ) : (
+                Object.entries(state.userDevelopmentalModel.trackedSkills).map(([skill, data]) => (
+                    <div key={skill} className="state-item">
+                        <label>{skill}</label>
+                        <div className="state-bar-container">
+                            <div className="state-bar" style={{ width: `${data.level * 100}%`, backgroundColor: 'var(--primary-color)' }} title={`${t('symbiosis_level')}: ${data.level.toFixed(2)}`}></div>
+                        </div>
+                    </div>
+                ))
+            )}
+
+
+            <div className="panel-subsection-title">{t('symbiosis_latentGoals')}</div>
             {state.latentUserGoals.length === 0 ? (
-                <div className="kg-placeholder">No latent user goals have been inferred yet. This model builds over longer conversations.</div>
+                <div className="kg-placeholder">{t('symbiosis_noLatentGoals')}</div>
             ) : (
                 state.latentUserGoals.map((goal, index) => (
                     <div key={index} className="prediction-item" style={{ borderLeftColor: 'var(--guna-dharma)' }}>
                         <div className="prediction-header">
-                            <span>Goal Hypothesis</span>
-                            <span>Conf: {(goal.confidence * 100).toFixed(0)}%</span>
+                            <span>{t('symbiosis_goalHypothesis')}</span>
+                            <span>{t('intuitionEngine_confidence')}: {(goal.confidence * 100).toFixed(0)}%</span>
                         </div>
                         <p className="prediction-content">{goal.goal}</p>
-                    </div>
-                ))
-            )}
-            
-            <div className="panel-subsection-title">Co-Created Workflows</div>
-             {state.coCreatedWorkflows.length === 0 ? (
-                <div className="kg-placeholder">No workflows co-created yet. Aura may propose them based on repeated interaction patterns.</div>
-            ) : (
-                state.coCreatedWorkflows.map((flow) => (
-                    <div key={flow.id} className="suggestion-item" style={{ background: 'rgba(85, 107, 47, 0.05)' }}>
-                        <p className="suggestion-text"><strong>{flow.name}</strong></p>
-                        <p className="suggestion-footer" style={{ justifyContent: 'start', fontStyle: 'italic', fontSize: '0.8rem' }}>
-                           {flow.pattern}
-                        </p>
                     </div>
                 ))
             )}

@@ -1,4 +1,5 @@
 import React from 'react';
+import { useLocalization } from '../context/AuraContext';
 
 interface VisualAnalysisFeedProps {
     videoRef: React.RefObject<HTMLVideoElement>;
@@ -6,6 +7,7 @@ interface VisualAnalysisFeedProps {
 }
 
 export const VisualAnalysisFeed = ({ videoRef, isAnalysisActive }: VisualAnalysisFeedProps) => {
+    const { t } = useLocalization();
     if (!isAnalysisActive) {
         return null;
     }
@@ -13,7 +15,7 @@ export const VisualAnalysisFeed = ({ videoRef, isAnalysisActive }: VisualAnalysi
     return (
         <div className="visual-analysis-feed">
             <video ref={videoRef} autoPlay playsInline muted />
-            <p>Visual Sensor Active</p>
+            <p>{t('visualAnalysis_active')}</p>
         </div>
     );
 };

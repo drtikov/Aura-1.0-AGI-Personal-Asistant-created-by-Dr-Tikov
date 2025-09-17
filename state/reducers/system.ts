@@ -77,6 +77,30 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
 
+        case 'UPDATE_TELOS_VECTORS':
+            return {
+                telosEngine: {
+                    ...state.telosEngine,
+                    evolutionaryVectors: action.payload,
+                }
+            };
+
+        case 'IDENTIFY_EPISTEMIC_BOUNDARY':
+            return {
+                boundaryDetectionEngine: {
+                    ...state.boundaryDetectionEngine,
+                    epistemicBoundaries: [action.payload, ...state.boundaryDetectionEngine.epistemicBoundaries].slice(0, 50),
+                }
+            };
+
+        case 'SET_ASPIRATIONAL_GOAL':
+            return {
+                aspirationalEngine: {
+                    ...state.aspirationalEngine,
+                    abstractGoals: [action.payload, ...state.aspirationalEngine.abstractGoals].slice(0, 10),
+                }
+            };
+
         default:
             return {};
     }

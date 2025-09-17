@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import { useAura } from './hooks';
 import { ToastContainer, LeftColumnComponent, ControlDeckComponent } from './components';
 import { 
@@ -9,24 +9,84 @@ import {
     PlanningStateContext,
     EngineStateContext,
     LogsStateContext,
-    SystemStateContext
+    SystemStateContext,
+    LocalizationContext
 } from './context/AuraContext';
 import { ModalProvider } from './context/ModalContext';
 
 const AppContent = () => {
     const auraInterface = useAura();
-    const { state, toasts, removeToast } = auraInterface;
+    const { state, toasts, removeToast, t, language } = auraInterface;
+
+    const localizationContextValue = useMemo(() => ({
+        t,
+        language,
+    }), [t, language]);
     
-    // Combine all state slices into one memoized object to simplify context providers
     const stateSlices = useMemo(() => ({
-        core: { internalState: state.internalState, internalStateHistory: state.internalStateHistory, rieState: state.rieState, userModel: state.userModel, coreIdentity: state.coreIdentity, selfAwarenessState: state.selfAwarenessState, worldModelState: state.worldModelState, curiosityState: state.curiosityState, knownUnknowns: state.knownUnknowns, theme: state.theme, limitations: state.limitations, causalSelfModel: state.causalSelfModel, developmentalHistory: state.developmentalHistory },
-        memory: { knowledgeGraph: state.knowledgeGraph, workingMemory: state.workingMemory, memoryNexus: state.memoryNexus },
-        architecture: { cognitiveArchitecture: state.cognitiveArchitecture, architecturalProposals: state.architecturalProposals, systemSnapshots: state.systemSnapshots, modificationLog: state.modificationLog, cognitiveForgeState: state.cognitiveForgeState },
-        planning: { goalTree: state.goalTree, activeStrategicGoalId: state.activeStrategicGoalId, disciplineState: state.disciplineState },
-        engines: { proactiveEngineState: state.proactiveEngineState, ethicalGovernorState: state.ethicalGovernorState, intuitionEngineState: state.intuitionEngineState, intuitiveLeaps: state.intuitiveLeaps, ingenuityState: state.ingenuityState },
-        logs: { history: state.history, performanceLogs: state.performanceLogs, commandLog: state.commandLog, cognitiveModeLog: state.cognitiveModeLog, cognitiveGainLog: state.cognitiveGainLog, cognitiveRegulationLog: state.cognitiveRegulationLog },
-        system: { resourceMonitor: state.resourceMonitor, metacognitiveNexus: state.metacognitiveNexus, metacognitiveCausalModel: state.metacognitiveCausalModel },
-        // Add new awareness states to the context value
+        core: { 
+            internalState: state.internalState, 
+            internalStateHistory: state.internalStateHistory, 
+            rieState: state.rieState, 
+            userModel: state.userModel, 
+            coreIdentity: state.coreIdentity, 
+            selfAwarenessState: state.selfAwarenessState, 
+            worldModelState: state.worldModelState, 
+            curiosityState: state.curiosityState, 
+            knownUnknowns: state.knownUnknowns, 
+            theme: state.theme, 
+            language: state.language,
+            limitations: state.limitations, 
+            causalSelfModel: state.causalSelfModel, 
+            developmentalHistory: state.developmentalHistory,
+            telosEngine: state.telosEngine,
+            boundaryDetectionEngine: state.boundaryDetectionEngine,
+            aspirationalEngine: state.aspirationalEngine,
+            noosphereInterface: state.noosphereInterface,
+            dialecticEngine: state.dialecticEngine,
+            cognitiveLightCone: state.cognitiveLightCone,
+        },
+        memory: { 
+            knowledgeGraph: state.knowledgeGraph, 
+            workingMemory: state.workingMemory, 
+            memoryNexus: state.memoryNexus 
+        },
+        architecture: { 
+            cognitiveArchitecture: state.cognitiveArchitecture, 
+            architecturalProposals: state.architecturalProposals, 
+            systemSnapshots: state.systemSnapshots, 
+            modificationLog: state.modificationLog, 
+            cognitiveForgeState: state.cognitiveForgeState,
+            architecturalSelfModel: state.architecturalSelfModel,
+            heuristicsForge: state.heuristicsForge,
+            somaticCrucible: state.somaticCrucible,
+            eidolonEngine: state.eidolonEngine,
+        },
+        planning: { 
+            goalTree: state.goalTree, 
+            activeStrategicGoalId: state.activeStrategicGoalId, 
+            disciplineState: state.disciplineState 
+        },
+        engines: { 
+            proactiveEngineState: state.proactiveEngineState, 
+            ethicalGovernorState: state.ethicalGovernorState, 
+            intuitionEngineState: state.intuitionEngineState, 
+            intuitiveLeaps: state.intuitiveLeaps, 
+            ingenuityState: state.ingenuityState 
+        },
+        logs: { 
+            history: state.history, 
+            performanceLogs: state.performanceLogs, 
+            commandLog: state.commandLog, 
+            cognitiveModeLog: state.cognitiveModeLog, 
+            cognitiveGainLog: state.cognitiveGainLog, 
+            cognitiveRegulationLog: state.cognitiveRegulationLog 
+        },
+        system: { 
+            resourceMonitor: state.resourceMonitor, 
+            metacognitiveNexus: state.metacognitiveNexus, 
+            metacognitiveCausalModel: state.metacognitiveCausalModel 
+        },
         awareness: {
             phenomenologicalEngine: state.phenomenologicalEngine,
             situationalAwareness: state.situationalAwareness,
@@ -34,29 +94,30 @@ const AppContent = () => {
         }
     }), [state]);
 
-
     return (
-        <AuraDispatchContext.Provider value={auraInterface}>
-        <CoreStateContext.Provider value={{...stateSlices.core, ...stateSlices.awareness}}>
-        <MemoryStateContext.Provider value={stateSlices.memory}>
-        <ArchitectureStateContext.Provider value={stateSlices.architecture}>
-        <PlanningStateContext.Provider value={stateSlices.planning}>
-        <EngineStateContext.Provider value={stateSlices.engines}>
-        <LogsStateContext.Provider value={stateSlices.logs}>
-        <SystemStateContext.Provider value={stateSlices.system}>
-            <div className="app-container">
-                <ToastContainer toasts={toasts} removeToast={removeToast} />
-                <LeftColumnComponent />
-                <ControlDeckComponent />
-            </div>
-        </SystemStateContext.Provider>
-        </LogsStateContext.Provider>
-        </EngineStateContext.Provider>
-        </PlanningStateContext.Provider>
-        </ArchitectureStateContext.Provider>
-        </MemoryStateContext.Provider>
-        </CoreStateContext.Provider>
-        </AuraDispatchContext.Provider>
+        <LocalizationContext.Provider value={localizationContextValue}>
+            <AuraDispatchContext.Provider value={auraInterface}>
+            <CoreStateContext.Provider value={{...stateSlices.core, ...stateSlices.awareness}}>
+            <MemoryStateContext.Provider value={stateSlices.memory}>
+            <ArchitectureStateContext.Provider value={stateSlices.architecture}>
+            <PlanningStateContext.Provider value={stateSlices.planning}>
+            <EngineStateContext.Provider value={stateSlices.engines}>
+            <LogsStateContext.Provider value={stateSlices.logs}>
+            <SystemStateContext.Provider value={stateSlices.system}>
+                <div className="app-container">
+                    <ToastContainer toasts={toasts} removeToast={removeToast} />
+                    <LeftColumnComponent />
+                    <ControlDeckComponent />
+                </div>
+            </SystemStateContext.Provider>
+            </LogsStateContext.Provider>
+            </EngineStateContext.Provider>
+            </PlanningStateContext.Provider>
+            </ArchitectureStateContext.Provider>
+            </MemoryStateContext.Provider>
+            </CoreStateContext.Provider>
+            </AuraDispatchContext.Provider>
+        </LocalizationContext.Provider>
     );
 };
 

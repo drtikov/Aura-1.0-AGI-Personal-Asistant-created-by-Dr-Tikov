@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { useLogsState } from '../context/AuraContext';
+import { useLogsState, useLocalization } from '../context/AuraContext';
 import { CognitiveGainLogEntry } from '../types';
 
 export const CognitiveGainPanel = React.memo(({ onSelectLog }: { onSelectLog: (log: CognitiveGainLogEntry) => void; }) => {
     const { cognitiveGainLog: log } = useLogsState();
+    const { t } = useLocalization();
     const summary = useMemo(() => {
         if (log.length === 0) return { totalEvents: 0, averageGain: 0 };
         const totalGain = log.reduce((acc, curr) => acc + curr.compositeGain, 0);
@@ -11,10 +12,10 @@ export const CognitiveGainPanel = React.memo(({ onSelectLog }: { onSelectLog: (l
     }, [log]);
     return (
         <div className="side-panel cognitive-gain-panel">
-            <div className="cognitive-gain-summary"> <div className="gain-summary-grid"> <div className="gain-summary-item"> <div className="value">{summary.totalEvents}</div> <div className="label">Total Events</div> </div> <div className="gain-summary-item"> <div className={`value ${summary.averageGain > 0 ? 'success' : summary.averageGain < 0 ? 'failure' : ''}`}> {summary.averageGain.toFixed(2)} </div> <div className="label">Avg. Composite Gain</div> </div> </div> </div>
+            <div className="cognitive-gain-summary"> <div className="gain-summary-grid"> <div className="gain-summary-item"> <div className="value">{summary.totalEvents}</div> <div className="label">{t('cogGainPanel_totalEvents')}</div> </div> <div className="gain-summary-item"> <div className={`value ${summary.averageGain > 0 ? 'success' : summary.averageGain < 0 ? 'failure' : ''}`}> {summary.averageGain.toFixed(2)} </div> <div className="label">{t('cogGainPanel_avgGain')}</div> </div> </div> </div>
             <div className="gain-log-list">
-                {log.length === 0 ? <div className="kg-placeholder">No cognitive gain events logged.</div> : log.map(entry => (
-                    <div key={entry.id} className={`gain-log-item ${entry.compositeGain > 0 ? 'positive-gain' : entry.compositeGain < 0 ? 'negative-gain' : ''}`} onClick={() => onSelectLog(entry)} title="Click to see details">
+                {log.length === 0 ? <div className="kg-placeholder">{t('cogGainPanel_placeholder')}</div> : log.map(entry => (
+                    <div key={entry.id} className={`gain-log-item ${entry.compositeGain > 0 ? 'positive-gain' : entry.compositeGain < 0 ? 'negative-gain' : ''}`} onClick={() => onSelectLog(entry)} title={t('cogGainPanel_clickDetails')}>
                         <div className="gain-log-header"> <span className="gain-log-type">{entry.eventType}</span> <span className={`composite-gain-value ${entry.compositeGain > 0 ? 'positive' : 'negative'}`}> {entry.compositeGain > 0 ? '+' : ''}{entry.compositeGain.toFixed(2)} </span> </div>
                         <p className="gain-log-description">{entry.description}</p>
                     </div>

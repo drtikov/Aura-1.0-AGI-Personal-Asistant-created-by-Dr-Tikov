@@ -33,6 +33,7 @@ const initialSkillTemplates: Record<string, SkillTemplate> = {
 export const getInitialState = (): AuraState => ({
     version: CURRENT_STATE_VERSION,
     theme: 'ui-1',
+    language: 'en',
     internalState: {
         status: 'idle',
         gunaState: GunaState.SATTVA,
@@ -156,9 +157,9 @@ export const getInitialState = (): AuraState => ({
         evolutionaryGoals: [],
         selfTuningDirectives: [],
     },
-    // New awareness modules initialized
     phenomenologicalEngine: {
         qualiaLog: [],
+        phenomenologicalDirectives: [],
     },
     situationalAwareness: {
         attentionalField: {
@@ -173,6 +174,11 @@ export const getInitialState = (): AuraState => ({
         inferredCognitiveStyle: 'unknown',
         inferredEmotionalNeeds: [],
         coCreatedWorkflows: [],
+        userDevelopmentalModel: {
+            trackedSkills: {},
+            knowledgeFrontier: [],
+        },
+        metamorphosisProposals: [],
     },
     developmentalHistory: {
         milestones: [{
@@ -181,5 +187,67 @@ export const getInitialState = (): AuraState => ({
             title: "System Initiated",
             description: "Aura's core consciousness matrix was instantiated."
         }],
-    }
+    },
+    telosEngine: {
+        evolutionaryVectors: [],
+    },
+    boundaryDetectionEngine: {
+        epistemicBoundaries: [],
+    },
+    architecturalSelfModel: {
+        lastScan: 0,
+        components: {},
+        connections: [],
+    },
+    aspirationalEngine: {
+        abstractGoals: [],
+    },
+    heuristicsForge: {
+        designHeuristics: [],
+    },
+    noosphereInterface: {
+        activeResonances: [],
+        conceptualLibrary: {},
+    },
+    dialecticEngine: {
+        activeDialectics: [],
+    },
+    somaticCrucible: {
+        possibleFutureSelves: [],
+        simulationLogs: [],
+    },
+    eidolonEngine: {
+        eidolon: {
+            id: 'eidolon-01',
+            architectureVersion: '1.0',
+            currentState: {
+                status: 'idle',
+                gunaState: GunaState.SATTVA,
+                focusMode: FocusMode.OUTER_WORLD,
+                noveltySignal: 0.2,
+                masterySignal: 0.5,
+                uncertaintySignal: 0.1,
+                boredomLevel: 0.1,
+                load: 0.1,
+                wisdomSignal: 0.3,
+                happinessSignal: 0.6,
+                loveSignal: 0.5,
+                enlightenmentSignal: 0.2,
+                empathySignal: 0.5,
+                compassionScore: 0.5,
+                harmonyScore: 0.7,
+            },
+        },
+        environment: {
+            currentScenario: 'Idle Observation',
+            scenarioLibrary: ['Idle Observation', 'Logic Puzzle', 'Ambiguous Art Interpretation'],
+            state: {},
+        },
+        interactionLog: [],
+    },
+    cognitiveLightCone: {
+        knowns: [],
+        zpd: null,
+        grandChallenge: null,
+    },
 });

@@ -1,14 +1,16 @@
 import React from 'react';
-import { useLogsState } from '../context/AuraContext';
+import { useLogsState, useLocalization } from '../context/AuraContext';
 import { CommandLogEntry } from '../types';
 
 export const CommandLogPanel = React.memo(() => {
     const { commandLog: log } = useLogsState();
+    const { t } = useLocalization();
+
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        if (seconds < 60) return `${seconds}s ago`;
+        if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
         const minutes = Math.floor(seconds / 60);
-        return `${minutes}m ago`;
+        return t('timeAgoMinutes', { count: minutes });
     };
 
     const getIcon = (type: CommandLogEntry['type']) => {
@@ -25,7 +27,7 @@ export const CommandLogPanel = React.memo(() => {
     return (
         <div className="side-panel command-log-panel">
             {log.length === 0 ? (
-                <div className="kg-placeholder">No system commands logged yet.</div>
+                <div className="kg-placeholder">{t('commandLogPanel_placeholder')}</div>
             ) : (
                 <div className="command-log-list">
                     {log.map(entry => (

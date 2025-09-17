@@ -3,8 +3,10 @@ import { InternalState } from '../types';
 import { AuraConfig } from '../constants';
 import { clamp } from '../utils';
 import { Modal } from './Modal';
+import { useLocalization } from '../context/AuraContext';
 
 export const ForecastModal = ({ isOpen, state, onClose }: { isOpen: boolean, state: InternalState, onClose: () => void }) => {
+    const { t } = useLocalization();
     const forecast = useMemo(() => {
         let futureStates: { time: number; state: InternalState }[] = [{ time: 0, state }];
         let currentState = { ...state };
@@ -17,11 +19,11 @@ export const ForecastModal = ({ isOpen, state, onClose }: { isOpen: boolean, sta
     }, [state]);
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title="Internal State Forecast">
-            <p>Predicting state changes over the next 60 seconds based on current decay rates.</p>
+        <Modal isOpen={isOpen} onClose={onClose} title={t('forecastModal_title')}>
+            <p>{t('forecastModal_description')}</p>
             <div className="forecast-log">
                 {forecast.map(({ time, state: s }) => (
-                    <div key={time} className="forecast-entry"> <strong>T+{time}s:</strong> <span title="Wisdom" className="forecast-value wisdom">W: {s.wisdomSignal.toFixed(2)}</span> <span title="Empathy" className="forecast-value empathy">🤝 {s.empathySignal.toFixed(2)}</span> <span title="Love" className="forecast-value love">❤️ {s.loveSignal.toFixed(2)}</span> <span title="Happiness" className="forecast-value happiness">😊 {s.happinessSignal.toFixed(2)}</span> <span title="Enlightenment" className="forecast-value enlightenment">🧠 {s.enlightenmentSignal.toFixed(2)}</span> <span title="Novelty" className="forecast-value novelty">N: {s.noveltySignal.toFixed(2)}</span> <span title="Mastery" className="forecast-value mastery">M: {s.masterySignal.toFixed(2)}</span> </div>
+                    <div key={time} className="forecast-entry"> <strong>T+{time}s:</strong> <span title={t('gaugeWisdom')} className="forecast-value wisdom">W: {s.wisdomSignal.toFixed(2)}</span> <span title="Empathy" className="forecast-value empathy">🤝 {s.empathySignal.toFixed(2)}</span> <span title={t('gaugeLove')} className="forecast-value love">❤️ {s.loveSignal.toFixed(2)}</span> <span title={t('gaugeHappiness')} className="forecast-value happiness">😊 {s.happinessSignal.toFixed(2)}</span> <span title={t('gaugeEnlightenment')} className="forecast-value enlightenment">🧠 {s.enlightenmentSignal.toFixed(2)}</span> <span title={t('hormoneNovelty')} className="forecast-value novelty">N: {s.noveltySignal.toFixed(2)}</span> <span title={t('hormoneMastery')} className="forecast-value mastery">M: {s.masterySignal.toFixed(2)}</span> </div>
                 ))}
             </div>
         </Modal>

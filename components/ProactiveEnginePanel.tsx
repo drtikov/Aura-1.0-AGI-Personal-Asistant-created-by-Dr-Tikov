@@ -1,5 +1,5 @@
 import React from 'react';
-import { useEngineState } from '../context/AuraContext';
+import { useEngineState, useLocalization } from '../context/AuraContext';
 
 interface ProactiveEnginePanelProps {
     onSuggestionAction: (suggestionId: string, action: 'accepted' | 'rejected') => void;
@@ -7,21 +7,22 @@ interface ProactiveEnginePanelProps {
 
 export const ProactiveEnginePanel = React.memo(({ onSuggestionAction }: ProactiveEnginePanelProps) => {
     const { proactiveEngineState: state } = useEngineState();
+    const { t } = useLocalization();
     return (
         <div className="side-panel proactive-panel">
             <div className="proactive-panel-content">
-                <div className="panel-subsection-title">Proactive Suggestions</div>
+                <div className="panel-subsection-title">{t('proactiveEngine_title')}</div>
                 {state.generatedSuggestions.filter(s => s.status === 'suggested').length === 0 ? (
-                    <div className="kg-placeholder">No suggestions right now.</div>
+                    <div className="kg-placeholder">{t('proactiveEngine_placeholder')}</div>
                 ) : (
                     state.generatedSuggestions.filter(s => s.status === 'suggested').map(suggestion => (
                         <div key={suggestion.id} className="suggestion-item">
                             <p className="suggestion-text">{suggestion.text}</p>
                             <div className="suggestion-footer">
-                                <span className="suggestion-confidence">Confidence: {(suggestion.confidence * 100).toFixed(0)}%</span>
+                                <span className="suggestion-confidence">{t('intuitionEngine_confidence')}: {(suggestion.confidence * 100).toFixed(0)}%</span>
                                 <div className="suggestion-actions">
-                                    <button onClick={() => onSuggestionAction(suggestion.id, 'rejected')} title="Reject">👎</button>
-                                    <button onClick={() => onSuggestionAction(suggestion.id, 'accepted')} title="Accept">👍</button>
+                                    <button onClick={() => onSuggestionAction(suggestion.id, 'rejected')} title={t('proactiveEngine_reject')}>👎</button>
+                                    <button onClick={() => onSuggestionAction(suggestion.id, 'accepted')} title={t('proactiveEngine_accept')}>👍</button>
                                 </div>
                             </div>
                         </div>

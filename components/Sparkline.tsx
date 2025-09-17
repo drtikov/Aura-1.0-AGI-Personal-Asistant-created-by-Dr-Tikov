@@ -1,12 +1,13 @@
-
 import React, { useState, useRef } from 'react';
+import { useLocalization } from '../context/AuraContext';
 
 export const Sparkline = ({ data, strokeColor, width = 100, height = 30, className = "" }: { data: number[], strokeColor: string, width?: number, height?: number, className?: string }) => {
     const [tooltip, setTooltip] = useState<{ x: number; y: number; value: string; visible: boolean } | null>(null);
     const svgRef = useRef<SVGSVGElement>(null);
+    const { t } = useLocalization();
 
     if (!data || data.length < 2) {
-        return <div className="sparkline-placeholder">Not enough data</div>;
+        return <div className="sparkline-placeholder">{t('sparkline_noData')}</div>;
     }
 
     const uniqueDataPoints = new Set(data);

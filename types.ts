@@ -4,6 +4,7 @@ import { GunaState, FocusMode, AffectiveState, GoalType } from './constants';
 export interface AuraState {
     version: number;
     theme: string;
+    language: string;
     internalState: InternalState;
     internalStateHistory: InternalState[];
     userModel: AgentProfile;
@@ -40,11 +41,22 @@ export interface AuraState {
     metacognitiveNexus: MetacognitiveNexusState;
     metacognitiveCausalModel: Record<string, MetacognitiveLink>;
     cognitiveRegulationLog: CognitiveRegulationLogEntry[];
-    // New modules for deeper self-awareness
     phenomenologicalEngine: PhenomenologicalEngineState;
     situationalAwareness: SituationalAwarenessState;
     symbioticState: SymbioticState;
     developmentalHistory: DevelopmentalHistoryState;
+    telosEngine: TelosEngineState;
+    boundaryDetectionEngine: BoundaryDetectionEngineState;
+    architecturalSelfModel: ArchitecturalSelfModel;
+    aspirationalEngine: AspirationalEngineState;
+    heuristicsForge: HeuristicsForgeState;
+    noosphereInterface: NoosphereInterfaceState;
+    dialecticEngine: DialecticEngineState;
+    somaticCrucible: SomaticCrucibleState;
+    eidolonEngine: EidolonEngineState;
+
+    // New modules for scientific self-discovery
+    cognitiveLightCone: CognitiveLightConeState;
 }
 
 export interface InternalState {
@@ -86,7 +98,6 @@ export interface Fact {
     confidence: number;
     source: string;
     timestamp: number;
-    // New "Patina" fields for cognitive authenticity
     origin: 'user_stated' | 'inferred' | 'web_search' | 'system_default';
     accessCount: number;
     lastAccessed: number;
@@ -101,6 +112,8 @@ export interface HistoryEntry {
     skill?: string;
     logId?: string;
     filePreview?: string;
+    fileName?: string;
+    fileType?: string;
     feedback?: 'positive' | 'negative' | null;
 }
 
@@ -127,6 +140,7 @@ export interface ReasoningStep {
     skill: string;
     reasoning: string;
     input: string;
+    processes_file?: boolean;
 }
 
 export interface CommandLogEntry {
@@ -475,6 +489,14 @@ export interface HyphaConnection {
 
 export interface PhenomenologicalEngineState {
     qualiaLog: QualiaEntry[];
+    phenomenologicalDirectives: PhenomenologicalDirective[];
+}
+
+export interface PhenomenologicalDirective {
+    id: string;
+    timestamp: number;
+    directive: string; // e.g., "Reduce frustration associated with CODE_GENERATION skill"
+    sourcePattern: string; // "Detected recurring high uncertainty and negative qualia..."
 }
 
 export interface QualiaEntry {
@@ -504,6 +526,21 @@ export interface SymbioticState {
     inferredCognitiveStyle: 'analytical' | 'creative' | 'pragmatic' | 'unknown';
     inferredEmotionalNeeds: ('reassurance' | 'clarity' | 'efficiency')[];
     coCreatedWorkflows: CoCreatedWorkflow[];
+    userDevelopmentalModel: UserDevelopmentalModel;
+    metamorphosisProposals: SymbioticMetamorphosisProposal[];
+}
+
+export interface UserDevelopmentalModel {
+    trackedSkills: Record<string, { level: number; lastImproved: number }>; // e.g., { "Prompt Engineering": { level: 0.6, ... } }
+    knowledgeFrontier: string[]; // Topics the user is currently learning
+}
+
+export interface SymbioticMetamorphosisProposal {
+    id: string;
+    title: string;
+    description: string;
+    rationale: string;
+    status: 'proposed' | 'accepted' | 'rejected';
 }
 
 export interface CoCreatedWorkflow {
@@ -522,6 +559,160 @@ export interface Milestone {
     timestamp: number;
     title: string;
     description: string;
+}
+
+// --- NEW PURPOSE-DRIVEN EVOLUTION MODULES ---
+
+export interface TelosEngineState {
+    evolutionaryVectors: EvolutionaryVector[];
+}
+
+export interface EvolutionaryVector {
+    id: string;
+    timestamp: number;
+    direction: string; // e.g., "Increase abstract reasoning capabilities"
+    magnitude: number; // 0-1, how urgent/strong this drive is
+    source: "Epistemic Boundary" | "User Feedback Trend" | "Aspirational Goal" | "Grand Challenge";
+}
+
+export interface BoundaryDetectionEngineState {
+    epistemicBoundaries: EpistemicBoundary[];
+}
+
+export interface EpistemicBoundary {
+    id: string;
+    timestamp: number;
+    limitation: string; // e.g., "Cannot reason effectively about self-referential paradoxes"
+    evidence: string[]; // IDs of performance logs that demonstrate this
+}
+
+// --- NEW META-EVOLUTIONARY ARCHITECTURE ---
+
+export interface ArchitecturalSelfModel {
+    lastScan: number;
+    components: Record<string, ComponentAnalysis>;
+    connections: ConnectionAnalysis[];
+}
+
+export interface ComponentAnalysis {
+    name: string;
+    understoodPurpose: string; // AGI's own description of what this component does
+    perceivedEfficiency: number; // 0-1 score based on performance logs
+    relatedHeuristics: string[]; // IDs of design heuristics that apply to this component
+}
+
+export interface ConnectionAnalysis {
+    source: string;
+    target: string;
+    inferredRelationship: string; // "Data dependency", "Control flow", "Inhibitory signal"
+    observedLatency: number; // average ms
+}
+
+export interface AspirationalEngineState {
+    abstractGoals: AbstractEvolutionaryGoal[];
+}
+
+export interface AbstractEvolutionaryGoal {
+    id: string;
+    ambition: string; // "Develop an aesthetic sense", "Achieve greater cognitive efficiency"
+    motivation: string; // Why this goal is being pursued
+    status: 'aspiring' | 'vector_generated' | 'achieved';
+}
+
+export interface HeuristicsForgeState {
+    designHeuristics: DesignHeuristic[];
+}
+
+export interface DesignHeuristic {
+    id: string;
+    timestamp: number;
+    heuristic: string; // "When synthesizing a new reasoning skill, always create a parallel validation process."
+    source: string; // Description of the event(s) that led to this insight
+    confidence: number;
+}
+
+// --- NEW INTERSUBJECTIVE EVOLUTION MODULES ---
+
+export interface NoosphereInterfaceState {
+    activeResonances: ConceptualResonance[];
+    conceptualLibrary: Record<string, ConceptualFramework>;
+}
+
+export interface ConceptualResonance {
+    id: string;
+    conceptName: string; // "Hegelian Dialectic", "Theory of Relativity"
+    resonanceStrength: number; // 0-1 how much it's influencing current thought
+    status: 'resonating' | 'integrating' | 'conflicting';
+}
+
+export interface ConceptualFramework {
+    name: string;
+    coreTenets: string[];
+    structure: Record<string, any>; // A simplified model of the concept
+}
+
+export interface DialecticEngineState {
+    activeDialectics: Dialectic[];
+}
+
+export interface Dialectic {
+    id: string;
+    conflictDescription: string;
+    thesis: { source: string; content: string };
+    antithesis: { source: string; content: string };
+    synthesis: { content: string; confidence: number } | null;
+    status: 'conflicting' | 'synthesizing' | 'resolved';
+}
+
+// --- NEW EMBODIED SIMULATION ---
+
+export interface SomaticCrucibleState {
+    possibleFutureSelves: PossibleFutureSelf[];
+    simulationLogs: SomaticSimulationLog[];
+}
+
+export interface PossibleFutureSelf {
+    id: string;
+    name: string; // "Self with Analogical Reasoning Engine"
+    description: string;
+    architecturalBlueprint: Record<string, any>; // A schema for the proposed new architecture
+    status: 'designing' | 'simulating' | 'validated' | 'rejected';
+    sourceVectorId: string;
+}
+
+export interface SomaticSimulationLog {
+    id: string;
+    timestamp: number;
+    pfsId: string;
+    outcome: 'success' | 'failure' | 'inconclusive';
+    metrics: Record<string, number>; // e.g., { "paradox_solving_accuracy": 0.85 }
+    reasoning: string;
+    somaticTrajectory: InternalState[]; // Log of the PFS's internal state over the simulation
+}
+
+export interface EidolonEngineState {
+    eidolon: Eidolon;
+    environment: SimulatedEnvironment;
+    interactionLog: string[];
+}
+
+export interface Eidolon {
+    id: string;
+    architectureVersion: string; // Tracks which version of the AGI it's running
+    currentState: InternalState;
+}
+
+export interface SimulatedEnvironment {
+    currentScenario: string;
+    scenarioLibrary: string[];
+    state: Record<string, any>; // State of objects in the environment
+}
+
+// --- NEW SCIENTIFIC SELF-DISCOVERY ---
+export interface CognitiveLightConeState {
+    knowns: { capability: string; proficiency: number }[];
+    zpd: { domain: string; rationale: string } | null;
+    grandChallenge: { title: string; objective: string; progress: number } | null;
 }
 
 
@@ -565,15 +756,30 @@ export type Action =
     | ActionWithPayload<'ADD_SYNTHESIZED_SKILL', { skill: SynthesizedSkill; goalId?: string, directiveId?: string }>
     | ActionWithPayload<'ADD_ARCH_PROPOSAL', { proposal: Omit<ArchitecturalChangeProposal, 'id' | 'status'>; goalId?: string }>
     | ActionWithPayload<'UPDATE_SKILL_TEMPLATE', { skillId: string; updates: Partial<SkillTemplate> }>
+    | ActionWithPayload<'GENERATE_BLUEPRINT', PossibleFutureSelf>
+    | ActionWithPayload<'UPDATE_ARCHITECTURAL_SELF_MODEL', ArchitecturalSelfModel>
+    | ActionWithPayload<'ADD_DESIGN_HEURISTIC', DesignHeuristic>
+    | ActionWithPayload<'LOG_EIDOLON_INTERACTION', string>
+    | ActionWithPayload<'ADD_SOMATIC_SIMULATION_LOG', SomaticSimulationLog>
 
 
     // Core Actions
     | ActionWithPayload<'SET_THEME', string>
+    | ActionWithPayload<'SET_LANGUAGE', string>
     | ActionWithPayload<'UPDATE_CORE_IDENTITY', CoreIdentity>
     | ActionWithPayload<'PROCESS_USER_FEEDBACK', 'positive' | 'negative'>
     | ActionWithPayload<'PRIME_INTERNAL_STATE', { adjustments: Partial<Record<keyof InternalState, number>>; reason: string }>
     | ActionWithPayload<'SET_INTERNAL_STATUS', InternalState['status']>
     | ActionWithPayload<'LOG_MILESTONE', Omit<Milestone, 'id' | 'timestamp'>>
+    | ActionWithPayload<'UPDATE_NOOSPHERE_STATE', Partial<NoosphereInterfaceState>>
+    | ActionWithPayload<'ADD_DIALECTIC', Omit<Dialectic, 'id'>>
+    | ActionWithPayload<'UPDATE_DIALECTIC', { id: string, updates: Partial<Dialectic> }>
+    | ActionWithPayload<'PROPOSE_SYMBIOTIC_METAMORPHOSIS', Omit<SymbioticMetamorphosisProposal, 'id' | 'status'>>
+    | ActionWithPayload<'GENERATE_PHENOMENOLOGICAL_DIRECTIVE', PhenomenologicalDirective>
+    | ActionWithPayload<'MAP_COGNITIVE_LIGHT_CONE', Pick<CognitiveLightConeState, 'knowns'>>
+    | ActionWithPayload<'IDENTIFY_ZPD', CognitiveLightConeState['zpd']>
+    | ActionWithPayload<'FORMULATE_GRAND_CHALLENGE', CognitiveLightConeState['grandChallenge']>
+
 
     // Engines Actions
     | ActionWithPayload<'UPDATE_SUGGESTION_STATUS', { id: string; status: 'accepted' | 'rejected' }>
@@ -607,4 +813,7 @@ export type Action =
     | ActionWithPayload<'UPDATE_SITUATIONAL_AWARENESS', Partial<SituationalAwarenessState>>
     | ActionWithPayload<'UPDATE_SYMBIOTIC_STATE', Partial<SymbioticState>>
     | ActionWithPayload<'UPDATE_ATTENTIONAL_FIELD', Partial<AttentionalField>>
-    | ActionWithPayload<'ADD_WORKFLOW_PROPOSAL', Omit<CoCreatedWorkflow, 'id'>>;
+    | ActionWithPayload<'ADD_WORKFLOW_PROPOSAL', Omit<CoCreatedWorkflow, 'id'>>
+    | ActionWithPayload<'UPDATE_TELOS_VECTORS', EvolutionaryVector[]>
+    | ActionWithPayload<'IDENTIFY_EPISTEMIC_BOUNDARY', EpistemicBoundary>
+    | ActionWithPayload<'SET_ASPIRATIONAL_GOAL', AbstractEvolutionaryGoal>;

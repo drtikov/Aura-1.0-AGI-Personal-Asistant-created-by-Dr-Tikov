@@ -1,17 +1,18 @@
 import React from 'react';
-import { useCoreState } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const DevelopmentalHistoryPanel = React.memo(() => {
     const { developmentalHistory: state } = useCoreState();
+    const { t } = useLocalization();
     
     const timeAgo = (timestamp: number) => {
         const now = Date.now();
         const seconds = Math.floor((now - timestamp) / 1000);
-        if (seconds < 60) return `${seconds}s ago`;
+        if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
         const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return `${minutes}m ago`;
+        if (minutes < 60) return t('timeAgoMinutes', { count: minutes });
         const hours = Math.floor(minutes / 60);
-        if (hours < 24) return `${hours}h ago`;
+        if (hours < 24) return t('timeAgoHours', { count: hours });
         const days = Math.floor(hours / 24);
         return `${days}d ago`;
     };
@@ -19,7 +20,7 @@ export const DevelopmentalHistoryPanel = React.memo(() => {
     return (
         <div className="side-panel developmental-history-panel">
             {state.milestones.length === 0 ? (
-                <div className="kg-placeholder">No developmental milestones have been recorded.</div>
+                <div className="kg-placeholder">{t('devHistoryPanel_placeholder')}</div>
             ) : (
                 <div className="milestone-timeline">
                     {state.milestones.map((milestone, index) => (

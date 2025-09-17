@@ -323,6 +323,32 @@ body {
 
 .file-preview { margin-top: 0.5rem; max-width: 200px; }
 .file-preview img { max-width: 100%; border: 1px solid var(--border-color); }
+
+.file-attachment-display {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  background: rgba(0, 255, 255, 0.05);
+  border: 1px solid var(--border-color);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  max-width: fit-content;
+}
+.ui-1 .file-attachment-display {
+  clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
+}
+.ui-2 .file-attachment-display, .ui-3 .file-attachment-display, .ui-6 .file-attachment-display, .ui-7 .file-attachment-display, .ui-8 .file-attachment-display, .ui-11 .file-attachment-display {
+  background-color: var(--background);
+  border-radius: 4px;
+}
+.file-attachment-display svg {
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
 .skill-tag { display: inline-flex; align-items: center; gap: 0.5rem; margin-top: 0.75rem; border: 1px solid var(--border-color); padding: 0.2rem 0.5rem; font-size: 0.7rem; color: var(--primary-color); text-transform: uppercase; letter-spacing: 1px; }
 .ui-1 .skill-tag { background-color: rgba(0, 255, 255, 0.1); }
 .ui-2 .skill-tag, .ui-3 .skill-tag, .ui-6 .skill-tag, .ui-7 .skill-tag, .ui-8 .skill-tag, .ui-11 .skill-tag { background-color: rgba(0,0,0,0.05); border-radius: 4px; }
@@ -397,7 +423,26 @@ body {
 }
 .file-attachment-preview { position: relative; margin-bottom: 0.5rem; width: 100px; }
 .file-attachment-preview img, .file-attachment-preview audio { width: 100%; border: 1px solid var(--border-color); }
-.file-attachment-preview button { position: absolute; top: -5px; right: -5px; width: 20px; height: 20px; border-radius: 50%; background: var(--failure-color); color: white; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.file-attachment-preview button {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  color: var(--background);
+  border: 1px solid var(--background);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+.file-attachment-preview button:hover {
+  background: var(--failure-color);
+  color: #fff;
+}
 
 .loading-overlay {
     position: absolute;

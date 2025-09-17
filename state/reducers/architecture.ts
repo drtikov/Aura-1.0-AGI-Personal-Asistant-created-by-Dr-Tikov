@@ -1,4 +1,4 @@
-import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone } from '../../types';
+import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone, PossibleFutureSelf, SomaticSimulationLog } from '../../types';
 
 export const architectureReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     switch (action.type) {
@@ -136,6 +136,43 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 },
             };
         }
+
+        case 'GENERATE_BLUEPRINT':
+            return {
+                somaticCrucible: {
+                    ...state.somaticCrucible,
+                    possibleFutureSelves: [...state.somaticCrucible.possibleFutureSelves, action.payload]
+                }
+            };
+
+        case 'ADD_SOMATIC_SIMULATION_LOG':
+             return {
+                somaticCrucible: {
+                    ...state.somaticCrucible,
+                    simulationLogs: [action.payload, ...state.somaticCrucible.simulationLogs].slice(0, 50),
+                }
+            };
+        
+        case 'LOG_EIDOLON_INTERACTION':
+            return {
+                eidolonEngine: {
+                    ...state.eidolonEngine,
+                    interactionLog: [action.payload, ...state.eidolonEngine.interactionLog].slice(0, 100)
+                }
+            };
+
+        case 'UPDATE_ARCHITECTURAL_SELF_MODEL':
+            return {
+                architecturalSelfModel: action.payload
+            };
+
+        case 'ADD_DESIGN_HEURISTIC':
+            return {
+                heuristicsForge: {
+                    ...state.heuristicsForge,
+                    designHeuristics: [action.payload, ...state.heuristicsForge.designHeuristics].slice(0, 50),
+                }
+            };
 
         default:
             return {};

@@ -1,8 +1,9 @@
 import React from 'react';
-import { usePlanningState } from '../context/AuraContext';
+import { usePlanningState, useLocalization } from '../context/AuraContext';
 
 export const StrategicPlannerPanel = React.memo(() => {
     const { goalTree, activeStrategicGoalId: activeGoalId } = usePlanningState();
+    const { t } = useLocalization();
     const renderGoalNode = (goalId: string) => {
         const goal = goalTree[goalId];
         if (!goal) return null;
@@ -38,7 +39,7 @@ export const StrategicPlannerPanel = React.memo(() => {
                 </div>
             ) : (
                 <div className="kg-placeholder">
-                    No active strategic goal. Set one using the "Set Goal" cognitive trigger.
+                    {t('strategicPlanner_placeholder')}
                 </div>
             )}
         </div>
