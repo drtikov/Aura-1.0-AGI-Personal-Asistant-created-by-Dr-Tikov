@@ -36,7 +36,9 @@ export const useAura = () => {
         analyzePerformanceForEvolution, 
         consolidateCoreIdentity, 
         analyzeStateComponentCorrelation, 
-        runCognitiveArbiter 
+        runCognitiveArbiter,
+        consolidateEpisodicMemory,
+        evolvePersonality,
     } = apiHooks;
 
     const { handleIntrospect } = useAutonomousSystem({
@@ -50,6 +52,8 @@ export const useAura = () => {
         consolidateCoreIdentity,
         analyzeStateComponentCorrelation,
         runCognitiveArbiter,
+        consolidateEpisodicMemory,
+        evolvePersonality,
     });
     const { isVisualAnalysisActive, setIsVisualAnalysisActive, videoRef, analysisIntervalRef, isRecording, setIsRecording, setCurrentCommand } = uiHandlers;
     const recognitionRef = useRef<any | null>(null);

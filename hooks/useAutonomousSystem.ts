@@ -13,13 +13,16 @@ type UseAutonomousSystemProps = {
     consolidateCoreIdentity: () => Promise<void>;
     analyzeStateComponentCorrelation: () => Promise<void>;
     runCognitiveArbiter: (directive: SelfTuningDirective, skill?: SynthesizedSkill) => Promise<ArbitrationResult | null>;
+    consolidateEpisodicMemory: () => Promise<void>;
+    evolvePersonality: () => Promise<void>;
 };
 
 export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
     const { 
         state, dispatch, addToast, isPaused, analyzePerformanceForEvolution, 
         synthesizeNewSkill, runSkillSimulation, consolidateCoreIdentity, 
-        analyzeStateComponentCorrelation, runCognitiveArbiter 
+        analyzeStateComponentCorrelation, runCognitiveArbiter, consolidateEpisodicMemory,
+        evolvePersonality,
     } = props;
     const identityConsolidationRef = useRef(false);
 
@@ -66,6 +69,38 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
 
         return () => clearInterval(interval);
     }, [isPaused, analyzeStateComponentCorrelation, state.performanceLogs.length]);
+
+    // Memory Consolidation Cycle
+    useEffect(() => {
+        if (isPaused || state.memoryConsolidationState.status === 'consolidating') return;
+
+        const interval = setInterval(() => {
+            // Check if enough time has passed and there are new logs to process
+            const timeSinceLast = Date.now() - state.memoryConsolidationState.lastConsolidation;
+            const newLogsCount = state.performanceLogs.filter(log => log.timestamp > state.memoryConsolidationState.lastConsolidation).length;
+
+            if (timeSinceLast > 180000 && newLogsCount > 5) { // Consolidate every 3 minutes if there's something new
+                consolidateEpisodicMemory();
+            }
+        }, 60000); // Check every minute
+
+        return () => clearInterval(interval);
+    }, [isPaused, state.memoryConsolidationState, state.performanceLogs, consolidateEpisodicMemory]);
+
+    // Persona Evolution Cycle
+    useEffect(() => {
+        if (isPaused) return;
+
+        const interval = setInterval(() => {
+            // Evolve personality if there are recent memories to reflect upon
+            if (state.episodicMemoryState.episodes.length > 0) {
+                evolvePersonality();
+            }
+        }, 300000); // Run every 5 minutes
+
+        return () => clearInterval(interval);
+    }, [isPaused, state.episodicMemoryState.episodes.length, evolvePersonality]);
+
 
     // Self-Tuning Directive Processing Pipeline
     const processDirectives = useCallback(async () => {

@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
 
-export const SelfAwarenessPanel = React.memo(() => {
+export const CognitiveShadowPanel = React.memo(() => {
     const { selfAwarenessState: state } = useCoreState();
     const { t } = useLocalization();
     const sortedBiases = useMemo(() => {

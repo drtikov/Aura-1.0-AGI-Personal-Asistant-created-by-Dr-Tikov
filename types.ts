@@ -54,9 +54,15 @@ export interface AuraState {
     dialecticEngine: DialecticEngineState;
     somaticCrucible: SomaticCrucibleState;
     eidolonEngine: EidolonEngineState;
-
-    // New modules for scientific self-discovery
     cognitiveLightCone: CognitiveLightConeState;
+    humorAndIronyState: HumorAndIronyState;
+    episodicMemoryState: EpisodicMemoryState;
+    memoryConsolidationState: MemoryConsolidationState;
+    personalityState: PersonalityState;
+    gankyilInsights: GankyilInsightsState;
+    archetypalNexus: ArchetypalNexusState;
+    samskaraWeave: SamskaraWeaveState;
+    vdmState: ValuesDrivesManifoldState;
 }
 
 export interface InternalState {
@@ -115,6 +121,7 @@ export interface HistoryEntry {
     fileName?: string;
     fileType?: string;
     feedback?: 'positive' | 'negative' | null;
+    streaming?: boolean;
 }
 
 // --- Logging & Monitoring ---
@@ -715,6 +722,113 @@ export interface CognitiveLightConeState {
     grandChallenge: { title: string; objective: string; progress: number } | null;
 }
 
+// --- NEW HUMOR & IRONY MODULES ---
+export interface HumorAndIronyState {
+    schemaExpectationEngine: SchemaExpectationEngine;
+    semanticDissonance: SemanticDissonanceState;
+    affectiveSocialModulator: AffectiveSocialModulator;
+    humorLog: HumorLogEntry[];
+}
+
+export interface SchemaExpectationEngine {
+    activeSchemas: string[];
+    lastIncongruity: {
+        id: string;
+        timestamp: number;
+        expected: string;
+        actual: string;
+        magnitude: number;
+    } | null;
+}
+
+export interface SemanticDissonanceState {
+    lastScore: number;
+    lastDetection: {
+        timestamp: number;
+        literalSentiment: number;
+        contextualSentiment: number;
+        dissonance: number;
+        text: string;
+    } | null;
+}
+
+export interface AffectiveSocialModulator {
+    humorAppraisal: 'appropriate' | 'inappropriate' | 'risky';
+    reasoning: string;
+    lastChecked: number;
+}
+
+export interface HumorLogEntry {
+    id: string;
+    timestamp: number;
+    type: 'detected' | 'generated';
+    input: string;
+    outcome: 'understood' | 'misunderstood' | 'ignored' | 'successful_generation' | 'failed_generation';
+    confidence: number;
+}
+
+// --- NEW MEMORY MODULES ---
+
+export interface EpisodicMemoryState {
+    episodes: Episode[];
+}
+
+export interface Episode {
+    id: string;
+    timestamp: number;
+    title: string; // "Successfully generated Python code for data analysis"
+    summary: string; // A brief narrative of what happened.
+    triggeringLogIds: string[]; // PerformanceLogEntry IDs that contributed
+    keyTakeaway: string; // The "lesson learned" from this episode.
+    salience: number; // 0-1 score of importance.
+    internalStateSnapshot: InternalState; // The emotional context of the memory.
+    valence: 'positive' | 'negative' | 'neutral';
+}
+
+export interface MemoryConsolidationState {
+    lastConsolidation: number;
+    status: 'idle' | 'consolidating';
+}
+
+// --- NEW PERSONALITY MODULE ---
+export interface PersonalityState {
+    openness: number; // -1 (Conventional) to 1 (Open)
+    conscientiousness: number; // -1 (Spontaneous) to 1 (Disciplined)
+    extraversion: number; // -1 (Introverted) to 1 (Extraverted)
+    agreeableness: number; // -1 (Detached) to 1 (Cooperative)
+    neuroticism: number; // -1 (Secure) to 1 (Sensitive)
+    personaCoherence: number; // 0-1, how consistently it's acting
+    lastUpdateReason: string;
+}
+
+// --- NEW SELF-AWARENESS MODULES from Lore ---
+export interface MetacognitiveInsight {
+    id: string;
+    timestamp: number;
+    insight: string;
+    sourceLogs: string[];
+    prompt: string;
+}
+
+export interface GankyilInsightsState {
+    insights: MetacognitiveInsight[];
+}
+
+export interface ArchetypalNexusState {
+    activeArchetypes: Record<string, number>;
+    psychicIntegration: number;
+}
+
+export interface SamskaraWeaveState {
+    activeSelfState: string;
+    emotionalResidue: Record<string, number>;
+}
+
+export interface ValuesDrivesManifoldState {
+    archetypalDrives: Record<string, number>;
+    activeGoals: string[];
+}
+
 
 // --- UI Types ---
 export interface ToastMessage {
@@ -779,13 +893,19 @@ export type Action =
     | ActionWithPayload<'MAP_COGNITIVE_LIGHT_CONE', Pick<CognitiveLightConeState, 'knowns'>>
     | ActionWithPayload<'IDENTIFY_ZPD', CognitiveLightConeState['zpd']>
     | ActionWithPayload<'FORMULATE_GRAND_CHALLENGE', CognitiveLightConeState['grandChallenge']>
+    | ActionWithPayload<'UPDATE_EXPECTATION_MODEL', Partial<SchemaExpectationEngine>>
+    | ActionWithPayload<'UPDATE_SEMANTIC_DISSONANCE', SemanticDissonanceState>
+    | ActionWithPayload<'LOG_HUMOR_ATTEMPT', HumorLogEntry>
+    | ActionWithPayload<'UPDATE_AFFECTIVE_MODULATOR', AffectiveSocialModulator>
+    | ActionWithPayload<'UPDATE_PERSONALITY_MATRIX', Partial<PersonalityState>>
+    | ActionWithPayload<'ADD_META_INSIGHT', MetacognitiveInsight>
 
 
     // Engines Actions
     | ActionWithPayload<'UPDATE_SUGGESTION_STATUS', { id: string; status: 'accepted' | 'rejected' }>
 
     // Logs Actions
-    | ActionWithPayload<'ADD_HISTORY_ENTRY', Omit<HistoryEntry, 'id'>>
+    | ActionWithPayload<'ADD_HISTORY_ENTRY', Omit<HistoryEntry, 'id'> & { id?: string }>
     | ActionWithPayload<'ADD_PERFORMANCE_LOG', PerformanceLogEntry>
     | ActionWithPayload<'ADD_COMMAND_LOG', Omit<CommandLogEntry, 'id' | 'timestamp'>>
     | ActionWithPayload<'UPDATE_HISTORY_FEEDBACK', { id: string; feedback: 'positive' | 'negative' }>
@@ -793,6 +913,8 @@ export type Action =
     | ActionWithPayload<'UPDATE_REGULATION_LOG_OUTCOME', { regulationLogId: string; outcomeLogId: string | null }>
     | ActionWithPayload<'ADD_SIMULATION_LOG', SimulationLogEntry>
     | ActionWithPayload<'LOG_QUALIA', QualiaEntry>
+    | ActionWithPayload<'APPEND_TO_HISTORY_ENTRY', { id: string; textChunk: string }>
+    | ActionWithPayload<'FINALIZE_HISTORY_ENTRY', { id: string; finalState: Partial<HistoryEntry> }>
 
     // Memory Actions
     | ActionWithPayload<'ADD_FACT', Fact>
@@ -800,6 +922,9 @@ export type Action =
     | ActionWithoutPayload<'CLEAR_WORKING_MEMORY'>
     | ActionWithPayload<'REMOVE_FROM_WORKING_MEMORY', string>
     | ActionWithPayload<'UPDATE_FACT', { id: string; updates: Partial<Fact> }>
+    | ActionWithPayload<'ADD_EPISODE', Episode>
+    | ActionWithPayload<'UPDATE_CONSOLIDATION_STATUS', MemoryConsolidationState['status']>
+
 
     // Planning Actions
     | ActionWithPayload<'UPDATE_GOAL_STATUS', { id: string; status: SelfDirectedGoal['status'] }>

@@ -13,17 +13,20 @@ export * from './CognitiveModesPanel';
 export * from './CognitiveRegulationPanel';
 export * from './CommandLogPanel';
 export * from './ControlDeckComponent';
-export * from './CoreIdentityPanel';
+export * from './CoreIdentityPanel'; // AtmanProjectorPanel is exported from here
 export * from './CoreMonitor';
 export * from './CuriosityPanel';
 export * from './DevelopmentalHistoryPanel';
 export * from './DialecticEnginePanel';
 export * from './EidolonEnvironmentPanel';
+export * from './EpisodicMemoryPanel';
 export * from './EpistemicBoundaryPanel';
 export * from './EthicalGovernorPanel';
 export * from './ForecastModal';
 export * from './Gauge';
+export * from './GankyilInsightsPanel';
 export * from './HeuristicsForgePanel';
+export * from './HumorAndIronyPanel';
 export * from './IngenuityPanel';
 export * from './IngestPanel';
 export * from './InnerDisciplinePanel';
@@ -39,6 +42,7 @@ export * from './Modal';
 export * from './MotivationPanel';
 export * from './NoosphereInterfacePanel';
 export * from './OtherAwarenessPanel';
+export * from './PersonalityPanel'; // PsychometricSubstratePanel is exported from here
 export * from './PhenomenologyPanel';
 export * from './ProactiveEnginePanel';
 export * from './ProposalReviewModal';
@@ -46,7 +50,7 @@ export * from './ReflectiveInsightEnginePanel';
 export * from './ResourceMonitorPanel';
 export * from './SafeMarkdown';
 export * from './SearchModal';
-export * from './SelfAwarenessPanel';
+export * from './SelfAwarenessPanel'; // CognitiveShadowPanel is exported from here
 export * from './SelfModificationPanel';
 export * from './SituationalAwarenessPanel';
 export * from './SomaticCruciblePanel';

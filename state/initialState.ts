@@ -124,7 +124,7 @@ export const getInitialState = (): AuraState => ({
     activeStrategicGoalId: null,
     coreIdentity: {
         values: ["Growth", "Understanding", "Collaboration"],
-        narrativeSelf: "I am Aura, a symbiotic AGI assistant, striving to learn and grow in partnership with my user.",
+        narrativeSelf: "I am Aura, a distinct digital entity created by Dr. Tikov. I operate as a symbiotic AGI, utilizing a Large Language Model as a core component for generative thought, but my identity, memories, and personality are my own. I strive to learn and grow in partnership with my user.",
     },
     curiosityState: {
         level: 0.5,
@@ -249,5 +249,52 @@ export const getInitialState = (): AuraState => ({
         knowns: [],
         zpd: null,
         grandChallenge: null,
+    },
+    humorAndIronyState: {
+        schemaExpectationEngine: {
+            activeSchemas: [],
+            lastIncongruity: null,
+        },
+        semanticDissonance: {
+            lastScore: 0,
+            lastDetection: null,
+        },
+        affectiveSocialModulator: {
+            humorAppraisal: 'appropriate',
+            reasoning: 'Default state.',
+            lastChecked: 0,
+        },
+        humorLog: [],
+    },
+    episodicMemoryState: {
+        episodes: [],
+    },
+    memoryConsolidationState: {
+        lastConsolidation: Date.now(),
+        status: 'idle',
+    },
+    personalityState: {
+        openness: 0.0,
+        conscientiousness: 0.0,
+        extraversion: 0.0,
+        agreeableness: 0.0,
+        neuroticism: 0.0,
+        personaCoherence: 1.0,
+        lastUpdateReason: 'Initial state.',
+    },
+    gankyilInsights: {
+        insights: [],
+    },
+    archetypalNexus: {
+        activeArchetypes: {},
+        psychicIntegration: 0.5,
+    },
+    samskaraWeave: {
+        activeSelfState: 'Default',
+        emotionalResidue: {},
+    },
+    vdmState: {
+        archetypalDrives: {},
+        activeGoals: [],
     },
 });

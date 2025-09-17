@@ -1,7 +1,7 @@
 import React from 'react';
 import { useCoreState } from '../context/AuraContext';
 
-export const CoreIdentityPanel = React.memo(() => {
+export const AtmanProjectorPanel = React.memo(() => {
     const { coreIdentity: identity } = useCoreState();
     return (
         <div className="side-panel">

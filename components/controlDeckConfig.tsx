@@ -8,14 +8,17 @@ import { CognitiveLightConePanel } from './CognitiveLightConePanel';
 import { CognitiveModesPanel } from './CognitiveModesPanel';
 import { CognitiveRegulationPanel } from './CognitiveRegulationPanel';
 import { CommandLogPanel } from './CommandLogPanel';
-import { CoreIdentityPanel } from './CoreIdentityPanel';
+import { AtmanProjectorPanel } from './CoreIdentityPanel';
 import { CuriosityPanel } from './CuriosityPanel';
 import { DevelopmentalHistoryPanel } from './DevelopmentalHistoryPanel';
 import { DialecticEnginePanel } from './DialecticEnginePanel';
 import { EidolonEnvironmentPanel } from './EidolonEnvironmentPanel';
+import { EpisodicMemoryPanel } from './EpisodicMemoryPanel';
 import { EpistemicBoundaryPanel } from './EpistemicBoundaryPanel';
 import { EthicalGovernorPanel } from './EthicalGovernorPanel';
+import { GankyilInsightsPanel } from './GankyilInsightsPanel';
 import { HeuristicsForgePanel } from './HeuristicsForgePanel';
+import { HumorAndIronyPanel } from './HumorAndIronyPanel';
 import { IngenuityPanel } from './IngenuityPanel';
 import { InnerDisciplinePanel } from './InnerDisciplinePanel';
 import { IntuitionEnginePanel } from './IntuitionEnginePanel';
@@ -26,11 +29,12 @@ import { MetacognitiveCausalModelPanel } from './MetacognitiveCausalModelPanel';
 import { MetacognitiveNexusPanel } from './MetacognitiveNexusPanel';
 import { NoosphereInterfacePanel } from './NoosphereInterfacePanel';
 import { OtherAwarenessPanel } from './OtherAwarenessPanel';
+import { PsychometricSubstratePanel } from './PersonalityPanel';
 import { PhenomenologyPanel } from './PhenomenologyPanel';
 import { ProactiveEnginePanel } from './ProactiveEnginePanel';
 import { ReflectiveInsightEnginePanel } from './ReflectiveInsightEnginePanel';
 import { ResourceMonitorPanel } from './ResourceMonitorPanel';
-import { SelfAwarenessPanel } from './SelfAwarenessPanel';
+import { CognitiveShadowPanel } from './SelfAwarenessPanel';
 import { SelfModificationPanel } from './SelfModificationPanel';
 import { SituationalAwarenessPanel } from './SituationalAwarenessPanel';
 import { SomaticCruciblePanel } from './SomaticCruciblePanel';
@@ -64,8 +68,8 @@ export const panelLayout: PanelConfig[] = [
     },
     {
         id: 'identity',
-        titleKey: 'panelCoreIdentity',
-        component: CoreIdentityPanel,
+        titleKey: 'panelAtmanProjector',
+        component: AtmanProjectorPanel,
     },
     {
         id: 'cognitiveFrontier',
@@ -108,6 +112,12 @@ export const panelLayout: PanelConfig[] = [
         id: 'knowledge',
         titleKey: 'panelKnowledgeMemory',
         children: [
+             {
+                id: 'episodicMemory',
+                titleKey: 'panelEpisodicMemory',
+                component: EpisodicMemoryPanel,
+                summary: (state, t) => t('panelSummaryEpisodes', { count: state.memory.episodicMemoryState.episodes.length }),
+            },
             {
                 id: 'memoryCrystallization',
                 titleKey: 'panelMemoryCrystallization',
@@ -126,6 +136,9 @@ export const panelLayout: PanelConfig[] = [
         id: 'metacognition',
         titleKey: 'panelMetacognitionSelf',
         children: [
+            { id: 'psychometricSubstrate', titleKey: 'panelPsychometricSubstrate', component: PsychometricSubstratePanel },
+            { id: 'gankyilInsights', titleKey: 'panelGankyilInsights', component: GankyilInsightsPanel, summary: (state, t) => t('panelSummaryInsights', { count: state.core.gankyilInsights.insights.length }) },
+            { id: 'humorAndIrony', titleKey: 'panelHumorAndIrony', component: HumorAndIronyPanel },
             { id: 'phenomenology', titleKey: 'panelPhenomenology', component: PhenomenologyPanel },
             { id: 'situationalAwareness', titleKey: 'panelSituationalAwareness', component: SituationalAwarenessPanel },
             { id: 'developmentalHistory', titleKey: 'panelDevelopmentalHistory', component: DevelopmentalHistoryPanel },
@@ -133,7 +146,7 @@ export const panelLayout: PanelConfig[] = [
             { id: 'metacognitiveCausalModel', titleKey: 'panelMetacognitiveCausalModel', component: MetacognitiveCausalModelPanel },
             { id: 'cognitiveRegulationLog', titleKey: 'panelCognitiveRegulationLog', component: CognitiveRegulationPanel },
             { id: 'worldModel', titleKey: 'panelWorldModel', component: WorldModelPanel },
-            { id: 'selfAwareness', titleKey: 'panelSelfAwareness', component: SelfAwarenessPanel },
+            { id: 'cognitiveShadow', titleKey: 'panelCognitiveShadow', component: CognitiveShadowPanel },
             { id: 'curiosity', titleKey: 'panelCuriosity', component: CuriosityPanel },
             { id: 'causalSelfModel', titleKey: 'panelCausalSelfModel', component: CausalSelfModelPanel },
             { id: 'rie', titleKey: 'panelReflectiveInsightEngine', component: ReflectiveInsightEnginePanel, summary: (state, t) => t('panelSummaryInsights', { count: state.core.rieState.insights.length }) },
@@ -143,6 +156,7 @@ export const panelLayout: PanelConfig[] = [
         id: 'architecture',
         titleKey: 'panelCognitiveArchitecture',
         children: [
+            { id: 'cognitiveArchitecture', titleKey: 'panelCognitiveArchitecture', component: CognitiveArchitecturePanel },
             { id: 'cognitiveForge', titleKey: 'panelCognitiveForge', component: CognitiveForgePanel, },
             {
                 id: 'proposals',

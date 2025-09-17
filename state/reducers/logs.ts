@@ -6,8 +6,22 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             if (action.payload.from === 'system' && state.history.some(h => h.text === action.payload.text)) {
                 return {};
             }
-            return { history: [...state.history, { ...action.payload, id: self.crypto.randomUUID() }] };
+            return { history: [...state.history, { ...action.payload, id: action.payload.id || self.crypto.randomUUID() }] };
         
+        case 'APPEND_TO_HISTORY_ENTRY':
+            return {
+                history: state.history.map(entry =>
+                    entry.id === action.payload.id ? { ...entry, text: entry.text + action.payload.textChunk } : entry
+                ),
+            };
+
+        case 'FINALIZE_HISTORY_ENTRY':
+            return {
+                history: state.history.map(entry =>
+                    entry.id === action.payload.id ? { ...entry, ...action.payload.finalState, streaming: false } : entry
+                ),
+            };
+            
         case 'ADD_PERFORMANCE_LOG':
             return { performanceLogs: [...state.performanceLogs, action.payload] };
 

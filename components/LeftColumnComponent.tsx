@@ -33,7 +33,7 @@ export const LeftColumnComponent = () => {
                     </header>
                     <div className="output-panel" ref={outputPanelRef}>
                         {history.map((entry: HistoryEntry) => (
-                            <div key={entry.id} className={`history-entry from-${entry.from}`}>
+                            <div key={entry.id} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
                                 <div className="entry-content">
                                     {entry.text && <SafeMarkdown text={entry.text} />}
                                     {entry.from === 'user' && entry.fileName && (
@@ -49,7 +49,7 @@ export const LeftColumnComponent = () => {
                                             {entry.logId && ( <button className="trace-button" onClick={() => { const log = performanceLogs.find((l: PerformanceLogEntry) => l.id === entry.logId); if (log) modal.open('causalChain', { log }); }}>Trace</button> )}
                                         </span>
                                     )}
-                                    {entry.from === 'bot' && (
+                                    {entry.from === 'bot' && !entry.streaming && entry.text && (
                                         <div className="feedback-controls">
                                             <button className={`feedback-button positive ${entry.feedback === 'positive' ? 'selected' : ''}`} onClick={() => handleFeedback(entry.id, 'positive')} disabled={!!entry.feedback} title={t('feedbackGood')} aria-label={t('feedbackGood')}>
                                                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M1 21h4V9H1v12zm22-11c0-1.1-.9-2-2-2h-6.31l.95-4.57.03-.32c0-.41-.17-.79-.44-1.06L14.17 1 7.59 7.59C7.22 7.95 7 8.45 7 9v10c0 1.1.9 2 2 2h9c.83 0 1.54-.5 1.84-1.22l3.02-7.05c.09-.23.14-.47.14-.73v-2z"/></svg>

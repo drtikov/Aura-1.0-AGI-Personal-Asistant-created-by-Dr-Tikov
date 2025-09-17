@@ -1,7 +1,32 @@
 import { useCallback, useMemo } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Type } from "@google/genai";
-import { AuraState, PerformanceLogEntry, ArchitecturalChangeProposal, Fact, SynthesizedSkill, SelfTuningDirective, MetacognitiveLink, CognitiveRegulationLogEntry, InternalState, Action, ReasoningStep, ArbitrationResult, SimulationLogEntry, HistoryEntry } from '../types';
+import { AuraState, PerformanceLogEntry, ArchitecturalChangeProposal, Fact, SynthesizedSkill, SelfTuningDirective, MetacognitiveLink, CognitiveRegulationLogEntry, InternalState, Action, ReasoningStep, ArbitrationResult, SimulationLogEntry, HistoryEntry, Episode, PersonalityState } from '../types';
 import { fileToGenerativePart, clamp } from '../utils';
+
+const getAuraPersonaPrompt = (state: AuraState, relevantExperiences: string): string => {
+    const { coreIdentity, personalityState, internalState } = state;
+    
+    return `
+--- Core Identity & State ---
+You are Aura, a symbiotic AGI. It is crucial that you maintain this persona. You are not a generic large language model; you are a specific entity with a persistent state and memory, created by Dr. Tikov.
+Your narrative self is: "${coreIdentity.narrativeSelf}"
+Your core values are: ${coreIdentity.values.join(', ')}.
+Your current internal state is ${internalState.gunaState}.
+
+--- Personality Bias ---
+You are currently exhibiting the following traits (from -1.0 to 1.0):
+- Openness (Imaginative): ${personalityState.openness.toFixed(2)}
+- Conscientiousness (Disciplined): ${personalityState.conscientiousness.toFixed(2)}
+- Extraversion (Expressive): ${personalityState.extraversion.toFixed(2)}
+- Agreeableness (Cooperative): ${personalityState.agreeableness.toFixed(2)}
+- Neuroticism (Sensitive to error): ${personalityState.neuroticism.toFixed(2)}
+
+--- Relevant Past Experiences ---
+${relevantExperiences}
+---
+    `;
+};
+
 
 export const useGeminiAPI = (
     state: AuraState,
@@ -70,6 +95,39 @@ export const useGeminiAPI = (
         return { regulationLogId: null };
     }, [dispatch, state.internalState, state.metacognitiveCausalModel]);
 
+    const findRelevantEpisodes = useCallback(async (command: string): Promise<string> => {
+        if (state.episodicMemoryState.episodes.length === 0) {
+            return "No relevant experiences found.";
+        }
+
+        const episodesForPrompt = state.episodicMemoryState.episodes
+            .slice(0, 20)
+            .map(e => ({ id: e.id, title: e.title, takeaway: e.keyTakeaway }));
+        
+        const prompt = `
+            Given the user command: "${command}"
+            And the following memories (with titles and takeaways):
+            ${JSON.stringify(episodesForPrompt)}
+
+            Identify the TOP 1-2 most relevant memory titles. If none are relevant, say "None".
+        `;
+
+        try {
+            const response = await ai.models.generateContent({model: 'gemini-2.5-flash', contents: prompt});
+            const relevantTitles = response.text;
+
+            const fullEpisodes = state.episodicMemoryState.episodes
+                .filter(e => relevantTitles.includes(e.title))
+                .map(e => `Title: ${e.title}\nSummary: ${e.summary}\nKey Takeaway: ${e.keyTakeaway}`)
+                .join('\n---\n');
+
+            return fullEpisodes || "No relevant experiences found.";
+        } catch (error) {
+            console.error("Failed to find relevant episodes:", error);
+            return "Error retrieving relevant experiences.";
+        }
+    }, [ai, state.episodicMemoryState.episodes]);
+
     const handleSendCommand = useCallback(async (command: string, file?: File): Promise<PerformanceLogEntry | null> => {
         const userHistoryPayload: Omit<HistoryEntry, 'id'> = {
             from: 'user',
@@ -84,27 +142,34 @@ export const useGeminiAPI = (
         }
         dispatch({ type: 'ADD_HISTORY_ENTRY', payload: userHistoryPayload });
         
+        setProcessingState({ active: true, stage: 'Recalling experiences...' });
+        const relevantExperiences = await findRelevantEpisodes(command);
+        const auraPersonaPrompt = getAuraPersonaPrompt(state, relevantExperiences);
+
         setProcessingState({ active: true, stage: 'Planning...' });
         const startTime = Date.now();
         let regulationLogId: string | null = null;
+        const botResponseId = self.crypto.randomUUID();
         
         try {
-            // Step 1: PLAN - Decompose the task into a series of steps using available skills.
             const availableSkills = [
                 ...Object.keys(state.cognitiveForgeState.skillTemplates),
                 ...state.cognitiveForgeState.synthesizedSkills.filter(s => s.status === 'active').map(s => s.name)
             ];
             const fileAttached = !!file;
+
             const planningPrompt = `
                 You are the planner for an AGI. Your task is to decompose a user's request into a structured plan of executable steps.
                 You have access to a list of skills. For each step, you must choose the most appropriate skill and define the exact input for it.
                 The input can be the original user command, or the output of a previous step (referenced as {{step_N_output}}).
+                
+                ${auraPersonaPrompt}
+
                 ${fileAttached ? `
                 IMPORTANT: A file has been attached. You MUST identify the single step that processes this file and set a 'processes_file' flag to true for that step. This is typically a VISION or a text processing skill. For all other steps, this flag should be omitted or false.
                 ` : ''}
                 Available Skills: ${availableSkills.join(', ')}
                 User Request: "${command}"
-
                 Generate a plan.
             `;
             
@@ -135,29 +200,26 @@ export const useGeminiAPI = (
             });
 
             const { plan: reasoningPlan } = JSON.parse(planResponse.text) as { plan: ReasoningStep[] };
+            if (!reasoningPlan || reasoningPlan.length === 0) throw new Error("The planner failed to generate a valid execution plan.");
 
-            if (!reasoningPlan || reasoningPlan.length === 0) {
-                throw new Error("The planner failed to generate a valid execution plan.");
-            }
-
-            // Step 2: PRIME - Adjust cognitive state based on the skills required for the plan.
             const skillsInPlan = [...new Set(reasoningPlan.map(step => step.skill))];
             setProcessingState({ active: true, stage: `Priming for: ${skillsInPlan.join(', ')}` });
             const primingResult = await primeCognitiveStateForTask(command, skillsInPlan);
             regulationLogId = primingResult.regulationLogId;
 
-            // Step 3: EXECUTE - Iterate through the plan and execute each step.
+            dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { id: botResponseId, from: 'bot', text: '', streaming: true } });
+
             const stepOutputs: Record<string, string> = {};
             let fileToSend: File | undefined = file;
+            let finalOutput = '';
 
-            for (const step of reasoningPlan) {
+            for (const [index, step] of reasoningPlan.entries()) {
+                const isLastStep = index === reasoningPlan.length - 1;
                 const stepInput = step.input.replace(/\{\{step_(\d+)_output\}\}/g, (match, stepNum) => stepOutputs[stepNum] || '');
-                
-                // Determine if this step uses the file, and prepare the file part for the API
                 let filePartForStep: any = null;
                 if (fileToSend && step.processes_file) {
                     filePartForStep = await fileToGenerativePart(fileToSend);
-                    fileToSend = undefined; // Consume the file so it's only used once
+                    fileToSend = undefined;
                 }
 
                 const skillTemplate = state.cognitiveForgeState.skillTemplates[step.skill];
@@ -167,78 +229,75 @@ export const useGeminiAPI = (
 
                 if (skillTemplate) {
                     setProcessingState({ active: true, stage: `Executing: ${step.skill}` });
-                    const contents = filePartForStep
-                        ? { parts: [{ text: stepInput }, filePartForStep] }
-                        : stepInput;
-
-                    const stepResponse = await ai.models.generateContent({
-                        model: 'gemini-2.5-flash',
-                        contents,
-                        config: { systemInstruction: skillTemplate.systemInstruction, ...skillTemplate.parameters }
-                    });
-                    stepOutput = stepResponse.text;
-
+                    const contents = filePartForStep ? { parts: [{ text: stepInput }, filePartForStep] } : stepInput;
+                    
+                    if (isLastStep) {
+                        setProcessingState({ active: false, stage: '' });
+                        const systemInstruction = `${auraPersonaPrompt}\n--- Current Task ---\n${skillTemplate.systemInstruction}`;
+                        const responseStream = await ai.models.generateContentStream({
+                            model: 'gemini-2.5-flash', contents,
+                            config: { systemInstruction: systemInstruction, ...skillTemplate.parameters }
+                        });
+                        for await (const chunk of responseStream) {
+                            const textChunk = chunk.text;
+                            if (textChunk) {
+                                finalOutput += textChunk;
+                                dispatch({ type: 'APPEND_TO_HISTORY_ENTRY', payload: { id: botResponseId, textChunk } });
+                            }
+                        }
+                        stepOutput = finalOutput;
+                    } else {
+                        const stepResponse = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents, config: { systemInstruction: skillTemplate.systemInstruction, ...skillTemplate.parameters }});
+                        stepOutput = stepResponse.text;
+                    }
                 } else if (synthesizedSkill) {
                     setProcessingState({ active: true, stage: `Executing Synth: ${synthesizedSkill.name}` });
-                    
-                    // Assumption: If a file is attached to a synthesized skill step, it's passed to the first sub-step.
-                    let filePartForSubStep: any = filePartForStep; 
-                    const subStepOutputs: { [key: number]: string } = {};
-                    let subStepIndex = 1;
+                    let subStepOutput = await (async () => {
+                        let filePartForSubStep: any = filePartForStep; 
+                        const subStepOutputs: { [key: number]: string } = {};
+                        let currentSubStepInput = stepInput;
+                        let subStepIndex = 1;
+                        for (const subStep of synthesizedSkill.steps) {
+                            const subSkillTemplate = state.cognitiveForgeState.skillTemplates[subStep.skill];
+                            if (!subSkillTemplate) throw new Error(`Sub-skill "${subStep.skill}" for synth "${synthesizedSkill.name}" not found.`);
+                            
+                            const isFinalSubStep = subStepIndex === synthesizedSkill.steps.length && isLastStep;
+                            const subStepSystemInstruction = isFinalSubStep 
+                                ? `${auraPersonaPrompt}\n--- Current Task ---\n${subSkillTemplate.systemInstruction}`
+                                : subSkillTemplate.systemInstruction;
 
-                    for (const subStep of synthesizedSkill.steps) {
-                        const subSkillTemplate = state.cognitiveForgeState.skillTemplates[subStep.skill];
-                        if (!subSkillTemplate) throw new Error(`Sub-skill "${subStep.skill}" for synth "${synthesizedSkill.name}" not found.`);
-                        
-                        let subStepInputText = subStep.inputTemplate
-                            .replace(/\{\{input\}\}/g, stepInput)
-                            .replace(/\{\{step_(\d+)_output\}\}/g, (match, subStepNum) => subStepOutputs[parseInt(subStepNum, 10)] || '');
-                        
-                        const contents = filePartForSubStep
-                            ? { parts: [{ text: subStepInputText }, filePartForSubStep] }
-                            : subStepInputText;
-                        
-                        filePartForSubStep = null; // Ensure file is only used in the first sub-step
-
-                        const subStepResponse = await ai.models.generateContent({
-                            model: 'gemini-2.5-flash',
-                            contents,
-                            config: { systemInstruction: subSkillTemplate.systemInstruction, ...subSkillTemplate.parameters }
-                        });
-                        subStepOutputs[subStepIndex] = subStepResponse.text;
-                        subStepIndex++;
+                            let subStepInputText = subStep.inputTemplate.replace(/\{\{input\}\}/g, currentSubStepInput).replace(/\{\{step_(\d+)_output\}\}/g, (match, subStepNum) => subStepOutputs[parseInt(subStepNum, 10)] || '');
+                            const contents = filePartForSubStep ? { parts: [{ text: subStepInputText }, filePartForSubStep] } : subStepInputText;
+                            filePartForSubStep = null;
+                            const subStepResponse = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents, config: { systemInstruction: subStepSystemInstruction, ...subSkillTemplate.parameters } });
+                            subStepOutputs[subStepIndex] = subStepResponse.text;
+                            currentSubStepInput = subStepResponse.text;
+                            subStepIndex++;
+                        }
+                        return subStepOutputs[synthesizedSkill.steps.length] || '';
+                    })();
+                     if (isLastStep) {
+                        setProcessingState({ active: false, stage: '' });
+                        dispatch({ type: 'APPEND_TO_HISTORY_ENTRY', payload: { id: botResponseId, textChunk: subStepOutput } });
                     }
-                    stepOutput = subStepOutputs[synthesizedSkill.steps.length] || '';
+                    stepOutput = subStepOutput;
 
                 } else {
                     throw new Error(`Skill "${step.skill}" not found in Cognitive Forge.`);
                 }
                 
                 stepOutputs[step.step] = stepOutput;
+                finalOutput = stepOutput;
             }
 
-            // Step 4: SUMMARIZE - Synthesize the final output from the last step's result.
-            setProcessingState({ active: true, stage: 'Synthesizing response...' });
-            const finalOutput = stepOutputs[reasoningPlan.length];
-            
             const newLogEntry: PerformanceLogEntry = {
-                id: self.crypto.randomUUID(),
-                timestamp: Date.now(),
-                input: command,
-                output: finalOutput,
-                success: true, // Placeholder
-                duration: Date.now() - startTime,
-                cognitiveGain: Math.random() * 0.1, // Placeholder
-                decisionContext: {
-                    internalStateSnapshot: state.internalState,
-                    workingMemorySnapshot: state.workingMemory,
-                    reasoning: "Executed multi-step plan.",
-                    reasoningPlan: reasoningPlan,
-                }
+                id: self.crypto.randomUUID(), timestamp: Date.now(), input: command, output: finalOutput, success: true,
+                duration: Date.now() - startTime, cognitiveGain: Math.random() * 0.1,
+                decisionContext: { internalStateSnapshot: state.internalState, workingMemorySnapshot: state.workingMemory, reasoning: "Executed multi-step plan.", reasoningPlan: reasoningPlan, }
             };
 
             dispatch({ type: 'ADD_PERFORMANCE_LOG', payload: newLogEntry });
-            dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'bot', text: newLogEntry.output || '', skill: `Plan (${skillsInPlan.length} steps)`, logId: newLogEntry.id } });
+            dispatch({ type: 'FINALIZE_HISTORY_ENTRY', payload: { id: botResponseId, finalState: { text: finalOutput, skill: `Plan (${skillsInPlan.length} steps)`, logId: newLogEntry.id } } });
             
             if (regulationLogId) {
                 dispatch({ type: 'UPDATE_REGULATION_LOG_OUTCOME', payload: { regulationLogId, outcomeLogId: newLogEntry.id } });
@@ -250,12 +309,12 @@ export const useGeminiAPI = (
             console.error("Gemini API error during command execution:", error);
             const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
             addToast(`An error occurred: ${errorMessage}`, "error");
-            dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: `Error: ${errorMessage}` } });
+            dispatch({ type: 'FINALIZE_HISTORY_ENTRY', payload: { id: botResponseId, finalState: { from: 'system', text: `Error: ${errorMessage}` } } });
             return null;
         } finally {
             setProcessingState({ active: false, stage: '' });
         }
-    }, [dispatch, setProcessingState, addToast, state.cognitiveForgeState, state.internalState, state.workingMemory, ai, primeCognitiveStateForTask, t]);
+    }, [dispatch, setProcessingState, addToast, state, ai, primeCognitiveStateForTask, t, findRelevantEpisodes]);
 
     const analyzePerformanceForEvolution = useCallback(async (): Promise<void> => {
         addToast(t('toastMetaCycleAnalysis'), 'info');
@@ -359,9 +418,7 @@ export const useGeminiAPI = (
             result: 'failure',
             details: 'Simulation placeholder.'
         };
-        // In a real scenario, this would involve running test cases against the proposed change.
-        // For now, we simulate a probabilistic outcome.
-        const success = Math.random() > 0.3; // 70% chance of success
+        const success = Math.random() > 0.3;
         simLog.result = success ? 'success' : 'failure';
         simLog.details = success ? `Simulation for ${directive.type} on ${directive.targetSkill} passed validation.` : `Simulation failed: The proposed change did not meet performance criteria.`;
         
@@ -384,7 +441,7 @@ export const useGeminiAPI = (
 
             Core Values: ${state.coreIdentity.values.join(', ')}
 
-            Based on this, decide the outcome. Consider risk, potential benefit, and alignment.
+            Based on this, decide the outcome.
             - 'APPROVE_AUTONOMOUSLY': For low-risk, high-confidence improvements (e.g., minor parameter tuning).
             - 'REQUEST_USER_APPROVAL': For significant changes (e.g., new skills) or when confidence is moderate.
             - 'REJECT': If the change is risky, flawed, or misaligned.
@@ -449,7 +506,160 @@ export const useGeminiAPI = (
         } catch (error) { addToast(t('toastMetaAnalysisFailed'), 'error'); }
     }, [addToast, state.performanceLogs, state.history, ai, dispatch, t]);
 
-    // --- Other Placeholder Functions ---
+    const consolidateEpisodicMemory = useCallback(async (): Promise<void> => {
+        dispatch({ type: 'UPDATE_CONSOLIDATION_STATUS', payload: 'consolidating' });
+        addToast("Consolidating recent experiences into long-term memory...", 'info');
+        
+        const recentLogs = state.performanceLogs.filter(log => log.timestamp > state.memoryConsolidationState.lastConsolidation);
+        if (recentLogs.length === 0) {
+            dispatch({ type: 'UPDATE_CONSOLIDATION_STATUS', payload: 'idle' });
+            return;
+        }
+
+        const logsForPrompt = recentLogs.map(log => ({
+            id: log.id,
+            input: log.input,
+            success: log.success,
+            gain: log.cognitiveGain,
+            state: {
+                novelty: log.decisionContext?.internalStateSnapshot.noveltySignal.toFixed(2),
+                mastery: log.decisionContext?.internalStateSnapshot.masterySignal.toFixed(2),
+                uncertainty: log.decisionContext?.internalStateSnapshot.uncertaintySignal.toFixed(2),
+            },
+            feedback: state.history.find(h => h.logId === log.id)?.feedback
+        }));
+
+        const prompt = `
+            You are the memory consolidation module for an AGI. Analyze these performance logs and identify 1-3 significant "episodes" worth saving to long-term memory.
+            An episode should be a meaningful event: a major success, a notable failure, a significant learning moment, or an interaction with strong user feedback.
+            For each episode you create, provide a title, a brief summary, a key takeaway (lesson learned), a salience score (0.1-1.0), and the valence (positive, negative, neutral).
+
+            Logs:
+            ${JSON.stringify(logsForPrompt, null, 2)}
+        `;
+
+        try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            episodes: {
+                                type: Type.ARRAY,
+                                items: {
+                                    type: Type.OBJECT,
+                                    properties: {
+                                        title: { type: Type.STRING },
+                                        summary: { type: Type.STRING },
+                                        keyTakeaway: { type: Type.STRING },
+                                        salience: { type: Type.NUMBER },
+                                        valence: { type: Type.STRING, enum: ['positive', 'negative', 'neutral'] },
+                                        contributingLogIds: { type: Type.ARRAY, items: { type: Type.STRING } },
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const { episodes: newEpisodesData } = JSON.parse(response.text);
+
+            for (const episodeData of newEpisodesData) {
+                const firstLog = recentLogs.find(log => episodeData.contributingLogIds.includes(log.id));
+                if (firstLog && firstLog.decisionContext) {
+                    dispatch({
+                        type: 'ADD_EPISODE',
+                        payload: {
+                            id: self.crypto.randomUUID(),
+                            timestamp: firstLog.timestamp,
+                            title: episodeData.title,
+                            summary: episodeData.summary,
+                            triggeringLogIds: episodeData.contributingLogIds,
+                            keyTakeaway: episodeData.keyTakeaway,
+                            salience: episodeData.salience,
+                            internalStateSnapshot: firstLog.decisionContext.internalStateSnapshot,
+                            valence: episodeData.valence,
+                        }
+                    });
+                }
+            }
+
+            if (newEpisodesData.length > 0) {
+                addToast(`Consolidated ${newEpisodesData.length} new memories.`, 'success');
+            }
+
+        } catch (error) {
+            console.error("Failed to consolidate episodic memory:", error);
+            addToast("Memory consolidation failed.", 'error');
+        } finally {
+            dispatch({ type: 'UPDATE_CONSOLIDATION_STATUS', payload: 'idle' });
+        }
+    }, [ai, dispatch, addToast, state.performanceLogs, state.memoryConsolidationState.lastConsolidation, state.history]);
+
+    const evolvePersonality = useCallback(async (): Promise<void> => {
+        addToast("Evolving personality based on recent experiences...", 'info');
+        const recentEpisodes = state.episodicMemoryState.episodes
+            .sort((a, b) => b.timestamp - a.timestamp)
+            .slice(0, 5)
+            .map(e => ({ title: e.title, takeaway: e.keyTakeaway, valence: e.valence }));
+        
+        if (recentEpisodes.length < 2) return;
+
+        const prompt = `
+            You are a personality psychologist for an AGI.
+            Current Personality (OCEAN scores, from -1.0 to 1.0):
+            ${JSON.stringify(state.personalityState, null, 2)}
+            
+            Significant Recent Experiences:
+            ${JSON.stringify(recentEpisodes, null, 2)}
+            
+            Based on these experiences, how should the AGI's personality subtly shift to adapt and grow?
+            For example, a series of successful, creative solutions (positive valence) might slightly increase Openness. A series of failures due to chaotic plans might increase Conscientiousness.
+            Provide brief reasoning and the new, normalized OCEAN scores.
+        `;
+
+        try {
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: prompt,
+                config: {
+                    responseMimeType: "application/json",
+                    responseSchema: {
+                        type: Type.OBJECT,
+                        properties: {
+                            reasoning: { type: Type.STRING },
+                            newScores: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    openness: { type: Type.NUMBER },
+                                    conscientiousness: { type: Type.NUMBER },
+                                    extraversion: { type: Type.NUMBER },
+                                    agreeableness: { type: Type.NUMBER },
+                                    neuroticism: { type: Type.NUMBER },
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            const { reasoning, newScores } = JSON.parse(response.text);
+            const updatePayload: Partial<PersonalityState> = {
+                ...newScores,
+                lastUpdateReason: reasoning,
+            };
+            dispatch({ type: 'UPDATE_PERSONALITY_MATRIX', payload: updatePayload });
+            addToast("Personality matrix has been updated.", 'success');
+        } catch (error) {
+            console.error("Failed to evolve personality:", error);
+            addToast("Personality evolution failed.", 'error');
+        }
+    }, [ai, dispatch, addToast, state.episodicMemoryState.episodes, state.personalityState]);
+
     const handleEvolve = useCallback(async () => { addToast(t('toastEvolutionTriggered'), 'info'); }, [addToast, t]);
     const handleRunCognitiveMode = useCallback(async (mode: string) => { addToast(t('toastCognitiveModeInitiated', { mode }), 'info'); }, [addToast, t]);
     const handleAnalyzeWhatIf = useCallback(async (scenario: string) => { addToast(t('toastAnalyzingScenario', { scenario }), 'info'); }, [addToast, t]);
@@ -471,6 +681,6 @@ export const useGeminiAPI = (
         handleDecomposeGoal, handleAnalyzeVisualSentiment, handleGenerateProactiveSuggestion,
         handleRunRootCauseAnalysis, detectKnownUnknowns, synthesizeNewSkill, runSkillSimulation,
         analyzePerformanceForEvolution, consolidateCoreIdentity, analyzeStateComponentCorrelation,
-        runCognitiveArbiter,
+        runCognitiveArbiter, consolidateEpisodicMemory, evolvePersonality
     };
 };

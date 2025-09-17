@@ -138,6 +138,11 @@
   100% { transform: rotate(360deg); }
 }
 
+@keyframes blink {
+  from, to { color: transparent; }
+  50% { color: var(--primary-color); }
+}
+
 .spinner-small {
   border: 2px solid var(--border-color);
   border-top: 2px solid var(--primary-color);
@@ -316,6 +321,14 @@ body {
 
 .history-entry p { line-height: 1.6; white-space: pre-wrap; word-wrap: break-word; }
 .history-entry p a { color: var(--primary-color); text-decoration: underline; }
+
+.history-entry.streaming .entry-content p:last-child::after {
+  content: '▋';
+  display: inline-block;
+  animation: blink 1s step-end infinite;
+  margin-left: 2px;
+  vertical-align: baseline;
+}
 
 .sources-container { margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border-color); }
 .sources-container h4 { color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 1px; }

@@ -22,6 +22,28 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
                 )
             };
 
+        case 'ADD_EPISODE':
+            return {
+                ...state,
+                episodicMemoryState: {
+                    ...state.episodicMemoryState,
+                    // Add new episode and keep the last 100 most salient ones.
+                    episodes: [...state.episodicMemoryState.episodes, action.payload]
+                        .sort((a, b) => b.salience - a.salience)
+                        .slice(0, 100),
+                }
+            };
+
+        case 'UPDATE_CONSOLIDATION_STATUS':
+            return {
+                ...state,
+                memoryConsolidationState: {
+                    ...state.memoryConsolidationState,
+                    status: action.payload,
+                    ...(action.payload === 'idle' && { lastConsolidation: Date.now() }),
+                }
+            };
+
         default:
             return {};
     }

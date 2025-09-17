@@ -148,6 +148,57 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 }
             };
 
+        case 'UPDATE_EXPECTATION_MODEL':
+            return {
+                humorAndIronyState: {
+                    ...state.humorAndIronyState,
+                    schemaExpectationEngine: {
+                        ...state.humorAndIronyState.schemaExpectationEngine,
+                        ...action.payload,
+                    }
+                }
+            };
+        
+        case 'UPDATE_SEMANTIC_DISSONANCE':
+            return {
+                humorAndIronyState: {
+                    ...state.humorAndIronyState,
+                    semanticDissonance: action.payload,
+                }
+            };
+        
+        case 'LOG_HUMOR_ATTEMPT':
+            return {
+                humorAndIronyState: {
+                    ...state.humorAndIronyState,
+                    humorLog: [action.payload, ...state.humorAndIronyState.humorLog].slice(0, 50),
+                }
+            };
+        
+        case 'UPDATE_AFFECTIVE_MODULATOR':
+            return {
+                humorAndIronyState: {
+                    ...state.humorAndIronyState,
+                    affectiveSocialModulator: action.payload,
+                }
+            };
+        
+        case 'UPDATE_PERSONALITY_MATRIX':
+            return {
+                personalityState: {
+                    ...state.personalityState,
+                    ...action.payload,
+                }
+            };
+
+        case 'ADD_META_INSIGHT':
+            return {
+                gankyilInsights: {
+                    ...state.gankyilInsights,
+                    insights: [action.payload, ...state.gankyilInsights.insights].slice(0, 50),
+                }
+            };
+
         default:
             return {};
     }

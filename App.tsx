@@ -45,11 +45,19 @@ const AppContent = () => {
             noosphereInterface: state.noosphereInterface,
             dialecticEngine: state.dialecticEngine,
             cognitiveLightCone: state.cognitiveLightCone,
+            phenomenologicalEngine: state.phenomenologicalEngine,
+            situationalAwareness: state.situationalAwareness,
+            symbioticState: state.symbioticState,
+            humorAndIronyState: state.humorAndIronyState,
+            personalityState: state.personalityState,
+            gankyilInsights: state.gankyilInsights,
         },
         memory: { 
             knowledgeGraph: state.knowledgeGraph, 
             workingMemory: state.workingMemory, 
-            memoryNexus: state.memoryNexus 
+            memoryNexus: state.memoryNexus,
+            episodicMemoryState: state.episodicMemoryState,
+            memoryConsolidationState: state.memoryConsolidationState,
         },
         architecture: { 
             cognitiveArchitecture: state.cognitiveArchitecture, 
@@ -87,17 +95,12 @@ const AppContent = () => {
             metacognitiveNexus: state.metacognitiveNexus, 
             metacognitiveCausalModel: state.metacognitiveCausalModel 
         },
-        awareness: {
-            phenomenologicalEngine: state.phenomenologicalEngine,
-            situationalAwareness: state.situationalAwareness,
-            symbioticState: state.symbioticState,
-        }
     }), [state]);
 
     return (
         <LocalizationContext.Provider value={localizationContextValue}>
             <AuraDispatchContext.Provider value={auraInterface}>
-            <CoreStateContext.Provider value={{...stateSlices.core, ...stateSlices.awareness}}>
+            <CoreStateContext.Provider value={stateSlices.core}>
             <MemoryStateContext.Provider value={stateSlices.memory}>
             <ArchitectureStateContext.Provider value={stateSlices.architecture}>
             <PlanningStateContext.Provider value={stateSlices.planning}>
