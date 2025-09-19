@@ -1,9 +1,9 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 import { AuraState, ToastType, Action } from '../types';
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
 
-export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string) => {
+export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearDB: () => Promise<void>) => {
     const [currentCommand, setCurrentCommand] = useState('');
     const [attachedFile, setAttachedFile] = useState<{ file: File, previewUrl: string, type: 'image' | 'audio' | 'video' | 'other' } | null>(null);
     const [processingState, setProcessingState] = useState({ active: false, stage: '' });
@@ -20,7 +20,18 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     const analysisIntervalRef = useRef<number | null>(null);
 
     useEffect(() => { dispatch({ type: 'SET_THEME', payload: state.theme }); document.body.className = state.theme; }, [state.theme, dispatch]);
-    useEffect(() => { if (outputPanelRef.current) outputPanelRef.current.scrollTop = outputPanelRef.current.scrollHeight; }, [state.history]);
+    
+    useLayoutEffect(() => {
+        if (!outputPanelRef.current) return;
+        const panel = outputPanelRef.current;
+        // A threshold of 50px allows for some minor scrolling without breaking the "follow" behavior.
+        const isScrolledToBottom = panel.scrollHeight - panel.clientHeight <= panel.scrollTop + 50;
+
+        if (isScrolledToBottom) {
+            panel.scrollTo({ top: panel.scrollHeight, behavior: 'smooth' });
+        }
+    }, [state.history]);
+
     useEffect(() => { document.documentElement.lang = state.language; }, [state.language]);
 
 
@@ -30,18 +41,21 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         if (file) { const previewUrl = URL.createObjectURL(file); const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other'; setAttachedFile({ file, previewUrl, type: fileType }); }
     }, []);
     const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? t('toastAutonomousResumed') : t('toastAutonomousPaused'), 'info'); }, [isPaused, addToast, t]);
-    const handleClearMemory = useCallback(() => {
+    
+    const handleClearMemory = useCallback(async () => {
         if (window.confirm(t('toastResetConfirm'))) {
             try {
-                dispatch({ type: 'RESET_STATE' });
+                await clearDB(); // Clear the persistent storage first
+                dispatch({ type: 'RESET_STATE' }); // Then reset the React state
                 addToast(t('toastResetSuccess'), 'success');
-                setTimeout(() => window.location.reload(), 1000);
+                setTimeout(() => window.location.reload(), 1000); // Reload to ensure a clean start
             } catch (e) {
                 console.error("Failed to clear memory:", e);
                 addToast(t('toastResetFailed'), 'error');
             }
         }
-    }, [addToast, dispatch, t]);
+    }, [addToast, dispatch, t, clearDB]);
+
     const handleExportState = useCallback(() => {
         try {
             const stateToExport = JSON.stringify(state, null, 2);

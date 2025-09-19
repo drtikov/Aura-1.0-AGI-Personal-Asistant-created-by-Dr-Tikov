@@ -6,7 +6,7 @@ export const CognitiveShadowPanel = React.memo(() => {
     const { t } = useLocalization();
     const sortedBiases = useMemo(() => {
         return Object.entries(state.cognitiveBias)
-            .sort(([, a], [, b]) => b - a)
+            .sort(([, a], [, b]) => (b as number) - (a as number))
             .slice(0, 5);
     }, [state.cognitiveBias]);
 
@@ -20,8 +20,8 @@ export const CognitiveShadowPanel = React.memo(() => {
             </div>
             <div className="awareness-item">
                 <label>{t('selfAwareness_performanceDrift')}</label>
-                <strong className={state.performanceDrift > 0 ? 'failure-color' : 'success-color'}>
-                    {state.performanceDrift > 0 ? '+' : ''}{(state.performanceDrift * 100).toFixed(1)}%
+                <strong className={Number(state.performanceDrift) > 0 ? 'failure-color' : 'success-color'}>
+                    {Number(state.performanceDrift) > 0 ? '+' : ''}{(Number(state.performanceDrift) * 100).toFixed(1)}%
                 </strong>
             </div>
 
@@ -33,7 +33,7 @@ export const CognitiveShadowPanel = React.memo(() => {
                     {sortedBiases.map(([skill, percentage]) => (
                         <li key={skill}>
                             <span>{skill.replace(/_/g, ' ')}</span>
-                            <strong>{(percentage * 100).toFixed(1)}%</strong>
+                            <strong>{((percentage as number) * 100).toFixed(1)}%</strong>
                         </li>
                     ))}
                 </ul>

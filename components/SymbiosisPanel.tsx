@@ -35,14 +35,17 @@ export const SymbiosisPanel = React.memo(() => {
             {Object.keys(state.userDevelopmentalModel.trackedSkills).length === 0 ? (
                 <div className="kg-placeholder">{t('symbiosis_noTrackedSkills')}</div>
             ) : (
-                Object.entries(state.userDevelopmentalModel.trackedSkills).map(([skill, data]) => (
-                    <div key={skill} className="state-item">
-                        <label>{skill}</label>
-                        <div className="state-bar-container">
-                            <div className="state-bar" style={{ width: `${data.level * 100}%`, backgroundColor: 'var(--primary-color)' }} title={`${t('symbiosis_level')}: ${data.level.toFixed(2)}`}></div>
+                Object.entries(state.userDevelopmentalModel.trackedSkills).map(([skill, data]) => {
+                    const typedData = data as { level: number };
+                    return (
+                        <div key={skill} className="state-item">
+                            <label>{skill}</label>
+                            <div className="state-bar-container">
+                                <div className="state-bar" style={{ width: `${typedData.level * 100}%`, backgroundColor: 'var(--primary-color)' }} title={`${t('symbiosis_level')}: ${typedData.level.toFixed(2)}`}></div>
+                            </div>
                         </div>
-                    </div>
-                ))
+                    );
+                })
             )}
 
 

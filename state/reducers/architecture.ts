@@ -1,4 +1,4 @@
-import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone, PossibleFutureSelf, SomaticSimulationLog } from '../../types';
+import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone, PossibleFutureSelf, SomaticSimulationLog, ArchitecturalImprovementProposal } from '../../types';
 
 export const architectureReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     switch (action.type) {
@@ -96,6 +96,7 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
             const newProposal: ArchitecturalChangeProposal = {
                 ...action.payload.proposal,
                 id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
                 status: 'proposed',
             };
 
@@ -173,6 +174,58 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                     designHeuristics: [action.payload, ...state.heuristicsForge.designHeuristics].slice(0, 50),
                 }
             };
+        
+        case 'ADD_CODE_EVOLUTION_PROPOSAL':
+            return {
+                codeEvolutionProposals: [action.payload, ...state.codeEvolutionProposals]
+            };
+        
+        case 'DISMISS_CODE_EVOLUTION_PROPOSAL':
+            return {
+                codeEvolutionProposals: state.codeEvolutionProposals.map(p => 
+                    p.id === action.payload ? { ...p, status: 'dismissed' } : p
+                )
+            };
+        
+        case 'UPDATE_ARCHITECTURAL_CRUCIBLE_STATE':
+            return {
+                architecturalCrucibleState: action.payload
+            };
+
+        case 'ADD_ARCHITECTURAL_CRUCIBLE_PROPOSAL':
+            const newCrucibleProposal: ArchitecturalImprovementProposal = {
+                ...action.payload,
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                status: 'proposed'
+            };
+            return {
+                architecturalCrucibleState: {
+                    ...state.architecturalCrucibleState,
+                    improvementProposals: [newCrucibleProposal, ...state.architecturalCrucibleState.improvementProposals].slice(0, 10)
+                }
+            };
+        
+        case 'UPDATE_ARCHITECTURAL_CRUCIBLE_PROPOSAL_STATUS':
+             return {
+                architecturalCrucibleState: {
+                    ...state.architecturalCrucibleState,
+                    improvementProposals: state.architecturalCrucibleState.improvementProposals.map(p =>
+                        p.id === action.payload.id ? { ...p, status: action.payload.status } : p
+                    )
+                }
+            };
+
+        case 'UPDATE_SYNAPTIC_MATRIX': {
+            // FIX: The payload for this action does not contain recentActivity.
+            // This logic has been corrected to only spread the provided payload properties.
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    ...action.payload,
+                }
+            };
+        }
 
         default:
             return {};

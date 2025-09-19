@@ -1,10 +1,41 @@
-import { AuraState, Action } from '../../types';
+import { AuraState, Action, KnowledgeFact } from '../../types';
 
 export const memoryReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     switch (action.type) {
-        case 'ADD_FACT': // Stubbed
-             console.log(`Action ${action.type} is not fully implemented.`);
-            return {};
+        case 'ADD_FACT': {
+            const factExists = state.knowledgeGraph.some(f => 
+                f.subject === action.payload.subject && 
+                f.predicate === action.payload.predicate &&
+                f.object === action.payload.object
+            );
+            if (factExists) return {};
+            const newFact: KnowledgeFact = {
+                ...action.payload,
+                id: self.crypto.randomUUID(),
+                confidence: 0.85, // Default confidence for single adds
+                source: 'direct_add'
+            };
+            return { knowledgeGraph: [...state.knowledgeGraph, newFact] };
+        }
+        
+        case 'ADD_FACTS_BATCH': {
+            const newFacts = action.payload
+                .filter(newFact => !state.knowledgeGraph.some(
+                    existingFact => 
+                        existingFact.subject.toLowerCase() === newFact.subject.toLowerCase() && 
+                        existingFact.predicate.toLowerCase() === newFact.predicate.toLowerCase() &&
+                        existingFact.object.toLowerCase() === newFact.object.toLowerCase()
+                ))
+                .map(fact => ({
+                    ...fact,
+                    id: self.crypto.randomUUID(),
+                    source: 'ingestion'
+                }));
+            
+            if (newFacts.length === 0) return {};
+
+            return { knowledgeGraph: [...state.knowledgeGraph, ...newFacts] };
+        }
 
         case 'DELETE_FACT':
             return { knowledgeGraph: state.knowledgeGraph.filter(fact => fact.id !== action.payload) };

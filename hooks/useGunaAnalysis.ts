@@ -1,6 +1,8 @@
+
 import { useMemo } from 'react';
 import { InternalState } from '../types';
-import { GunaState } from '../constants';
+// FIX: GunaState is now exported from types.ts to avoid circular dependencies.
+import { GunaState } from '../types';
 
 export const useGunaAnalysis = (internalState: InternalState, t: (key: string, options?: any) => string) => {
     const gunaReason = useMemo(() => {

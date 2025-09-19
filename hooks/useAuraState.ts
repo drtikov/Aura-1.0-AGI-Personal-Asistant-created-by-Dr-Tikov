@@ -1,5 +1,4 @@
-
-import { useReducer, useEffect, useState } from 'react';
+import { useReducer, useEffect, useState, useCallback, useRef } from 'react';
 import { getInitialState } from '../state/initialState';
 import { auraReducer } from '../state/reducer';
 import { AuraState, HistoryEntry } from '../types';
@@ -75,6 +74,26 @@ async function loadStateFromDB(): Promise<AuraState | null> {
      });
 }
 
+async function clearStateFromDB(): Promise<void> {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const dbInstance = await getDB();
+            const transaction = dbInstance.transaction(STORE_NAME, 'readwrite');
+            const store = transaction.objectStore(STORE_NAME);
+            const request = store.clear();
+            transaction.oncomplete = () => resolve();
+            transaction.onerror = () => {
+                 console.error('Memristor: Transaction error while clearing state.', transaction.error);
+                 reject(transaction.error);
+            };
+        } catch (error) {
+            console.error('Memristor: Failed to clear state.', error);
+            reject(error);
+        }
+    });
+}
+
+
 // --- Hook Implementation ---
 
 export type MemoryStatus = 'saved' | 'saving' | 'error';
@@ -89,6 +108,11 @@ export const useAuraState = () => {
     const [state, dispatch] = useReducer(auraReducer, null, initializer);
     const [memoryStatus, setMemoryStatus] = useState<MemoryStatus>('saved');
     const [isStateHydrated, setIsStateHydrated] = useState(false);
+    
+    const stateRef = useRef(state);
+    useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
 
     // Effect for loading the initial state from DB
     useEffect(() => {
@@ -121,27 +145,53 @@ export const useAuraState = () => {
         hydrateState();
     }, []); // Runs only once on mount
 
-    // Effect for saving the state to the DB whenever it changes
+    // Effect for persisting state to DB periodically and on page exit
     useEffect(() => {
         if (!isStateHydrated) {
             return;
         }
 
-        setMemoryStatus('saving');
-        const timer = setTimeout(async () => {
-            try {
-                if (state) {
-                    await saveStateToDB(state);
+        const saveState = async () => {
+            // Use the ref to ensure the latest state is always saved,
+            // avoiding stale closures in event listeners.
+            const currentState = stateRef.current;
+            if (currentState) {
+                setMemoryStatus('saving');
+                try {
+                    await saveStateToDB(currentState);
                     setMemoryStatus('saved');
+                } catch (error) {
+                    console.error("Memristor save error:", error);
+                    setMemoryStatus('error');
                 }
-            } catch (error) {
-                console.error("Memristor save error:", error);
-                setMemoryStatus('error');
             }
-        }, 250);
+        };
 
-        return () => clearTimeout(timer);
-    }, [state, isStateHydrated]);
+        // Save every 5 seconds as a fallback
+        const intervalId = setInterval(saveState, 5000);
 
-    return { state, dispatch, memoryStatus };
+        // Save when the tab is hidden or closed
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'hidden') {
+                saveState();
+            }
+        };
+
+        window.addEventListener('visibilitychange', handleVisibilityChange);
+        window.addEventListener('pagehide', saveState);
+
+        return () => {
+            clearInterval(intervalId);
+            window.removeEventListener('visibilitychange', handleVisibilityChange);
+            window.removeEventListener('pagehide', saveState);
+            // One final save on cleanup
+            saveState();
+        };
+    }, [isStateHydrated]); // This effect runs only once after hydration
+    
+    const clearDB = useCallback(async () => {
+        await clearStateFromDB();
+    }, []);
+
+    return { state, dispatch, memoryStatus, clearDB };
 };

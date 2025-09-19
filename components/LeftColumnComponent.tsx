@@ -33,7 +33,7 @@ export const LeftColumnComponent = () => {
                     </header>
                     <div className="output-panel" ref={outputPanelRef}>
                         {history.map((entry: HistoryEntry) => (
-                            <div key={entry.id} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
+                            <div key={entry.id} id={`history-entry-${entry.id}`} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
                                 <div className="entry-content">
                                     {entry.text && <SafeMarkdown text={entry.text} />}
                                     {entry.from === 'user' && entry.fileName && (

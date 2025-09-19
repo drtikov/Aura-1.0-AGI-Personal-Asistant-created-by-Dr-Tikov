@@ -13,7 +13,7 @@ export const CognitiveArchitecturePanel = React.memo(() => {
     const renderSynthesizedSkill = (skill: SynthesizedSkill) => (
         <div key={skill.id} className={`arch-module synthesized ${skill.status === 'deprecated' ? 'deprecated' : ''}`}>
             <span className={`arch-status-indicator status-${skill.status === 'deprecated' ? 'inactive' : 'active'}`} title={`${t('cogArchPanel_synthSkillTitle')} (${skill.status})`}></span>
-            <span className="arch-module-name">{skill.name}{skill.status === 'deprecated' && ` ${t('cogArchPanel_deprecated')}`}</span>
+            <span className="arch-module-name">{skill.name}{skill.status === 'deprecated' ? ` ${t('cogArchPanel_deprecated')}` : ''}</span>
             <span className="arch-module-version" title={`${skill.steps.length} ${t('cogArchPanel_steps')}`}>Synth</span>
         </div>
     );

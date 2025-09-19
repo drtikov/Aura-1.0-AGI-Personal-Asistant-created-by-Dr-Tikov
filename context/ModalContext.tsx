@@ -4,6 +4,7 @@ import {
     CognitiveGainDetailModal,
     ForecastModal,
     IngestPanel,
+    MultiverseBranchingModal,
     ProposalReviewModal,
     SearchModal,
     StrategicGoalModal,
@@ -52,6 +53,8 @@ export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
                 return <ForecastModal isOpen={true} {...modal.props} onClose={close} />;
             case 'whatIf':
                 return <WhatIfModal isOpen={true} {...modal.props} onClose={close} />;
+            case 'multiverseBranching':
+                return <MultiverseBranchingModal isOpen={true} {...modal.props} onClose={close} />;
             case 'search':
                 return <SearchModal isOpen={true} {...modal.props} onClose={close} />;
             case 'proposalReview':

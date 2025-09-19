@@ -19,7 +19,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
             lastActiveElement.current = document.activeElement as HTMLElement;
             
             const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
-                'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
             );
             
             if (focusableElements && focusableElements.length > 0) {
@@ -32,7 +32,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
                 }
                 if (event.key === 'Tab' && modalRef.current) {
                     const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>(
-                        'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+                        `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
                     )).filter(el => el.offsetParent !== null);
                     
                     if (focusable.length === 0) return;

@@ -27,6 +27,7 @@ export const CognitiveRegulationPanel = React.memo(() => {
                         <div className="rie-insight-body">
                             <p><strong>{t('cogRegulation_directive')}:</strong> {entry.primingDirective}</p>
                             <div className="adjustments-list" style={{marginTop: '0.5rem'}}>
+                                {/* FIX: This previously errored because stateAdjustments was not correctly typed. The fix in types.ts resolves this. */}
                                 {Object.entries(entry.stateAdjustments).map(([key, { from, to }]) => (
                                     <p key={key} className="rie-insight-model-update" style={{fontSize: '0.8rem'}}>
                                         <strong>{key.replace('Signal', '')}:</strong>

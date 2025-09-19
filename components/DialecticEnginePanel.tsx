@@ -39,26 +39,6 @@ export const DialecticEnginePanel = React.memo(() => {
                     </div>
                 ))
             )}
-             <style>{`
-                .dialectic-pair {
-                    margin: 0.5rem 0;
-                    padding-left: 0.75rem;
-                    border-left: 2px solid var(--border-color);
-                }
-                .dialectic-part {
-                    margin-bottom: 0.5rem;
-                    font-size: 0.8rem;
-                    font-style: italic;
-                }
-                .dialectic-part strong {
-                    font-style: normal;
-                }
-                .thesis strong { color: var(--primary-color); }
-                .antithesis strong { color: var(--accent-color); }
-                .synthesis { margin-top: 0.75rem; padding-top: 0.5rem; border-top: 1px solid var(--border-color); }
-                .synthesis strong { color: var(--success-color); }
-                .synthesizing strong { color: var(--warning-color); }
-            `}</style>
         </div>
     );
 });

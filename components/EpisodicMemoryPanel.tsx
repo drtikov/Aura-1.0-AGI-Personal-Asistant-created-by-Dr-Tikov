@@ -43,37 +43,6 @@ export const EpisodicMemoryPanel = React.memo(() => {
                         </div>
                     ))
             )}
-            <style>{`
-                .episode-item {
-                    border-left: 3px solid;
-                    padding: 0.75rem;
-                    margin-bottom: 1rem;
-                    background: rgba(0,0,0,0.1);
-                }
-                .ui-2 .episode-item, .ui-3 .episode-item, .ui-6 .episode-item, .ui-7 .episode-item, .ui-8 .episode-item, .ui-11 .episode-item {
-                    background: var(--background);
-                }
-                .episode-header {
-                    display: flex;
-                    justify-content: space-between;
-                    align-items: center;
-                    margin-bottom: 0.5rem;
-                }
-                .episode-title {
-                    font-size: 0.9rem;
-                    color: var(--text-color);
-                    font-weight: bold;
-                }
-                .episode-summary {
-                    font-size: 0.85rem;
-                    color: var(--text-muted);
-                    margin-bottom: 0.5rem;
-                }
-                .episode-takeaway {
-                     font-size: 0.8rem;
-                     color: var(--text-color);
-                }
-            `}</style>
         </div>
     );
 });

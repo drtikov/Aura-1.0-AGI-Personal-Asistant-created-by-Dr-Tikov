@@ -1,5 +1,8 @@
+
+
 import React from 'react';
-import { GunaState } from '../constants';
+// FIX: GunaState is now exported from types.ts to avoid circular dependencies.
+import { GunaState } from '../types';
 import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis';
@@ -42,7 +45,7 @@ export const CoreMonitor = React.memo(() => {
 
     return (
         <div className="core-monitor-container">
-            <div className="monitor-header"> <h2>{t('coreMonitorTitle')}</h2> <div className={`status-indicator status-${internalState.status}`}>{t(getStatusKey(internalState.status))}</div> </div>
+            <div className="monitor-header"> <h2>RIGPA MONITOR // PRIMORDIAL AWARENESS</h2> <div className={`status-indicator status-${internalState.status}`}>{t(getStatusKey(internalState.status))}</div> </div>
             <div className={`guna-display ${currentGuna.className}`}>
                 <h3 data-text={currentGuna.name}>{currentGuna.name}</h3>
                 <p>{currentGuna.description}</p>
@@ -65,6 +68,7 @@ export const CoreMonitor = React.memo(() => {
                 <div className="hormone-item"> <label>{t('hormoneMastery')}</label> <div className="state-bar-container"><div className="state-bar mastery-bar" style={{width: `${internalState.masterySignal * 100}%`}}></div></div> </div> 
                 <div className="hormone-item"> <label>{t('hormoneUncertainty')}</label> <div className="state-bar-container"><div className="state-bar uncertainty-bar" style={{width: `${internalState.uncertaintySignal * 100}%`}}></div></div> </div> 
                 <div className="hormone-item"> <label>{t('hormoneBoredom')}</label> <div className="state-bar-container"><div className="state-bar boredom-bar" style={{width: `${internalState.boredomLevel * 100}%`}}></div></div> </div> 
+                <div className="hormone-item"> <label>{t('hormoneAwarenessClarity')}</label> <div className="state-bar-container"><div className="state-bar clarity-bar" style={{width: `${internalState.awarenessClarity * 100}%`}}></div></div> </div> 
             </div>
             
             <div className="state-trajectory">

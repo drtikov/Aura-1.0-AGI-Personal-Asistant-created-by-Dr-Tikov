@@ -4,13 +4,13 @@ import { useAuraState } from './useAuraState';
 import { useGeminiAPI } from './useGeminiAPI';
 import { useAutonomousSystem } from './useAutonomousSystem';
 import { useUIHandlers } from './useUIHandlers';
-import { SelfDirectedGoal, ArchitecturalChangeProposal, ProactiveSuggestion, PerformanceLogEntry } from '../types';
+import { SelfDirectedGoal, ArchitecturalChangeProposal, ProactiveSuggestion, PerformanceLogEntry, ModalType, ModalProps, GenialityImprovementProposal, ArchitecturalImprovementProposal, CognitiveGainLogEntry } from '../types';
 import { useModal } from '../context/ModalContext';
 import { resources } from '../constants';
 
 export const useAura = () => {
     const { toasts, addToast, removeToast } = useToasts();
-    const { state, dispatch, memoryStatus } = useAuraState();
+    const { state, dispatch, memoryStatus, clearDB } = useAuraState();
     
     const t = useCallback((key: string, options?: any) => {
         const langResources = resources[state.language]?.translation || resources.en.translation;
@@ -25,7 +25,7 @@ export const useAura = () => {
         return translation;
     }, [state.language]);
 
-    const uiHandlers = useUIHandlers(state, dispatch, addToast, t);
+    const uiHandlers = useUIHandlers(state, dispatch, addToast, t, clearDB);
     const apiHooks = useGeminiAPI(state, dispatch, addToast, uiHandlers.setProcessingState, t);
     const { handleSendCommand } = apiHooks;
     const modal = useModal();
@@ -39,6 +39,12 @@ export const useAura = () => {
         runCognitiveArbiter,
         consolidateEpisodicMemory,
         evolvePersonality,
+        generateCodeEvolutionSnippet,
+        generateGenialityImprovement,
+        generateArchitecturalImprovement,
+        projectSelfState,
+        branchAndExplore,
+        evaluateAndCollapseBranches,
     } = apiHooks;
 
     const { handleIntrospect } = useAutonomousSystem({
@@ -54,13 +60,19 @@ export const useAura = () => {
         runCognitiveArbiter,
         consolidateEpisodicMemory,
         evolvePersonality,
+        generateCodeEvolutionSnippet,
+        generateGenialityImprovement,
+        generateArchitecturalImprovement,
+        projectSelfState,
+        evaluateAndCollapseBranches,
     });
     const { isVisualAnalysisActive, setIsVisualAnalysisActive, videoRef, analysisIntervalRef, isRecording, setIsRecording, setCurrentCommand } = uiHandlers;
     const recognitionRef = useRef<any | null>(null);
+    const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
     const handleExecuteGoal = useCallback(async (goal: SelfDirectedGoal) => {
         addToast(t('toastExecutingGoal', { goal: goal.actionCommand }), 'info');
-        dispatch({ type: 'UPDATE_GOAL_STATUS', payload: { id: goal.id, status: 'executing' } });
+        dispatch({ type: 'UPDATE_GOAL_STATUS', payload: { id: goal.id, status: 'in_progress' } });
         
         const logEntry = await handleSendCommand(goal.actionCommand);
 
@@ -76,7 +88,8 @@ export const useAura = () => {
     const handleIngestData = useCallback(async (text: string) => {
         modal.close();
         uiHandlers.setProcessingState({ active: true, stage: 'Ingesting data...'});
-        const factsAdded = await apiHooks.extractAndStoreKnowledge(text, 0.8, false);
+        // FIX: The function `extractAndStoreKnowledge` expects 1 argument, not 3.
+        const factsAdded = await apiHooks.extractAndStoreKnowledge(text);
         uiHandlers.setProcessingState({ active: false, stage: ''});
         addToast(t('toastIngestionComplete', { count: factsAdded.length }), 'success');
     }, [apiHooks.extractAndStoreKnowledge, addToast, uiHandlers, modal, t]);
@@ -97,7 +110,7 @@ export const useAura = () => {
         const snapshotId = self.crypto.randomUUID();
         const modLogId = self.crypto.randomUUID();
         
-        dispatch({ type: 'APPLY_ARCH_PROPOSAL', payload: { proposal, snapshotId, modLogId, isAutonomous: false } });
+        dispatch({ type: 'APPLY_ARCH_PROPOSAL', payload: { proposal: { ...proposal, timestamp: Date.now() }, snapshotId, modLogId, isAutonomous: false } });
         dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Architectural change applied. Initiating validation...', type: 'info' } });
         modal.close();
 
@@ -191,21 +204,27 @@ export const useAura = () => {
                     videoRef.current.onloadedmetadata = () => {
                         setIsVisualAnalysisActive(true);
                         dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Visual analysis started.', type: 'success' } });
+                        
+                        // Create canvas once and reuse for performance
+                        if (!canvasRef.current) {
+                            canvasRef.current = document.createElement('canvas');
+                        }
+                        const canvas = canvasRef.current;
+                        canvas.width = videoRef.current.videoWidth;
+                        canvas.height = videoRef.current.videoHeight;
+                        const ctx = canvas.getContext('2d');
 
                         analysisIntervalRef.current = window.setInterval(() => {
-                            if (videoRef.current && videoRef.current.readyState >= 3) { // HAVE_FUTURE_DATA
-                                const canvas = document.createElement('canvas');
-                                canvas.width = videoRef.current.videoWidth;
-                                canvas.height = videoRef.current.videoHeight;
-                                const ctx = canvas.getContext('2d');
-                                if (ctx) {
-                                    // Flip the image horizontally to match the mirrored preview
-                                    ctx.translate(canvas.width, 0);
-                                    ctx.scale(-1, 1);
-                                    ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
-                                    const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
-                                    apiHooks.handleAnalyzeVisualSentiment(base64Image);
-                                }
+                            if (videoRef.current && videoRef.current.readyState >= 3 && ctx) {
+                                // Mirror the canvas context to match the CSS-mirrored video feed
+                                ctx.save();
+                                ctx.translate(canvas.width, 0);
+                                ctx.scale(-1, 1);
+                                ctx.drawImage(videoRef.current, 0, 0, canvas.width, canvas.height);
+                                ctx.restore(); // Restore context to prevent cumulative transformations
+
+                                const base64Image = canvas.toDataURL('image/jpeg').split(',')[1];
+                                apiHooks.handleAnalyzeVisualSentiment(base64Image);
                             }
                         }, 5000); // Analyze every 5 seconds
                     };
@@ -218,62 +237,121 @@ export const useAura = () => {
     }, [isVisualAnalysisActive, videoRef, analysisIntervalRef, setIsVisualAnalysisActive, dispatch, apiHooks.handleAnalyzeVisualSentiment, addToast, t]);
 
     const handleFeedback = useCallback((historyId: string, feedback: 'positive' | 'negative') => {
-        dispatch({ type: 'UPDATE_HISTORY_FEEDBACK', payload: { id: historyId, feedback: feedback } });
+        dispatch({ type: 'UPDATE_HISTORY_FEEDBACK', payload: { id: historyId, feedback } });
         dispatch({ type: 'PROCESS_USER_FEEDBACK', payload: feedback });
-        const feedbackMessage = feedback === 'positive' 
-            ? t('toastPositiveFeedbackReinforce')
-            : t('toastCorrectiveFeedbackImprove');
-        addToast(t('toastFeedbackReceived'), 'success');
-        dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: feedbackMessage, type: 'info' } });
+        addToast(t('toastFeedbackReceived'), 'info');
+        addToast(feedback === 'positive' ? t('toastPositiveFeedbackReinforce') : t('toastCorrectiveFeedbackImprove'), 'success');
     }, [dispatch, addToast, t]);
 
+    const handleReviewProposal = useCallback((proposal: ArchitecturalChangeProposal) => {
+        modal.open('proposalReview', {
+            proposal,
+            onApprove: handleApproveProposal,
+            onReject: handleRejectProposal
+        });
+    }, [modal, handleApproveProposal, handleRejectProposal]);
+
     const handleSuggestionAction = useCallback((suggestionId: string, action: 'accepted' | 'rejected') => {
-        const suggestion = state.proactiveEngineState.generatedSuggestions.find(s => s.id === suggestionId);
-        if (!suggestion) return;
-
         dispatch({ type: 'UPDATE_SUGGESTION_STATUS', payload: { id: suggestionId, status: action } });
-        
-        if (action === 'accepted') {
-            addToast(t('toastSuggestionAccepted', { text: suggestion.text }), 'info');
-            handleSendCommand(suggestion.text);
-        } else {
-            addToast(t('toastSuggestionDismissed'), 'info');
-        }
-    }, [state.proactiveEngineState.generatedSuggestions, dispatch, handleSendCommand, addToast, t]);
+        addToast(action === 'accepted' ? t('toastSuggestionAccepted', { text: state.proactiveEngineState.generatedSuggestions.find(s => s.id === suggestionId)?.text || '' }) : t('toastSuggestionDismissed'), 'info');
+    }, [dispatch, addToast, t, state.proactiveEngineState.generatedSuggestions]);
 
-    const handleTraceGoal = useCallback((logId: string) => {
-        const log = state.performanceLogs.find((l: PerformanceLogEntry) => l.id === logId);
-        if (log) {
-            modal.open('causalChain', { log });
-        } else {
-            addToast(t('toastTraceNotFound'), 'warning');
-        }
-    }, [state.performanceLogs, modal, addToast, t]);
+    const handleSelectGainLog = useCallback((log: CognitiveGainLogEntry) => {
+        modal.open('cognitiveGainDetail', { log });
+    }, [modal]);
 
+    const handleShareWisdom = useCallback(() => {
+        dispatch({ type: 'UPDATE_NOETIC_ENGRAM_STATE', payload: { status: 'generating' } });
+        addToast(t('toastEngramGenerating'), 'info');
+        apiHooks.generateNoeticEngram();
+    }, [dispatch, addToast, t, apiHooks.generateNoeticEngram]);
+
+    const createModalHandler = useCallback(<T extends ModalType>(type: T, props: ModalProps[T]) => {
+        return () => modal.open(type, props);
+    }, [modal]);
+    
+    const handleDismissCodeProposal = useCallback((id: string) => {
+        dispatch({ type: 'DISMISS_CODE_EVOLUTION_PROPOSAL', payload: id });
+    }, [dispatch]);
+
+    const handleImplementGenialityProposal = useCallback((proposal: GenialityImprovementProposal) => {
+        dispatch({ type: 'UPDATE_GENIALITY_IMPROVEMENT_PROPOSAL_STATUS', payload: { id: proposal.id, status: 'implemented' } });
+        addToast(t('toastProposalImplemented', { title: proposal.title }), 'success');
+    }, [dispatch, addToast, t]);
+
+    const handleImplementCrucibleProposal = useCallback((proposal: ArchitecturalImprovementProposal) => {
+        dispatch({ type: 'UPDATE_ARCHITECTURAL_CRUCIBLE_PROPOSAL_STATUS', payload: { id: proposal.id, status: 'implemented' } });
+        addToast(t('toastProposalImplemented', { title: proposal.title }), 'success');
+    }, [dispatch, addToast, t]);
+
+    const handleCopyCode = useCallback((code: string) => {
+        navigator.clipboard.writeText(code).then(() => {
+            addToast(t('codeEvolution_copied'), 'success');
+        }, (err) => {
+            console.error('Could not copy code: ', err);
+            addToast(t('codeEvolution_copyFailed'), 'error');
+        });
+    }, [addToast, t]);
+
+    const handleAnalyzeWhatIf = useCallback(async (scenario: string) => {
+        modal.close();
+        addToast(t('toastAnalyzingScenario', { scenario }), 'info');
+        await handleSendCommand(`Analyze the hypothetical scenario: "${scenario}"`);
+    }, [modal, addToast, t, handleSendCommand]);
+
+    const handleBranchConsciousness = useCallback(async (prompt: string) => {
+        modal.close();
+        addToast(t('multiverse_branchingInitiated', { prompt }), 'info');
+        await branchAndExplore(prompt);
+    }, [modal, addToast, t, branchAndExplore]);
+
+    // FIX: Added a comprehensive return statement to provide all necessary state and handlers.
     return {
-        state, dispatch, toasts, removeToast, addToast, ...uiHandlers, memoryStatus,
+        // For App.tsx
+        state,
+        toasts,
+        removeToast,
+        t,
+        language: state.language,
+
+        // From useAuraState
+        dispatch,
+        memoryStatus,
+        clearDB,
+        
+        // From useToasts
+        addToast,
+
+        // From useUIHandlers
+        ...uiHandlers,
+
+        // From useGeminiAPI (overwriting handleSendCommand)
+        ...apiHooks,
         handleSendCommand: handleSendCommandWrapper,
-        handleEvolve: () => wrappedAPICall(apiHooks.handleEvolve),
-        handleRunCognitiveMode: useCallback((mode: any) => wrappedAPICall(apiHooks.handleRunCognitiveMode, mode), [wrappedAPICall, apiHooks.handleRunCognitiveMode]),
-        handleAnalyzeWhatIf: useCallback((scenario: string) => { modal.close(); wrappedAPICall(apiHooks.handleAnalyzeWhatIf, scenario); }, [modal, wrappedAPICall, apiHooks.handleAnalyzeWhatIf]),
-        handleExecuteSearch: useCallback((query: string) => { modal.close(); wrappedAPICall(apiHooks.handleExecuteSearch, query); }, [modal, wrappedAPICall, apiHooks.handleExecuteSearch]),
-        handleHypothesize: () => wrappedAPICall(apiHooks.handleHypothesize),
-        handleIntuition: () => wrappedAPICall(apiHooks.handleIntuition),
-        handleIntrospect, 
-        handleExecuteGoal, 
-        handleIngestData,
-        handleMicClick, 
+        
+        // Handlers from useAura
+        handleFeedback,
+        handleApproveProposal,
+        handleRejectProposal,
+        handleMicClick,
         handleThemeChange,
         handleLanguageChange,
-        handleReviewProposal: (proposal: ArchitecturalChangeProposal) => modal.open('proposalReview', { proposal, onApprove: handleApproveProposal, onReject: handleRejectProposal }),
-        handleSelectGainLog: (log: any) => modal.open('cognitiveGainDetail', { log }),
-        handleValidateModification: apiHooks.handleValidateModification,
         handleSetStrategicGoal,
+        handleIngestData,
         handleToggleVisualAnalysis,
-        handleFeedback,
+        handleIntrospect,
+        
+        // Newly created handlers
+        handleReviewProposal,
         handleSuggestionAction,
-        handleTraceGoal,
-        t,
-        language: state.language
+        handleSelectGainLog,
+        handleShareWisdom,
+        createModalHandler,
+        handleDismissCodeProposal,
+        handleImplementGenialityProposal,
+        handleImplementCrucibleProposal,
+        handleCopyCode,
+        handleAnalyzeWhatIf,
+        handleBranchConsciousness,
     };
 };

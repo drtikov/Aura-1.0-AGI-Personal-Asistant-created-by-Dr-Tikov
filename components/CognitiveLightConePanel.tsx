@@ -1,5 +1,4 @@
 import React from 'react';
-// FIX: Corrected typo from `useCore` to `useCoreState`. The component is now fully implemented to return JSX, resolving the `React.memo` error.
 import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const CognitiveLightConePanel = React.memo(() => {

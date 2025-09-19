@@ -4,8 +4,12 @@ import { PersonalityState } from '../types';
 
 const TraitBar = ({ label, value, color }: { label: string, value: number, color: string }) => {
     // Convert value from [-1, 1] to [0, 100] for the bar width
-    const percentage = (value + 1) * 50;
     const isNegative = value < 0;
+    
+    // The bar grows from the center.
+    // For negative values, we use margin-left to push it left from center.
+    // For positive values, it starts at the center.
+    // The width is always based on the absolute value.
     const barStyle: React.CSSProperties = {
         width: `${Math.abs(value) * 50}%`,
         backgroundColor: color,
@@ -29,7 +33,7 @@ export const PsychometricSubstratePanel = React.memo(() => {
     const { personalityState } = useCoreState();
     const { t } = useLocalization();
 
-    const traits: { key: keyof Omit<PersonalityState, 'personaCoherence' | 'lastUpdateReason'>; labelKey: string; color: string }[] = [
+    const traits: { key: keyof Pick<PersonalityState, 'openness' | 'conscientiousness' | 'extraversion' | 'agreeableness' | 'neuroticism'>; labelKey: string; color: string }[] = [
         { key: 'openness', labelKey: 'personality_openness', color: 'var(--mode-creativity)' },
         { key: 'conscientiousness', labelKey: 'personality_conscientiousness', color: 'var(--guna-dharma)' },
         { key: 'extraversion', labelKey: 'personality_extraversion', color: 'var(--state-happiness)' },
@@ -51,6 +55,24 @@ export const PsychometricSubstratePanel = React.memo(() => {
                 ))}
             </div>
             
+             <div className="panel-subsection-title" style={{marginTop: '1rem'}}>{t('personality_personas')}</div>
+            <div className="personas-container">
+                {personalityState.personas && Object.entries(personalityState.personas).map(([id, persona]) => (
+                    <div key={id} className={`persona-item ${personalityState.dominantPersona === id ? 'dominant' : ''}`}>
+                        <div className="persona-header">
+                            <span className="persona-name">{t(`personality_${id}_name`)}</span>
+                            {personalityState.dominantPersona === id && <span className="dominant-badge">{t('personality_dominant')}</span>}
+                        </div>
+                        <div className="state-item" style={{ padding: 0, marginTop: '0.25rem' }}>
+                            <div className="state-bar-container">
+                                <div className="state-bar" style={{ width: `${persona.activation * 100}%`, backgroundColor: 'var(--primary-color)' }}></div>
+                            </div>
+                        </div>
+                        <p className="persona-desc">{t(`personality_${id}_desc`)}</p>
+                    </div>
+                ))}
+            </div>
+
             <div className="state-item" style={{marginTop: '1rem'}}>
                 <label>{t('personality_coherence')}</label>
                 <div className="state-bar-container">
@@ -59,59 +81,9 @@ export const PsychometricSubstratePanel = React.memo(() => {
             </div>
 
             <div className="panel-subsection-title" style={{marginTop: '1rem'}}>{t('personality_lastUpdate')}</div>
-            <p className="reason-text">
-                <em>{personalityState.lastUpdateReason}</em>
+            <p className="reason-text" style={{fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)'}}>
+                {personalityState.lastUpdateReason}
             </p>
-
-            <style>{`
-                .traits-container {
-                    display: flex;
-                    flex-direction: column;
-                    gap: 0.75rem;
-                }
-                .trait-item {
-                    display: grid;
-                    grid-template-columns: 120px 1fr 40px;
-                    align-items: center;
-                    gap: 0.5rem;
-                    font-size: 0.8rem;
-                }
-                .trait-item label {
-                    color: var(--text-muted);
-                    text-align: right;
-                }
-                .trait-item span {
-                    font-weight: bold;
-                    font-family: var(--font-body);
-                }
-                .trait-bar-container {
-                    width: 100%;
-                }
-                .trait-bar-track {
-                    width: 100%;
-                    height: 10px;
-                    background: var(--border-color);
-                    position: relative;
-                }
-                .trait-bar-track::before {
-                    content: '';
-                    position: absolute;
-                    left: 50%;
-                    top: 0;
-                    bottom: 0;
-                    width: 1px;
-                    background: var(--text-color);
-                    opacity: 0.5;
-                }
-                .trait-bar-value {
-                    height: 100%;
-                }
-                .reason-text {
-                    font-size: 0.85rem;
-                    color: var(--text-muted);
-                    font-style: italic;
-                }
-            `}</style>
         </div>
     );
 });

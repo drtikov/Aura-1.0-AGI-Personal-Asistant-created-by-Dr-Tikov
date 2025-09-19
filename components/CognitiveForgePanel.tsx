@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { SkillTemplate } from '../types';
 import { useArchitectureState } from '../context/AuraContext';
 
 export const CognitiveForgePanel = React.memo(() => {
@@ -19,19 +20,22 @@ export const CognitiveForgePanel = React.memo(() => {
             {Object.values(state.skillTemplates).length === 0 ? (
                 <div className="kg-placeholder">No skill templates defined.</div>
             ) : (
-                Object.values(state.skillTemplates).slice(0, 5).map(template => (
-                    <div key={template.skill} className="mod-log-item">
-                        <div className="mod-log-header">
-                            <span className="mod-log-type">{template.skill.replace(/_/g, ' ')}</span>
-                            <span className="mod-log-status">v{template.metadata.version.toFixed(1)}</span>
+                Object.values(state.skillTemplates).slice(0, 5).map(template => {
+                    const typedTemplate = template as SkillTemplate;
+                    return (
+                        <div key={typedTemplate.skill} className="mod-log-item">
+                            <div className="mod-log-header">
+                                <span className="mod-log-type">{typedTemplate.skill.replace(/_/g, ' ')}</span>
+                                <span className="mod-log-status">v{typedTemplate.metadata.version.toFixed(1)}</span>
+                            </div>
+                            <p className="mod-log-description" title={typedTemplate.systemInstruction}>
+                                Temp: {typedTemplate.parameters.temperature?.toFixed(1) ?? 'N/A'} |
+                                Success: {(typedTemplate.metadata.successRate * 100).toFixed(0)}% |
+                                Avg. Duration: {typedTemplate.metadata.avgDuration}ms
+                            </p>
                         </div>
-                        <p className="mod-log-description" title={template.systemInstruction}>
-                            Temp: {template.parameters.temperature?.toFixed(1) ?? 'N/A'} |
-                            Success: {(template.metadata.successRate * 100).toFixed(0)}% |
-                            Avg. Duration: {template.metadata.avgDuration}ms
-                        </p>
-                    </div>
-                ))
+                    );
+                })
             )}
              <div className="panel-subsection-title">Synthesized Skills</div>
             {state.synthesizedSkills.length === 0 ? (

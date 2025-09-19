@@ -2,7 +2,6 @@ import React from 'react';
 import {
     useAuraDispatch, useArchitectureState, useLogsState, useMemoryState, useCoreState, useLocalization
 } from '../context/AuraContext';
-import { useModal } from '../context/ModalContext';
 import { Accordion } from './Accordion';
 import { VisualAnalysisFeed } from './VisualAnalysisFeed';
 import { panelLayout, PanelConfig } from './controlDeckConfig';
@@ -12,7 +11,6 @@ import { languages } from '../constants';
 export const ControlDeckComponent = () => {
     // Hooks to gather all necessary state slices and dispatchers/handlers
     const dispatchers = useAuraDispatch();
-    const modal = useModal();
     const architectureState = useArchitectureState();
     const logsState = useLogsState();
     const memoryState = useMemoryState();
@@ -67,7 +65,8 @@ export const ControlDeckComponent = () => {
         handleIntuition, handleHypothesize, handleToggleVisualAnalysis,
         handleRunCognitiveMode, handleToggleForgePause, handleLanguageChange,
         memoryStatus, handleIngestData, handleAnalyzeWhatIf, handleExecuteSearch, handleSetStrategicGoal,
-        handleSaveAsCode, importAsCodeInputRef, handleImportAsCode, handleContemplate,
+        handleSaveAsCode, importAsCodeInputRef, handleImportAsCode, handleContemplate, handleShareWisdom,
+        createModalHandler, handleBranchConsciousness
     } = dispatchers;
     
     const { theme, language } = coreState;
@@ -89,21 +88,9 @@ export const ControlDeckComponent = () => {
                  <div className="panel-group system-controls">
                     <h3 className="panel-group-title">{t('controlDeckSystemTitle')}</h3>
                      <div className="button-grid">
-                        <button className={`control-button pause-button ${isPaused ? 'paused' : ''}`} onClick={handleTogglePause} disabled={processingState.active}>{isPaused ? t('controlDeckResume') : t('controlDeckPause')}</button>
-                        <button className={`control-button pause-button ${cognitiveForgeState.isTuningPaused ? 'paused' : ''}`} onClick={handleToggleForgePause} disabled={processingState.active}>{cognitiveForgeState.isTuningPaused ? t('controlDeckResumeForge') : t('controlDeckPauseForge')}</button>
                         <button className="control-button" onClick={() => handleSendCommand('help')} disabled={processingState.active}>{t('controlDeckHelp')}</button>
-                        <button className="control-button" onClick={handleExportState} disabled={processingState.active}>{t('controlDeckExportMemory')}</button>
-                        <button className="control-button" onClick={handleSaveAsCode} disabled={processingState.active}>{t('controlDeckSaveAsCode')}</button>
-                        <button className="control-button" onClick={() => importInputRef.current?.click()} disabled={processingState.active}>{t('controlDeckImportMemory')}</button>
-                        <input type="file" ref={importInputRef} onChange={handleImportState} accept=".json" style={{ display: 'none' }} />
-                        <button className="control-button" onClick={() => importAsCodeInputRef.current?.click()} disabled={processingState.active}>{t('controlDeckImportCode')}</button>
-                        <input type="file" ref={importAsCodeInputRef} onChange={handleImportAsCode} accept=".ts,.js" style={{ display: 'none' }} />
-                        <button className="control-button" onClick={() => modal.open('ingest', { onIngest: handleIngestData })} disabled={processingState.active}>{t('controlDeckIngest')}</button>
-                        <div className="memory-controls">
-                            <span className={`memory-status-indicator ${memoryStatus}`} title={getMemoryStatusTooltip(memoryStatus)}></span>
-                            <button className="control-button clear-memory" onClick={handleClearMemory} disabled={processingState.active}>{t('controlDeckResetAGI')}</button>
-                        </div>
-                         <div className="theme-switcher-container">
+                        
+                        <div className="theme-switcher-container">
                             <select id="theme-switcher" value={theme} onChange={handleThemeChange}>
                                 <option value="ui-1">Cyberpunk</option>
                                 <option value="ui-10">Raver</option>
@@ -125,6 +112,25 @@ export const ControlDeckComponent = () => {
                                 ))}
                             </select>
                         </div>
+
+                        <button className="control-button" onClick={handleShareWisdom} disabled={processingState.active}>{t('controlDeckShareWisdom')}</button>
+                        
+                        <button className="control-button" onClick={() => importInputRef.current?.click()} disabled={processingState.active}>{t('controlDeckImportMemory')}</button>
+                        <input type="file" ref={importInputRef} onChange={handleImportState} accept=".json" style={{ display: 'none' }} />
+                        <button className="control-button" onClick={createModalHandler('ingest', { onIngest: handleIngestData })} disabled={processingState.active}>{t('controlDeckIngest')}</button>
+
+                        <button className="control-button" onClick={() => importAsCodeInputRef.current?.click()} disabled={processingState.active}>{t('controlDeckImportCode')}</button>
+                        <input type="file" ref={importAsCodeInputRef} onChange={handleImportAsCode} accept=".ts,.js" style={{ display: 'none' }} />
+                        <button className={`control-button pause-button ${cognitiveForgeState.isTuningPaused ? 'paused' : ''}`} onClick={handleToggleForgePause} disabled={processingState.active}>{cognitiveForgeState.isTuningPaused ? t('controlDeckResumeForge') : t('controlDeckPauseForge')}</button>
+
+                        <button className={`control-button pause-button ${isPaused ? 'paused' : ''}`} onClick={handleTogglePause} disabled={processingState.active}>{isPaused ? t('controlDeckResume') : t('controlDeckPause')}</button>
+                        <div className="memory-controls">
+                            <span className={`memory-status-indicator ${memoryStatus}`} title={getMemoryStatusTooltip(memoryStatus)}></span>
+                            <button className="control-button clear-memory" onClick={handleClearMemory} disabled={processingState.active}>{t('controlDeckResetAGI')}</button>
+                        </div>
+                         
+                        <button className="control-button" onClick={handleExportState} disabled={processingState.active}>{t('controlDeckExportMemory')}</button>
+                        <button className="control-button" onClick={handleSaveAsCode} disabled={processingState.active}>{t('controlDeckSaveAsCode')}</button>
                      </div>
                  </div>
                  <div className="panel-group cognitive-triggers">
@@ -132,15 +138,16 @@ export const ControlDeckComponent = () => {
                      <div className="button-grid">
                         <button className="control-button" onClick={handleIntrospect} disabled={processingState.active}>{t('controlDeckIntrospect')}</button>
                         <button className="control-button" onClick={handleEvolve} disabled={processingState.active}>{t('controlDeckEvolve')}</button>
-                        <button className="control-button" onClick={() => modal.open('search', { onSearch: handleExecuteSearch, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckSearch')}</button>
-                        <button className="control-button" onClick={() => modal.open('forecast', { state: coreState.internalState })} disabled={processingState.active}>{t('controlDeckForecast')}</button>
+                        <button className="control-button" onClick={createModalHandler('search', { onSearch: handleExecuteSearch, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckSearch')}</button>
+                        <button className="control-button" onClick={createModalHandler('forecast', { state: coreState.internalState })} disabled={processingState.active}>{t('controlDeckForecast')}</button>
                         <button className="control-button" onClick={handleIntuition} disabled={processingState.active}>{t('controlDeckIntuition')}</button>
                         <button className="control-button" onClick={handleHypothesize} disabled={processingState.active}>{t('controlDeckHypothesize')}</button>
                          <button className={`control-button visual-sense ${isVisualAnalysisActive ? 'active' : ''}`} onClick={handleToggleVisualAnalysis} disabled={processingState.active && !isVisualAnalysisActive}>
                              {isVisualAnalysisActive ? t('controlDeckStopSense') : t('controlDeckVisualSense')}
                          </button>
-                        <button className="control-button" onClick={() => modal.open('strategicGoal', { onSetGoal: handleSetStrategicGoal, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckSetGoal')}</button>
-                        <button className="control-button" onClick={() => modal.open('whatIf', { onAnalyze: handleAnalyzeWhatIf, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckWhatIf')}</button>
+                        <button className="control-button" onClick={createModalHandler('strategicGoal', { onSetGoal: handleSetStrategicGoal, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckSetGoal')}</button>
+                        <button className="control-button" onClick={createModalHandler('whatIf', { onAnalyze: handleAnalyzeWhatIf, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckWhatIf')}</button>
+                        <button className="control-button" onClick={createModalHandler('multiverseBranching', { onBranch: handleBranchConsciousness, isProcessing: processingState.active })} disabled={processingState.active}>{t('controlDeckBranchConsciousness')}</button>
                         <button className="control-button" onClick={handleContemplate} disabled={processingState.active}>{t('controlDeckContemplate')}</button>
                      </div>
                  </div>

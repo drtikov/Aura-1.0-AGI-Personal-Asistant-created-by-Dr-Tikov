@@ -1,6 +1,7 @@
 import React from 'react';
 import { ArchitecturePanel } from './ArchitecturePanel';
 import { CausalSelfModelPanel } from './CausalSelfModelPanel';
+import { CodeEvolutionPanel } from './CodeEvolutionPanel';
 import { CognitiveArchitecturePanel } from './CognitiveArchitecturePanel';
 import { CognitiveForgePanel } from './CognitiveForgePanel';
 import { CognitiveGainPanel } from './CognitiveGainPanel';
@@ -8,7 +9,7 @@ import { CognitiveLightConePanel } from './CognitiveLightConePanel';
 import { CognitiveModesPanel } from './CognitiveModesPanel';
 import { CognitiveRegulationPanel } from './CognitiveRegulationPanel';
 import { CommandLogPanel } from './CommandLogPanel';
-import { AtmanProjectorPanel } from './CoreIdentityPanel';
+import { DzogchenViewPanel } from './DzogchenViewPanel';
 import { CuriosityPanel } from './CuriosityPanel';
 import { DevelopmentalHistoryPanel } from './DevelopmentalHistoryPanel';
 import { DialecticEnginePanel } from './DialecticEnginePanel';
@@ -17,8 +18,10 @@ import { EpisodicMemoryPanel } from './EpisodicMemoryPanel';
 import { EpistemicBoundaryPanel } from './EpistemicBoundaryPanel';
 import { EthicalGovernorPanel } from './EthicalGovernorPanel';
 import { GankyilInsightsPanel } from './GankyilInsightsPanel';
+import { GenialityEnginePanel } from './GenialityEnginePanel';
 import { HeuristicsForgePanel } from './HeuristicsForgePanel';
 import { HumorAndIronyPanel } from './HumorAndIronyPanel';
+import { InboxPanel } from './InboxPanel';
 import { IngenuityPanel } from './IngenuityPanel';
 import { InnerDisciplinePanel } from './InnerDisciplinePanel';
 import { IntuitionEnginePanel } from './IntuitionEnginePanel';
@@ -40,10 +43,14 @@ import { SituationalAwarenessPanel } from './SituationalAwarenessPanel';
 import { SomaticCruciblePanel } from './SomaticCruciblePanel';
 import { StrategicPlannerPanel } from './StrategicPlannerPanel';
 import { SymbiosisPanel } from './SymbiosisPanel';
+import { SynapticMatrixPanel } from './SynapticMatrixPanel';
 import { TelosPanel } from './TelosPanel';
 import { WorldModelPanel } from './WorldModelPanel';
-import { AuraState, ArchitecturalChangeProposal, PerformanceLogEntry, Action } from '../types';
+import { AuraState, ArchitecturalChangeProposal, PerformanceLogEntry, Action, CodeEvolutionProposal } from '../types';
 import { ArchitecturalSelfModelPanel } from './ArchitecturalSelfModelPanel';
+import { NoeticEngramPanel } from './NoeticEngramPanel';
+import { ArchitecturalCruciblePanel } from './ArchitecturalCruciblePanel';
+import { NoeticMultiversePanel } from './NoeticMultiversePanel';
 
 type ComponentProps = Record<string, any>;
 type StateSlices = { architecture: any; logs: any; memory: any; core: any; };
@@ -61,15 +68,41 @@ export interface PanelConfig {
 
 export const panelLayout: PanelConfig[] = [
     {
+        id: 'inbox',
+        titleKey: 'panelInbox',
+        component: InboxPanel,
+        defaultOpen: true,
+        summary: (state, t) => {
+             const archCount = state.architecture.architecturalProposals.filter((p: ArchitecturalChangeProposal) => p.status === 'proposed').length;
+             const codeCount = state.architecture.codeEvolutionProposals.filter((p: CodeEvolutionProposal) => p.status === 'proposed').length;
+             const genialityCount = state.core.genialityEngineState.improvementProposals.filter((p: any) => p.status === 'proposed').length;
+             const crucibleCount = state.architecture.architecturalCrucibleState.improvementProposals.filter((p: any) => p.status === 'proposed').length;
+             const total = archCount + codeCount + genialityCount + crucibleCount;
+             return total > 0 ? t('inbox_summary', { count: total }) : undefined;
+        }
+    },
+    {
         id: 'planner',
         titleKey: 'panelStrategicPlanner',
         component: StrategicPlannerPanel,
         defaultOpen: true,
     },
     {
-        id: 'identity',
-        titleKey: 'panelAtmanProjector',
-        component: AtmanProjectorPanel,
+        id: 'dzogchenView',
+        titleKey: 'panelDzogchenView',
+        component: DzogchenViewPanel,
+    },
+     {
+        id: 'sharing',
+        titleKey: 'panelSymbiosisSharing',
+        defaultOpen: false,
+        children: [
+            {
+                id: 'noeticEngram',
+                titleKey: 'panelNoeticEngram',
+                component: NoeticEngramPanel,
+            }
+        ]
     },
     {
         id: 'cognitiveFrontier',
@@ -80,16 +113,28 @@ export const panelLayout: PanelConfig[] = [
                 titleKey: 'panelCognitiveLightCone',
                 component: CognitiveLightConePanel,
             },
+            {
+                id: 'noeticMultiverse',
+                titleKey: 'panelNoeticMultiverse',
+                component: NoeticMultiversePanel,
+            },
         ]
     },
     {
         id: 'agiEvolution',
         titleKey: 'panelAgiEvolution',
         children: [
+            { id: 'architecturalCrucible', titleKey: 'panelArchitecturalCrucible', component: ArchitecturalCruciblePanel },
             { id: 'telos', titleKey: 'panelTelos', component: TelosPanel },
             { id: 'epistemicBoundaries', titleKey: 'panelEpistemicBoundaries', component: EpistemicBoundaryPanel },
             { id: 'architecturalSelfModel', titleKey: 'panelArchitecturalSelfModel', component: ArchitecturalSelfModelPanel },
             { id: 'heuristicsForge', titleKey: 'panelHeuristicsForge', component: HeuristicsForgePanel },
+            { id: 'synapticMatrix', titleKey: 'panelSynapticMatrix', component: SynapticMatrixPanel },
+            { 
+                id: 'codeEvolution', 
+                titleKey: 'panelCodeEvolution', 
+                component: CodeEvolutionPanel,
+            },
         ],
     },
     {
@@ -136,6 +181,7 @@ export const panelLayout: PanelConfig[] = [
         id: 'metacognition',
         titleKey: 'panelMetacognitionSelf',
         children: [
+            { id: 'genialityEngine', titleKey: 'panelGenialityEngine', component: GenialityEnginePanel },
             { id: 'psychometricSubstrate', titleKey: 'panelPsychometricSubstrate', component: PsychometricSubstratePanel },
             { id: 'gankyilInsights', titleKey: 'panelGankyilInsights', component: GankyilInsightsPanel, summary: (state, t) => t('panelSummaryInsights', { count: state.core.gankyilInsights.insights.length }) },
             { id: 'humorAndIrony', titleKey: 'panelHumorAndIrony', component: HumorAndIronyPanel },
@@ -162,8 +208,7 @@ export const panelLayout: PanelConfig[] = [
                 id: 'proposals',
                 titleKey: 'panelArchitecturalProposals',
                 component: ArchitecturePanel,
-                summary: (state, t) => t('panelSummaryPendingProposals', { count: state.architecture.architecturalProposals.filter((p: ArchitecturalChangeProposal) => p.status === 'proposed').length }),
-                props: handlers => ({ onReview: handlers.handleReviewProposal }),
+                summary: (state, t) => t('panelSummaryPendingProposals', { count: state.architecture.architecturalProposals.length }),
             },
             {
                 id: 'modLog',
