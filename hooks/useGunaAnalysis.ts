@@ -28,7 +28,8 @@ export const useGunaAnalysis = (internalState: InternalState, t: (key: string, o
                 return t('gunaReasonTamas', { load: load.toFixed(2), boredom: boredomLevel.toFixed(2) });
             case GunaState.DHARMA:
                 return t('gunaReasonDharma');
-            case GunaState.GUNA_TEETA:
+            // FIX: Changed GunaState.GUNA_TEETA to GunaState['GUNA-TEETA'] to correctly access the enum member with a hyphen.
+            case GunaState['GUNA-TEETA']:
                 return t('gunaReasonGunaTeeta');
             default:
                 return t('gunaReasonCalculating');

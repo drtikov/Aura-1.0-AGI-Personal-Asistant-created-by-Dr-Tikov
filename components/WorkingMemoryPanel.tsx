@@ -13,7 +13,7 @@ export const WorkingMemoryPanel = React.memo(({ onDispatch }: { onDispatch: Reac
                 <h4>{t('workingMemoryTitle')}</h4>
                 {memory.length > 0 && <button className="clear-wm-button" onClick={() => onDispatch({ type: 'CLEAR_WORKING_MEMORY' })}>{t('workingMemoryClear')}</button>}
             </div>
-            <ul> {memory.map((item, index) => ( <li key={index}> <span>{item.substring(0, 100)}{item.length > 100 ? '...' : ''}</span> <button onClick={() => onDispatch({ type: 'REMOVE_FROM_WORKING_MEMORY', payload: item })} title="Remove from memory">&times;</button> </li> ))} </ul>
+            <ul> {memory.map((item, index) => ( <li key={index}> <span>{item.substring(0, 100)}{item.length > 100 ? '...' : ''}</span> <button onClick={() => onDispatch({ type: 'REMOVE_FROM_WORKING_MEMORY', payload: item })} title={t('workingMemoryRemove')}>&times;</button> </li> ))} </ul>
         </div>
     );
 });

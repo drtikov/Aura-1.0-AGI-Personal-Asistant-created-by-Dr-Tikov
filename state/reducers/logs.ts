@@ -65,6 +65,13 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
                 }
             };
 
+        case 'MARK_LOG_CAUSAL_ANALYSIS':
+            return {
+                performanceLogs: state.performanceLogs.map(log =>
+                    log.id === action.payload ? { ...log, causalAnalysisTimestamp: Date.now() } : log
+                )
+            };
+
         default:
             return {};
     }

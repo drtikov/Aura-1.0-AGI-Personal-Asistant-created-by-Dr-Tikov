@@ -128,15 +128,15 @@ export const useAuraState = () => {
                         dispatch({ type: 'RESTORE_STATE_FROM_MEMRISTOR', payload: migratedState });
                     } catch (migrationError) {
                         console.error("State migration failed:", migrationError);
-                        dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: `SYSTEM: CRITICAL ERROR: Failed to upgrade Aura's memory. Resetting to a fresh state to prevent corruption.` } });
+                        dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { id: self.crypto.randomUUID(), from: 'system', text: `SYSTEM: CRITICAL ERROR: Failed to upgrade Aura's memory. Resetting to a fresh state to prevent corruption.` } });
                     }
                 } else if (payload) {
                     console.error(`Memristor state version (v${payload.version}) is newer than the application version (v${CURRENT_STATE_VERSION}). This is unsupported. Resetting state.`);
-                    dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: 'SYSTEM: Detected a future state version. AGI has been reset.' } });
+                    dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { id: self.crypto.randomUUID(), from: 'system', text: 'SYSTEM: Detected a future state version. AGI has been reset.' } });
                 }
             } catch (error) {
                 console.error("Memristor load error:", error);
-                dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { from: 'system', text: 'SYSTEM: Could not read from Memristor, initializing fresh AGI instance.' } });
+                dispatch({ type: 'ADD_HISTORY_ENTRY', payload: { id: self.crypto.randomUUID(), from: 'system', text: 'SYSTEM: Could not read from Memristor, initializing fresh AGI instance.' } });
             } finally {
                 setIsStateHydrated(true);
             }

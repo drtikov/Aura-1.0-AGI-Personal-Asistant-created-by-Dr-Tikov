@@ -57,7 +57,7 @@ export const SymbiosisPanel = React.memo(() => {
                     <div key={index} className="prediction-item" style={{ borderLeftColor: 'var(--guna-dharma)' }}>
                         <div className="prediction-header">
                             <span>{t('symbiosis_goalHypothesis')}</span>
-                            <span>{t('intuitionEngine_confidence')}: {(goal.confidence * 100).toFixed(0)}%</span>
+                            <span>{t('causalSelfModel_confidence')}: {(goal.confidence * 100).toFixed(0)}%</span>
                         </div>
                         <p className="prediction-content">{goal.goal}</p>
                     </div>

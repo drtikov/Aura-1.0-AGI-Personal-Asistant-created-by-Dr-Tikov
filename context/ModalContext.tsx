@@ -1,79 +1,142 @@
-import React, { useState, useCallback, createContext, useContext, useMemo } from 'react';
-import { 
-    CausalChainModal,
-    CognitiveGainDetailModal,
-    ForecastModal,
-    IngestPanel,
-    MultiverseBranchingModal,
-    ProposalReviewModal,
-    SearchModal,
-    StrategicGoalModal,
-    WhatIfModal
-} from '../components';
-import { ModalType, ModalProps } from '../types';
+import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
+import { CausalChainModal } from '../components/CausalChainModal';
+import { ProposalReviewModal } from '../components/ProposalReviewModal';
+import { WhatIfModal } from '../components/WhatIfModal';
+import { SearchModal } from '../components/SearchModal';
+import { StrategicGoalModal } from '../components/StrategicGoalModal';
+import { ForecastModal } from '../components/ForecastModal';
+import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal';
+import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal';
+import { BrainstormModal } from '../components/BrainstormModal';
+import { ImageGenerationModal } from '../components/ImageGenerationModal';
+import { VideoGenerationModal } from '../components/VideoGenerationModal';
+import { AdvancedControlsModal } from '../components/AdvancedControlsModal';
+import { useAuraDispatch } from './AuraContext';
+import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types';
 
-type ModalState = {
-    type: ModalType | null;
-    props: any;
-};
+type ModalType = 
+    | 'causalChain' 
+    | 'proposalReview' 
+    | 'whatIf' 
+    | 'search' 
+    | 'strategicGoal'
+    | 'forecast'
+    | 'cognitiveGainDetail'
+    | 'multiverseBranching'
+    | 'brainstorm'
+    | 'imageGeneration'
+    | 'videoGeneration'
+    | 'advancedControls';
 
-type ModalContextType = {
-    open: <T extends ModalType>(type: T, props: ModalProps[T]) => void;
+interface ModalContextType {
+    open: <T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => void;
     close: () => void;
-};
+}
 
-const ModalContext = createContext<ModalContextType | null>(null);
+const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
-export const useModal = () => {
-    const context = useContext(ModalContext);
-    if (!context) {
-        throw new Error("useModal must be used within a ModalProvider");
-    }
-    return context;
-};
+export const ModalProvider = ({ children }: { children: ReactNode }) => {
+    const [modal, setModal] = useState<{ type: ModalType; payload: any } | null>(null);
+    const { 
+        approveProposal, rejectProposal, handleWhatIf, 
+        handleSearch, handleSetStrategicGoal, state, 
+        processingState, handleMultiverseBranch, handleBrainstorm
+    } = useAuraDispatch();
 
-export const ModalProvider = ({ children }: { children: React.ReactNode }) => {
-    const [modal, setModal] = useState<ModalState>({ type: null, props: {} });
-
-    const open = useCallback(<T extends ModalType>(type: T, props: ModalProps[T]) => {
-        setModal({ type, props });
+    const open = useCallback(<T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => {
+        setModal({ type: modalType, payload });
     }, []);
 
     const close = useCallback(() => {
-        setModal({ type: null, props: {} });
+        setModal(null);
     }, []);
 
-    const contextValue = useMemo(() => ({ open, close }), [open, close]);
-
-    const renderModal = () => {
-        switch (modal.type) {
-            case 'causalChain':
-                return <CausalChainModal {...modal.props} onClose={close} />;
-            case 'forecast':
-                return <ForecastModal isOpen={true} {...modal.props} onClose={close} />;
-            case 'whatIf':
-                return <WhatIfModal isOpen={true} {...modal.props} onClose={close} />;
-            case 'multiverseBranching':
-                return <MultiverseBranchingModal isOpen={true} {...modal.props} onClose={close} />;
-            case 'search':
-                return <SearchModal isOpen={true} {...modal.props} onClose={close} />;
-            case 'proposalReview':
-                return <ProposalReviewModal {...modal.props} onClose={close} />;
-            case 'cognitiveGainDetail':
-                return <CognitiveGainDetailModal {...modal.props} onClose={close} />;
-            case 'ingest':
-                return <IngestPanel {...modal.props} onCancel={close} />;
-            case 'strategicGoal':
-                return <StrategicGoalModal isOpen={true} {...modal.props} onClose={close} />;
-            default:
-                return null;
-        }
+    const onApproveProposal = (proposal: ArchitecturalChangeProposal) => {
+        approveProposal(proposal);
+        close();
     };
+
+    const onRejectProposal = (id: string) => {
+        rejectProposal(id);
+        close();
+    };
+
+    const contextValue = { open, close };
 
     return (
         <ModalContext.Provider value={contextValue}>
             {children}
-            {renderModal()}
+
+            <CausalChainModal 
+                log={modal?.type === 'causalChain' ? modal.payload.log : null}
+                onClose={close}
+            />
+            <ProposalReviewModal
+                proposal={modal?.type === 'proposalReview' ? modal.payload.proposal : null}
+                onClose={close}
+                onApprove={onApproveProposal}
+                onReject={onRejectProposal}
+            />
+            <WhatIfModal 
+                isOpen={modal?.type === 'whatIf'}
+                onClose={close}
+                onAnalyze={handleWhatIf}
+                isProcessing={processingState.active && processingState.stage === 'whatIf'}
+            />
+            <SearchModal
+                isOpen={modal?.type === 'search'}
+                onClose={close}
+                onSearch={handleSearch}
+                isProcessing={processingState.active && processingState.stage === 'search'}
+            />
+            <StrategicGoalModal
+                isOpen={modal?.type === 'strategicGoal'}
+                onClose={close}
+                onSetGoal={handleSetStrategicGoal}
+                isProcessing={processingState.active && processingState.stage === 'strategicGoal'}
+            />
+            <ForecastModal
+                isOpen={modal?.type === 'forecast'}
+                onClose={close}
+                state={state.internalState}
+            />
+            <CognitiveGainDetailModal
+                log={modal?.type === 'cognitiveGainDetail' ? modal.payload.log : null}
+                onClose={close}
+            />
+             <MultiverseBranchingModal
+                isOpen={modal?.type === 'multiverseBranching'}
+                onClose={close}
+                onBranch={handleMultiverseBranch}
+                isProcessing={processingState.active && processingState.stage === 'multiverseBranching'}
+            />
+             <BrainstormModal
+                isOpen={modal?.type === 'brainstorm'}
+                onClose={close}
+                onGenerate={handleBrainstorm}
+                isProcessing={processingState.active && processingState.stage === 'brainstorm'}
+            />
+            <ImageGenerationModal
+                isOpen={modal?.type === 'imageGeneration'}
+                onClose={close}
+                initialPrompt={modal?.type === 'imageGeneration' ? modal.payload.initialPrompt : undefined}
+            />
+            <VideoGenerationModal
+                isOpen={modal?.type === 'videoGeneration'}
+                onClose={close}
+            />
+            <AdvancedControlsModal
+                isOpen={modal?.type === 'advancedControls'}
+                onClose={close}
+            />
         </ModalContext.Provider>
     );
+};
+
+export const useModal = () => {
+    const context = useContext(ModalContext);
+    if (context === undefined) {
+        throw new Error('useModal must be used within a ModalProvider');
+    }
+    return context;
 };

@@ -18,7 +18,7 @@ export const WorldModelPanel = React.memo(() => {
             <div className="prediction-item level-high">
                 <div className="prediction-header">
                     <span>{t('worldModel_highLevel')}</span>
-                    <span>{t('intuitionEngine_confidence')}: {(state.highLevelPrediction.confidence * 100).toFixed(0)}%</span>
+                    <span>{t('causalSelfModel_confidence')}: {(state.highLevelPrediction.confidence * 100).toFixed(0)}%</span>
                 </div>
                 <p className="prediction-content">
                     {state.highLevelPrediction.content}
@@ -28,7 +28,7 @@ export const WorldModelPanel = React.memo(() => {
             <div className="prediction-item level-mid">
                 <div className="prediction-header">
                     <span>{t('worldModel_midLevel')}</span>
-                     <span>{t('intuitionEngine_confidence')}: {(state.midLevelPrediction.confidence * 100).toFixed(0)}%</span>
+                     <span>{t('causalSelfModel_confidence')}: {(state.midLevelPrediction.confidence * 100).toFixed(0)}%</span>
                 </div>
                 <p className="prediction-content">
                     {state.midLevelPrediction.content}
@@ -38,7 +38,7 @@ export const WorldModelPanel = React.memo(() => {
              <div className="prediction-item level-low">
                 <div className="prediction-header">
                     <span>{t('worldModel_lowLevel')}</span>
-                     <span>{t('intuitionEngine_confidence')}: {(state.lowLevelPrediction.confidence * 100).toFixed(0)}%</span>
+                     <span>{t('causalSelfModel_confidence')}: {(state.lowLevelPrediction.confidence * 100).toFixed(0)}%</span>
                 </div>
                 <p className="prediction-content">
                     {state.lowLevelPrediction.content}

@@ -1,7 +1,4 @@
-
-
 import React from 'react';
-// FIX: GunaState is now exported from types.ts to avoid circular dependencies.
 import { GunaState } from '../types';
 import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';
@@ -17,7 +14,7 @@ export const CoreMonitor = React.memo(() => {
         [GunaState.RAJAS]: { name: "Rajas", description: t('gunaRajasDesc'), className: "rajas" }, 
         [GunaState.TAMAS]: { name: "Tamas", description: t('gunaTamasDesc'), className: "tamas" }, 
         [GunaState.DHARMA]: { name: "Dharma", description: t('gunaDharmaDesc'), className: "dharma" }, 
-        [GunaState.GUNA_TEETA]: { name: "Guna-Teeta", description: t('gunaTeetaDesc'), className: "guna-teeta" } 
+        [GunaState['GUNA-TEETA']]: { name: "Guna-Teeta", description: t('gunaTeetaDesc'), className: "guna-teeta" } 
     };
     const currentGuna = gunaInfo[internalState.gunaState];
     const gunaReason = useGunaAnalysis(internalState, t);
@@ -89,6 +86,14 @@ export const CoreMonitor = React.memo(() => {
                         <Sparkline data={historyData.uncertainty} strokeColor="var(--state-uncertainty)" />
                         <Sparkline data={historyData.load} strokeColor="var(--resource-cpu)" />
                     </div>
+                </div>
+            </div>
+            <div className="temporal-focus-container">
+                <h4 className="temporal-focus-display-title">{t('temporalFocus_title')}</h4>
+                <div className="temporal-focus-display">
+                    <div className={`temporal-focus-item ${internalState.temporalFocus === 'past' ? 'active' : ''}`}>{t('temporalFocus_past')}</div>
+                    <div className={`temporal-focus-item ${internalState.temporalFocus === 'present' ? 'active' : ''}`}>{t('temporalFocus_present')}</div>
+                    <div className={`temporal-focus-item ${internalState.temporalFocus === 'future' ? 'active' : ''}`}>{t('temporalFocus_future')}</div>
                 </div>
             </div>
         </div>

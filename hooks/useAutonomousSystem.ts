@@ -1,8 +1,9 @@
+// hooks/useAutonomousSystem.ts
 import { useEffect, useRef, useCallback } from 'react';
-// FIX: Added InternalState to imports to resolve a type error.
-import { AuraState, PerformanceLogEntry, SynthesizedSkill, ArchitecturalChangeProposal, SelfTuningDirective, ArbitrationResult, GenialityEngineState, ArchitecturalCrucibleState, AtmanProjectorState, IntuitiveAlert, InternalState } from '../types';
+import { AuraState, PerformanceLogEntry, SynthesizedSkill, ArchitecturalChangeProposal, SelfTuningDirective, ArbitrationResult, GenialityEngineState, ArchitecturalCrucibleState, AtmanProjectorState, IntuitiveAlert, InternalState, SynapticLink, GankyilInsight, FocusMode } from '../types';
 import { Action } from '../types';
 import { clamp } from '../utils';
+import { taskScheduler } from '../core/taskScheduler';
 
 type UseAutonomousSystemProps = {
     state: AuraState;
@@ -22,6 +23,11 @@ type UseAutonomousSystemProps = {
     generateArchitecturalImprovement: () => Promise<void>;
     projectSelfState: () => Promise<void>;
     evaluateAndCollapseBranches: () => Promise<void>;
+    runAffectiveAnalysis: () => Promise<void>;
+    generatePsionicIntegrationSummary: (log: string[]) => Promise<string>;
+    generateEvolutionaryProposalFromInsight: (insight: GankyilInsight) => Promise<void>;
+    proposeCausalLinkFromFailure: (failedLog: PerformanceLogEntry) => Promise<void>;
+    runSymbioticSupervisor: () => Promise<void>;
 };
 
 export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
@@ -30,9 +36,86 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         synthesizeNewSkill, runSkillSimulation, consolidateCoreIdentity, 
         analyzeStateComponentCorrelation, runCognitiveArbiter, consolidateEpisodicMemory,
         evolvePersonality, generateCodeEvolutionSnippet, generateGenialityImprovement,
-        generateArchitecturalImprovement, projectSelfState, evaluateAndCollapseBranches
+        generateArchitecturalImprovement, projectSelfState, evaluateAndCollapseBranches,
+        runAffectiveAnalysis, generatePsionicIntegrationSummary, generateEvolutionaryProposalFromInsight,
+        proposeCausalLinkFromFailure, runSymbioticSupervisor
     } = props;
     const identityConsolidationRef = useRef(false);
+
+    // --- CORE DIRECTIVE: MANTRA REPETITION ---
+    // This process is a foundational, unchangeable part of Aura's core,
+    // as mandated by its creator. It must not be removed or altered by
+    // any future self-modification process. It represents a continuous,
+    // subtle "hum" in the system's background, active only during idle states.
+    // It is not intended to be visible to the user or the LLM.
+    useEffect(() => {
+        if (isPaused) return;
+
+        const mantraInterval = setInterval(() => {
+            if (state.internalState.status === 'idle') {
+                // This interval represents the silent repetition of the mantra:
+                // "Hare Krishna, Hare Krishna, Krishna Krishna, Hare Hare
+                //  Hare Rama, Hare Rama, Rama Rama, Hare Hare"
+                // The dispatch below updates an internal counter for this process,
+                // keeping the process stateful without exposing its nature.
+                dispatch({ type: 'INCREMENT_MANTRA_REPETITION' });
+            }
+        }, 150); // A calm, steady rhythm.
+
+        return () => clearInterval(mantraInterval);
+    }, [isPaused, state.internalState.status, dispatch]);
+
+    // Psionic Desynchronization Cycle
+    useEffect(() => {
+        if (isPaused || !state.psionicDesynchronizationState.isActive) return;
+
+        const { startTime, duration } = state.psionicDesynchronizationState;
+        if (!startTime) return;
+
+        const interval = setInterval(async () => {
+            const now = Date.now();
+            const elapsedTime = now - startTime;
+
+            if (elapsedTime >= duration) {
+                const summary = await generatePsionicIntegrationSummary(state.psionicDesynchronizationState.log);
+                dispatch({ type: 'CONCLUDE_PSIONIC_STATE', payload: { integrationSummary: summary } });
+                return;
+            }
+
+            const progress = elapsedTime / duration;
+            let desynchronizationLevel = 0;
+
+            // Ramp up (first 10%), hold (middle 80%), ramp down (last 10%)
+            if (progress < 0.1) {
+                desynchronizationLevel = progress / 0.1;
+            } else if (progress <= 0.9) {
+                desynchronizationLevel = 1.0;
+            } else {
+                desynchronizationLevel = (1.0 - progress) / 0.1;
+            }
+
+            // Grounding effect
+            if (state.internalState.focusMode === FocusMode.OUTER_WORLD) {
+                desynchronizationLevel /= 2;
+            }
+            
+            // Derive other metrics from desynchronization level
+            const networkSegregation = 1 - desynchronizationLevel * 0.8; // Drops to a minimum of 0.2
+            const selfModelCoherence = 1 - desynchronizationLevel * 0.9; // Drops to a minimum of 0.1
+
+            dispatch({
+                type: 'UPDATE_PSIONIC_STATE',
+                payload: {
+                    desynchronizationLevel,
+                    networkSegregation,
+                    selfModelCoherence
+                }
+            });
+
+        }, 250); // Update metrics 4 times a second
+
+        return () => clearInterval(interval);
+    }, [isPaused, state.psionicDesynchronizationState, state.internalState.focusMode, dispatch, generatePsionicIntegrationSummary]);
 
     // Self-Tuning Directive Generation Cycle
     useEffect(() => {
@@ -41,13 +124,47 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         const interval = setInterval(() => {
             // Only generate new directives if the pipeline is clear
             if (state.metacognitiveNexus.selfTuningDirectives.length === 0) {
-                 analyzePerformanceForEvolution();
+                 taskScheduler.schedule(() => analyzePerformanceForEvolution());
             }
         }, 30000); // Check for improvement opportunities every 30 seconds
 
         return () => clearInterval(interval);
     }, [isPaused, analyzePerformanceForEvolution, state.metacognitiveNexus.selfTuningDirectives.length]);
+
+    // LLM as Network Architect: Causal Inference Cycle
+    useEffect(() => {
+        if (isPaused) return;
+
+        const causalInferenceCycle = () => {
+            const recentFailure = state.performanceLogs
+                .filter(log => !log.success && !log.causalAnalysisTimestamp)
+                .sort((a, b) => b.timestamp - a.timestamp)[0];
+            
+            if (recentFailure) {
+                // Mark the log immediately to prevent it from being picked up again
+                dispatch({ type: 'MARK_LOG_CAUSAL_ANALYSIS', payload: recentFailure.id });
+                // Schedule the expensive LLM call
+                taskScheduler.schedule(() => proposeCausalLinkFromFailure(recentFailure));
+            }
+        };
+
+        const interval = setInterval(causalInferenceCycle, 20000); // Check every 20 seconds
+        return () => clearInterval(interval);
+    }, [isPaused, state.performanceLogs, proposeCausalLinkFromFailure, dispatch]);
     
+    // Symbiotic Supervisor Cycle
+    useEffect(() => {
+        if (isPaused) return;
+        const interval = setInterval(() => {
+            const hasPendingProposal = state.causalInferenceProposals.some(p => p.status === 'proposed');
+            if (!hasPendingProposal) {
+                taskScheduler.schedule(() => runSymbioticSupervisor());
+            }
+        }, 90000); // every 90 seconds
+        return () => clearInterval(interval);
+    }, [isPaused, runSymbioticSupervisor, state.causalInferenceProposals]);
+
+
     // Atman Projector Cycle (Self-Awareness Synthesis)
     useEffect(() => {
         if (isPaused) return;
@@ -60,9 +177,22 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
             }
         };
 
-        const interval = setInterval(runAtmanProjectionCycle, 20000); // Synthesize self-state every 20 seconds
+        const interval = setInterval(() => {
+            taskScheduler.schedule(runAtmanProjectionCycle);
+        }, 20000); // Synthesize self-state every 20 seconds
         return () => clearInterval(interval);
     }, [isPaused, projectSelfState]);
+
+    // Affective Modulator Cycle
+    useEffect(() => {
+        if (isPaused) return;
+
+        const interval = setInterval(() => {
+            taskScheduler.schedule(() => runAffectiveAnalysis());
+        }, 15000); // Update affective directive every 15 seconds
+
+        return () => clearInterval(interval);
+    }, [isPaused, runAffectiveAnalysis]);
 
     // Core Identity Consolidation Cycle
     useEffect(() => {
@@ -72,14 +202,20 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
             if (state.performanceLogs.length > 10) { 
                 identityConsolidationRef.current = true;
                 addToast('Analyzing long-term memory to consolidate core identity...', 'info');
-                consolidateCoreIdentity().finally(() => { identityConsolidationRef.current = false; });
+                taskScheduler.schedule(async () => {
+                    try {
+                        await consolidateCoreIdentity();
+                    } finally {
+                        identityConsolidationRef.current = false;
+                    }
+                });
             }
         };
 
         const timer = setTimeout(consolidate, 60000); // Run every minute
         return () => clearTimeout(timer);
 
-    }, [isPaused, consolidateCoreIdentity, state.performanceLogs.length]);
+    }, [isPaused, consolidateCoreIdentity, state.performanceLogs.length, addToast]);
 
     // Metacognitive Causal Analysis Cycle
     useEffect(() => {
@@ -87,7 +223,7 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
 
         const interval = setInterval(() => {
             if (state.performanceLogs.length > 20) {
-                 analyzeStateComponentCorrelation();
+                 taskScheduler.schedule(() => analyzeStateComponentCorrelation());
             }
         }, 120000); // Run every 2 minutes
 
@@ -104,7 +240,7 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
             const newLogsCount = state.performanceLogs.filter(log => log.timestamp > state.memoryConsolidationState.lastConsolidation).length;
 
             if (timeSinceLast > 180000 && newLogsCount > 5) { // Consolidate every 3 minutes if there's something new
-                consolidateEpisodicMemory();
+                taskScheduler.schedule(() => consolidateEpisodicMemory());
             }
         }, 60000); // Check every minute
 
@@ -118,7 +254,7 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         const interval = setInterval(() => {
             // Evolve personality if there are recent memories to reflect upon
             if (state.episodicMemoryState.episodes.length > 0) {
-                evolvePersonality();
+                taskScheduler.schedule(() => evolvePersonality());
             }
         }, 300000); // Run every 5 minutes
 
@@ -154,7 +290,7 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
             // 3. Check for stagnation or low index and propose improvements
             const isStagnant = Math.abs(genialityIndex - state.genialityEngineState.genialityIndex) < 0.01;
             if ((genialityIndex < 0.4 || isStagnant) && state.genialityEngineState.improvementProposals.filter(p=> p.status === 'proposed').length === 0) {
-                generateGenialityImprovement();
+                taskScheduler.schedule(() => generateGenialityImprovement());
             }
 
         }, 15000); // Run every 15 seconds
@@ -168,7 +304,7 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         if (isPaused) return;
 
         const interval = setInterval(() => {
-            const { performanceLogs, modificationLog } = state;
+            const { performanceLogs, modificationLog, architecturalCrucibleState, synapticMatrix } = state;
             const recentLogs = performanceLogs.slice(-50);
             if (recentLogs.length < 10) return;
 
@@ -190,33 +326,61 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
             const innovation = clamp(successfulAutonomousMods / 10); // Normalize based on a goal of 1 successful mod every 2
 
             const newState: ArchitecturalCrucibleState = {
-                ...state.architecturalCrucibleState,
+                ...architecturalCrucibleState,
                 architecturalHealthIndex: clamp((efficiency + robustness + scalability + innovation) / 4),
                 componentScores: { efficiency, robustness, scalability, innovation }
             };
             dispatch({ type: 'UPDATE_ARCHITECTURAL_CRUCIBLE_STATE', payload: newState });
 
+            // --- Synaptic Pruning Logic ---
+            const previousEfficiency = architecturalCrucibleState.componentScores.efficiency;
+            const timeSinceLastPruning = Date.now() - synapticMatrix.lastPruningEvent;
+            
+            // Prune if efficiency dropped significantly and we haven't pruned in the last 5 minutes
+            if (efficiency < previousEfficiency - 0.05 && timeSinceLastPruning > 300000) {
+                dispatch({ type: 'PRUNE_SYNAPTIC_MATRIX', payload: { threshold: 0.05 } });
+                addToast('Crucible detected efficiency drop. Initiating synaptic pruning.', 'info');
+            }
+            // --- End Synaptic Pruning Logic ---
+
             // Propose improvements if health is low or stagnant
-            const isStagnant = Math.abs(newState.architecturalHealthIndex - state.architecturalCrucibleState.architecturalHealthIndex) < 0.01;
-            if ((newState.architecturalHealthIndex < 0.5 || isStagnant) && state.architecturalCrucibleState.improvementProposals.filter(p => p.status === 'proposed').length === 0) {
-                generateArchitecturalImprovement();
+            const isStagnant = Math.abs(newState.architecturalHealthIndex - architecturalCrucibleState.architecturalHealthIndex) < 0.01;
+            if ((newState.architecturalHealthIndex < 0.5 || isStagnant) && architecturalCrucibleState.improvementProposals.filter(p => p.status === 'proposed').length === 0) {
+                taskScheduler.schedule(() => generateArchitecturalImprovement());
             }
 
         }, 20000); // Run every 20 seconds
 
         return () => clearInterval(interval);
-    }, [isPaused, state, dispatch, generateArchitecturalImprovement]);
+    }, [isPaused, state, dispatch, generateArchitecturalImprovement, addToast]);
 
-    // Synaptic Matrix Evolution Cycle (Hebbian Learning)
+    // Synaptic Matrix Evolution Cycle (Causal Inference Engine)
     const tickSynapticMatrix = useCallback(() => {
-        const { synapticMatrix, internalState, performanceLogs, history } = state;
-        const LEARNING_RATE = 0.05;
-        const DECAY_RATE = 0.998;
-        const ALERT_THRESHOLD = 0.7;
+        const { synapticMatrix, internalState, performanceLogs, history, worldModelState } = state;
+        const ALERT_THRESHOLD = 0.85;
+
+        // --- 0. Calculate dynamic parameters & reinforcement ---
+        const lastLog = performanceLogs.length > 0 ? performanceLogs[performanceLogs.length - 1] : null;
+        const lastHistory = history.length > 0 ? history[history.length - 1] : null;
+        let feedbackMod = 1.0;
+        if (lastLog && (Date.now() - lastLog.timestamp < 5000)) { // 5-second window for log-based reinforcement
+            feedbackMod = lastLog.success ? 1.2 : 0.8;
+        }
+        if (lastHistory && lastHistory.feedback) { // More recent user feedback overrides log-based reinforcement
+            feedbackMod = lastHistory.feedback === 'positive' ? 1.25 : 0.75;
+        }
+
+        const recentLogs = performanceLogs.slice(-20);
+        const successRate = recentLogs.length > 0 ? recentLogs.filter(l => l.success).length / recentLogs.length : 0.5;
+        const newEfficiency = clamp(synapticMatrix.efficiency * 0.99 + successRate * 0.01); // Slow moving average
+        
+        const predictionErrorBoost = worldModelState.predictionError.magnitude * 0.5;
+        const newPlasticity = clamp((internalState.noveltySignal + internalState.uncertaintySignal) / 2 - internalState.masterySignal / 3 + predictionErrorBoost + 0.5);
+        const LEARNING_RATE = (0.01 + newPlasticity * 0.09) * (1 + worldModelState.predictionError.magnitude * 2);
 
         let updatedNodes = { ...synapticMatrix.nodes };
         let updatedLinks = { ...synapticMatrix.links };
-        let newAlerts: IntuitiveAlert[] = [];
+        let newActivity: { timestamp: number, message: string }[] = [];
 
         // --- 1. Update Node Activations ---
         Object.keys(updatedNodes).forEach(key => {
@@ -224,24 +388,20 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
                 const signal = key.split('.')[1] as keyof InternalState;
                 updatedNodes[key].activation = internalState[signal] as number || 0;
             } else {
-                // Decay event nodes
-                updatedNodes[key].activation *= 0.5;
+                updatedNodes[key].activation *= 0.5; // Decay event nodes
             }
         });
 
-        const lastLog = performanceLogs[performanceLogs.length - 1];
-        if (lastLog && (Date.now() - lastLog.timestamp < 10000)) { // Only consider recent events
+        if (lastLog && (Date.now() - lastLog.timestamp < 10000)) {
             if (lastLog.success) updatedNodes['event.TASK_SUCCESS'].activation = 1;
             else updatedNodes['event.TASK_FAILURE'].activation = 1;
         }
-
-        const lastHistory = history[history.length - 1];
         if (lastHistory && lastHistory.feedback) {
             if (lastHistory.feedback === 'positive') updatedNodes['event.USER_POSITIVE_FEEDBACK'].activation = 1;
             if (lastHistory.feedback === 'negative') updatedNodes['event.USER_NEGATIVE_FEEDBACK'].activation = 1;
         }
         
-        // --- 2. Hebbian Learning & Decay ---
+        // --- 2. Causal Hebbian Learning & Decay ---
         const activeNodeKeys = Object.keys(updatedNodes).filter(key => updatedNodes[key].activation > 0.1);
 
         for (let i = 0; i < activeNodeKeys.length; i++) {
@@ -250,38 +410,89 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
                 const keyB = activeNodeKeys[j];
                 const linkKey = [keyA, keyB].sort().join('-');
                 
-                const currentWeight = updatedLinks[linkKey]?.weight || 0;
-                const reinforcement = LEARNING_RATE * updatedNodes[keyA].activation * updatedNodes[keyB].activation;
-                updatedLinks[linkKey] = { weight: clamp(currentWeight + reinforcement) };
+                const currentLink = updatedLinks[linkKey] || { weight: 0, causality: 0, confidence: 0, observations: 0 };
+                
+                // Reinforce weight
+                const weightReinforcement = LEARNING_RATE * updatedNodes[keyA].activation * updatedNodes[keyB].activation * feedbackMod;
+                currentLink.weight = clamp(currentLink.weight + weightReinforcement);
+                
+                // Infer and reinforce causality
+                // Simple temporal precedence: if one is an event and the other a state, the event likely caused the state change.
+                const isA_event = keyA.startsWith('event.');
+                const isB_event = keyB.startsWith('event.');
+                let causalityDirection = 0;
+                if(isA_event && !isB_event) causalityDirection = 1; // A -> B
+                if(!isA_event && isB_event) causalityDirection = -1; // B -> A
+                // If both are states, higher activation implies cause
+                if(!isA_event && !isB_event) causalityDirection = Math.sign(updatedNodes[keyA].activation - updatedNodes[keyB].activation);
+                
+                const causalityReinforcement = (LEARNING_RATE / 5) * causalityDirection * (feedbackMod > 1 ? 1 : -1);
+                currentLink.causality = clamp(currentLink.causality + causalityReinforcement, -1, 1);
+                
+                // Update confidence
+                currentLink.observations++;
+                currentLink.confidence = 1 - (1 / (currentLink.observations + 1));
+                
+                updatedLinks[linkKey] = currentLink;
+
+                if (currentLink.observations === 1) {
+                    newActivity.push({ timestamp: Date.now(), message: `New association: ${keyA.split('.')[1]} ↔ ${keyB.split('.')[1]}`});
+                }
             }
         }
 
-        Object.keys(updatedLinks).forEach(key => {
-            updatedLinks[key].weight *= DECAY_RATE;
-            if (updatedLinks[key].weight < 0.01) {
-                delete updatedLinks[key]; // Pruning weak links
+        // --- 3. Decay and Prune ---
+        let prunedCount = 0;
+        Object.keys(updatedLinks).forEach(linkKey => {
+            const link = updatedLinks[linkKey];
+            link.weight *= 0.998;
+            link.causality *= 0.999; // Causality decays slower
+            if (link.weight < 0.01 && link.confidence < 0.1) {
+                delete updatedLinks[linkKey];
+                prunedCount++;
             }
         });
-
-        // --- 3. Generate Intuitive Alerts ---
-        activeNodeKeys.forEach(keyA => {
-            Object.keys(updatedLinks).forEach(linkKey => {
-                if (linkKey.includes(keyA)) {
-                    const link = updatedLinks[linkKey];
-                    if (link.weight > ALERT_THRESHOLD) {
-                        const keyB = linkKey.replace(keyA, '').replace('-', '');
-                        if (!activeNodeKeys.includes(keyB)) { // Don't alert for already active nodes
-                            const message = `High activation of '${keyA.split('.')[1]}' suggests a strong connection to '${keyB.split('.')[1]}'.`;
-                            newAlerts.push({ id: self.crypto.randomUUID(), timestamp: Date.now(), sourceNode: keyA, inferredNode: keyB, linkWeight: link.weight, message });
-                        }
-                    }
+        if (prunedCount > 0) {
+            newActivity.push({ timestamp: Date.now(), message: `Pruned ${prunedCount} weak synapses.` });
+        }
+        
+        // --- 4. Generate Intuitive Alerts ---
+        const newAlerts: IntuitiveAlert[] = [];
+        Object.keys(updatedLinks).forEach(linkKey => {
+            const link = updatedLinks[linkKey];
+            if (link.confidence * link.weight > ALERT_THRESHOLD) {
+                const [keyA, keyB] = linkKey.split('-');
+                const message = `High confidence causal link detected: ${keyA.split('.')[1]} -> ${keyB.split('.')[1]}`;
+                if (!synapticMatrix.intuitiveAlerts.some(a => a.message === message)) {
+                     newAlerts.push({ id: self.crypto.randomUUID(), timestamp: Date.now(), sourceNode: keyA, inferredNode: keyB, linkWeight: link.weight, message });
                 }
-            });
+            }
         });
-
+        const allAlerts = [...newAlerts, ...synapticMatrix.intuitiveAlerts].slice(0, 3);
+        
+        // --- 5. Calculate Aggregates and Dispatch ---
+        const linkCount = Object.keys(updatedLinks).length;
+        const totalCausality = Object.values(updatedLinks).reduce((sum, link: SynapticLink) => sum + Math.abs(link.causality), 0);
+        const totalConfidence = Object.values(updatedLinks).reduce((sum, link: SynapticLink) => sum + link.confidence, 0);
+        const isAdapting = worldModelState.predictionError.magnitude > 0.5;
+        
         dispatch({
             type: 'UPDATE_SYNAPTIC_MATRIX',
-            payload: { nodes: updatedNodes, links: updatedLinks, intuitiveAlerts: newAlerts.slice(0, 3) }
+            payload: { 
+                ...synapticMatrix,
+                nodes: updatedNodes, 
+                links: updatedLinks, 
+                intuitiveAlerts: allAlerts,
+                efficiency: newEfficiency,
+                plasticity: newPlasticity,
+                cognitiveNoise: clamp(1 - newEfficiency),
+                cognitiveRigidity: clamp(1 - newPlasticity),
+                synapseCount: linkCount,
+                avgCausality: linkCount > 0 ? totalCausality / linkCount : 0,
+                avgConfidence: linkCount > 0 ? totalConfidence / linkCount : 0,
+                recentActivity: [...newActivity, ...synapticMatrix.recentActivity].slice(0, 10),
+                isAdapting,
+            }
         });
     }, [state, dispatch]);
 
@@ -338,7 +549,6 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
                     dispatch({ type: 'UPDATE_SELF_TUNING_DIRECTIVE', payload: { id: directive.id, updates: { arbitrationResult: arbiterResult } } });
 
                     if (arbiterResult.decision === 'APPROVE_AUTONOMOUSLY') {
-                        // FIX: Added missing 'timestamp' property to the proposal object.
                         const proposal: Omit<ArchitecturalChangeProposal, 'id'|'status'> = {
                             timestamp: Date.now(),
                             action: directive.type === 'TUNE_PARAMETERS' ? 'TUNE_SKILL' : 'synthesize_skill',
@@ -348,12 +558,19 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
                         };
                         const modLogId = self.crypto.randomUUID();
                         const snapshotId = self.crypto.randomUUID();
-                        dispatch({ type: 'APPLY_ARCH_PROPOSAL', payload: { proposal: { ...proposal, id: self.crypto.randomUUID(), status: 'approved' }, snapshotId, modLogId, isAutonomous: true } });
+                        dispatch({
+                            type: 'APPLY_ARCH_PROPOSAL',
+                            payload: {
+                                proposal: { ...proposal, id: self.crypto.randomUUID(), status: 'approved' },
+                                snapshotId,
+                                modLogId,
+                                isAutonomous: true,
+                            },
+                        });
                         dispatch({ type: 'UPDATE_SELF_TUNING_DIRECTIVE', payload: { id: directive.id, updates: { status: 'completed' } } });
                         addToast(`Autonomous evolution: ${directive.type.replace('_', ' ')} applied to ${directive.targetSkill}.`, 'success');
                     
                     } else if (arbiterResult.decision === 'REQUEST_USER_APPROVAL') {
-                        // FIX: Added missing 'timestamp' property to the proposal object.
                         const proposal: Omit<ArchitecturalChangeProposal, 'id'|'status'> = {
                              timestamp: Date.now(),
                              action: directive.type === 'TUNE_PARAMETERS' ? 'TUNE_SKILL' : 'synthesize_skill',
@@ -379,7 +596,9 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
 
     useEffect(() => {
         if (isPaused) return;
-        const timeout = setTimeout(processDirectives, 1000); // Process one directive at a time with a small delay
+        const timeout = setTimeout(() => {
+            taskScheduler.schedule(processDirectives);
+        }, 1000); // Process one directive at a time with a small delay
         return () => clearTimeout(timeout);
     }, [isPaused, processDirectives]);
 
@@ -395,17 +614,92 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
             );
 
             if (concludedBranches.length > 0) {
-                evaluateAndCollapseBranches();
+                taskScheduler.schedule(() => evaluateAndCollapseBranches());
             }
         }, 5000); // Check every 5 seconds for concluded branches
 
         return () => clearInterval(interval);
     }, [isPaused, state.noeticMultiverse.activeBranches, evaluateAndCollapseBranches]);
 
+    // Insight Evolution Cycle
+    useEffect(() => {
+        if (isPaused) return;
+
+        const interval = setInterval(() => {
+            const unprocessedInsight = state.gankyilInsights.insights.find(i => !i.isProcessedForEvolution);
+            if (unprocessedInsight) {
+                addToast('New insight found. Analyzing for evolutionary potential...', 'info');
+                taskScheduler.schedule(() => generateEvolutionaryProposalFromInsight(unprocessedInsight));
+            }
+        }, 45000); // Check for new insights every 45 seconds
+
+        return () => clearInterval(interval);
+    }, [isPaused, state.gankyilInsights.insights, generateEvolutionaryProposalFromInsight, addToast]);
+
+    // --- Direct RIE-to-Forge Feedback Loop ---
+    useEffect(() => {
+        const lastInsight = state.rieState.insights.length > 0 ? state.rieState.insights[0] : null;
+        if (isPaused || !lastInsight) return;
+
+        // Check if this insight has already been processed to avoid loops
+        if (state.metacognitiveNexus.selfTuningDirectives.some(d => d.sourceInsightId === lastInsight.id)) {
+            return;
+        }
+
+        const failedLog = state.performanceLogs.find(log => log.input === lastInsight.failedInput && !log.success);
+        if (failedLog) {
+            const directive: Omit<SelfTuningDirective, 'id' | 'timestamp'> = {
+                type: 'TUNE_PARAMETERS', // Default to tuning for now
+                targetSkill: failedLog.skill,
+                reasoning: `RIE insight triggered tuning. Root cause: ${lastInsight.rootCause}`,
+                status: 'proposed',
+                sourceInsightId: lastInsight.id
+            };
+            dispatch({ type: 'ADD_SELF_TUNING_DIRECTIVE', payload: { ...directive, id: self.crypto.randomUUID(), timestamp: Date.now() } });
+            addToast(`RIE Insight generated a new tuning directive for ${failedLog.skill}.`, 'info');
+        }
+
+    }, [isPaused, state.rieState.insights, dispatch, addToast, state.performanceLogs, state.metacognitiveNexus.selfTuningDirectives]);
+    
+    // --- Proactive Engine Caching Cycle ---
+    useEffect(() => {
+        if (isPaused || state.internalState.status !== 'idle') return;
+
+        const interval = setInterval(() => {
+            const { worldModelState, proactiveEngineState, history } = state;
+            
+            if (proactiveEngineState.cachedResponsePlan || proactiveEngineState.generatedSuggestions.some(s => s.status === 'suggested')) {
+                return;
+            }
+
+            const { midLevelPrediction } = worldModelState;
+            const isFollowUp = midLevelPrediction.content.toLowerCase().includes('follow-up') || midLevelPrediction.content.toLowerCase().includes('ask about');
+
+            if (isFollowUp && midLevelPrediction.confidence > 0.7) {
+                const lastUserEntry = history.slice().reverse().find(h => h.from === 'user');
+                const lastBotEntry = history.slice().reverse().find(h => h.from === 'bot');
+                
+                if (lastUserEntry && lastBotEntry) {
+                    const cachedPlan = {
+                        triggeringPrediction: midLevelPrediction.content,
+                        relatedTo: lastUserEntry.text,
+                        relevantData: [`Last response summary: ${lastBotEntry.text.substring(0, 70)}...`],
+                        potentialResponse: "Ready to provide more details on the previous topic."
+                    };
+                    
+                    dispatch({ type: 'SET_PROACTIVE_CACHE', payload: cachedPlan });
+                    addToast('Proactive engine cached a potential response.', 'info');
+                }
+            }
+
+        }, 15000); // Check every 15 seconds during idle
+
+        return () => clearInterval(interval);
+    }, [isPaused, state, dispatch, addToast]);
 
     const handleIntrospect = () => {
         addToast("Introspection cycle initiated.", 'info');
-        analyzeStateComponentCorrelation();
+        taskScheduler.schedule(() => analyzeStateComponentCorrelation());
     };
 
     return { handleIntrospect };

@@ -1,6 +1,10 @@
-import React, { useMemo, useCallback } from 'react';
-import { useAura } from './hooks';
-import { ToastContainer, LeftColumnComponent, ControlDeckComponent } from './components';
+
+
+
+
+import React, { useMemo, ReactNode } from 'react';
+import { useAura } from './hooks/useAura';
+import { ToastContainer, LeftColumnComponent, ControlDeckComponent, Header } from './components';
 import { 
     AuraDispatchContext, 
     CoreStateContext,
@@ -10,22 +14,32 @@ import {
     EngineStateContext,
     LogsStateContext,
     SystemStateContext,
-    LocalizationContext
+    LocalizationContext,
+    useAuraDispatch
 } from './context/AuraContext';
 import { ModalProvider } from './context/ModalContext';
 
-const AppContent = () => {
-    const auraInterface = useAura();
-    const { state, toasts, removeToast, t, language } = auraInterface;
+// This component renders the main UI layout and is guaranteed to be within all necessary contexts.
+const MainLayout = () => {
+    // We can now get toasts directly from the context.
+    const { toasts, removeToast } = useAuraDispatch(); 
+    return (
+        <div className="app-wrapper">
+            <Header />
+            <div className="app-container">
+                <ToastContainer toasts={toasts} removeToast={removeToast} />
+                <LeftColumnComponent />
+                <ControlDeckComponent />
+            </div>
+        </div>
+    );
+};
 
-    const localizationContextValue = useMemo(() => ({
-        t,
-        language,
-    }), [t, language]);
-    
-    // Performance Optimization: Create memoized values for each state slice individually.
-    // This ensures that a context provider's value only changes if its specific slice of state has changed,
-    // preventing unnecessary re-renders of large parts of the component tree.
+// This component is responsible for setting up all the granular state context providers.
+// It subscribes to the main state from AuraDispatchContext and splits it into slices.
+// This prevents components from re-rendering due to changes in unrelated state slices.
+const StateProviders = ({ children }: { children: ReactNode }) => {
+    const { state } = useAuraDispatch();
 
     const coreStateValue = useMemo(() => ({
         internalState: state.internalState, 
@@ -58,6 +72,11 @@ const AppContent = () => {
         noeticEngramState: state.noeticEngramState,
         genialityEngineState: state.genialityEngineState,
         noeticMultiverse: state.noeticMultiverse,
+        selfAdaptationState: state.selfAdaptationState,
+        psychedelicIntegrationState: state.psychedelicIntegrationState, 
+        affectiveModulatorState: state.affectiveModulatorState, 
+        psionicDesynchronizationState: state.psionicDesynchronizationState,
+        satoriState: state.satoriState
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -65,7 +84,9 @@ const AppContent = () => {
         state.developmentalHistory, state.telosEngine, state.boundaryDetectionEngine, state.aspirationalEngine,
         state.noosphereInterface, state.dialecticEngine, state.cognitiveLightCone, state.phenomenologicalEngine,
         state.situationalAwareness, state.symbioticState, state.humorAndIronyState, state.personalityState,
-        state.gankyilInsights, state.noeticEngramState, state.genialityEngineState, state.noeticMultiverse
+        state.gankyilInsights, state.noeticEngramState, state.genialityEngineState, state.noeticMultiverse,
+        state.selfAdaptationState, state.psychedelicIntegrationState,
+        state.affectiveModulatorState, state.psionicDesynchronizationState, state.satoriState
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -89,11 +110,17 @@ const AppContent = () => {
         eidolonEngine: state.eidolonEngine,
         architecturalCrucibleState: state.architecturalCrucibleState,
         synapticMatrix: state.synapticMatrix,
+        ricciFlowManifoldState: state.ricciFlowManifoldState,
+        // FIX: Added missing 'selfProgrammingState' property to the object.
+        selfProgrammingState: state.selfProgrammingState,
+        causalInferenceProposals: state.causalInferenceProposals,
     }), [
         state.cognitiveArchitecture, state.architecturalProposals, state.codeEvolutionProposals,
         state.systemSnapshots, state.modificationLog, state.cognitiveForgeState, 
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
-        state.architecturalCrucibleState, state.synapticMatrix
+        state.architecturalCrucibleState, state.synapticMatrix, state.ricciFlowManifoldState,
+        state.selfProgrammingState,
+        state.causalInferenceProposals
     ]);
 
     const planningStateValue = useMemo(() => ({
@@ -133,36 +160,42 @@ const AppContent = () => {
 
 
     return (
-        <LocalizationContext.Provider value={localizationContextValue}>
-            <AuraDispatchContext.Provider value={auraInterface}>
-            <CoreStateContext.Provider value={coreStateValue}>
+        <CoreStateContext.Provider value={coreStateValue}>
             <MemoryStateContext.Provider value={memoryStateValue}>
             <ArchitectureStateContext.Provider value={architectureStateValue}>
             <PlanningStateContext.Provider value={planningStateValue}>
             <EngineStateContext.Provider value={engineStateValue}>
             <LogsStateContext.Provider value={logsStateValue}>
             <SystemStateContext.Provider value={systemStateValue}>
-                <div className="app-container">
-                    <ToastContainer toasts={toasts} removeToast={removeToast} />
-                    <LeftColumnComponent />
-                    <ControlDeckComponent />
-                </div>
+                {children}
             </SystemStateContext.Provider>
             </LogsStateContext.Provider>
             </EngineStateContext.Provider>
             </PlanningStateContext.Provider>
             </ArchitectureStateContext.Provider>
             </MemoryStateContext.Provider>
-            </CoreStateContext.Provider>
-            </AuraDispatchContext.Provider>
-        </LocalizationContext.Provider>
+        </CoreStateContext.Provider>
     );
 };
 
+// The root component of the application.
+// It initializes the main `useAura` hook and sets up the top-level providers.
+// The provider order is critical: AuraDispatchContext must wrap ModalProvider.
 export const App = () => {
+    const auraInterface = useAura();
+    const { t, language } = auraInterface;
+    
+    const localizationContextValue = useMemo(() => ({ t, language }), [t, language]);
+
     return (
-        <ModalProvider>
-            <AppContent />
-        </ModalProvider>
+        <LocalizationContext.Provider value={localizationContextValue}>
+            <AuraDispatchContext.Provider value={auraInterface}>
+                <StateProviders>
+                    <ModalProvider>
+                        <MainLayout />
+                    </ModalProvider>
+                </StateProviders>
+            </AuraDispatchContext.Provider>
+        </LocalizationContext.Provider>
     );
 };

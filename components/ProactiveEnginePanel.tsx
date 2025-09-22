@@ -19,7 +19,7 @@ export const ProactiveEnginePanel = React.memo(({ onSuggestionAction }: Proactiv
                         <div key={suggestion.id} className="suggestion-item">
                             <p className="suggestion-text">{suggestion.text}</p>
                             <div className="suggestion-footer">
-                                <span className="suggestion-confidence">{t('intuitionEngine_confidence')}: {(suggestion.confidence * 100).toFixed(0)}%</span>
+                                <span className="suggestion-confidence">{t('causalSelfModel_confidence')}: {(suggestion.confidence * 100).toFixed(0)}%</span>
                                 <div className="suggestion-actions">
                                     <button onClick={() => onSuggestionAction(suggestion.id, 'rejected')} title={t('proactiveEngine_reject')}>👎</button>
                                     <button onClick={() => onSuggestionAction(suggestion.id, 'accepted')} title={t('proactiveEngine_accept')}>👍</button>
@@ -27,6 +27,19 @@ export const ProactiveEnginePanel = React.memo(({ onSuggestionAction }: Proactiv
                             </div>
                         </div>
                     ))
+                )}
+                <div className="panel-subsection-title">{t('proactiveEngine_cachedPlan')}</div>
+                {state.cachedResponsePlan ? (
+                    <div className="suggestion-item cached-plan">
+                        <p className="suggestion-text">
+                            <strong>{t('proactiveEngine_predictedTopic')}:</strong> {state.cachedResponsePlan.triggeringPrediction}
+                        </p>
+                        <div className="suggestion-footer">
+                            <span className="suggestion-confidence">{t('proactiveEngine_statusReady')}</span>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="kg-placeholder">{t('proactiveEngine_noCachedPlan')}</div>
                 )}
             </div>
         </div>

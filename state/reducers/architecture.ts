@@ -1,4 +1,6 @@
-import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone, PossibleFutureSelf, SomaticSimulationLog, ArchitecturalImprovementProposal } from '../../types';
+// state/reducers/architecture.ts
+import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone, PossibleFutureSelf, SomaticSimulationLog, ArchitecturalImprovementProposal, RicciFlowManifoldState, SynapticLink } from '../../types';
+import { clamp } from '../../utils';
 
 export const architectureReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     switch (action.type) {
@@ -216,9 +218,28 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 }
             };
 
+        case 'ADD_CAUSAL_INFERENCE_PROPOSAL':
+            return {
+                causalInferenceProposals: [action.payload, ...state.causalInferenceProposals].slice(0, 10)
+            };
+
+        case 'UPDATE_CAUSAL_INFERENCE_PROPOSAL_STATUS':
+            return {
+                causalInferenceProposals: state.causalInferenceProposals.map(p =>
+                    p.id === action.payload.id ? { ...p, status: action.payload.status } : p
+                )
+            };
+
+        case 'UPDATE_MODIFICATION_LOG_STATUS':
+            return {
+                modificationLog: state.modificationLog.map(log =>
+                    log.id === action.payload.id
+                        ? { ...log, validationStatus: action.payload.status, validationReasoning: action.payload.reasoning }
+                        : log
+                )
+            };
+
         case 'UPDATE_SYNAPTIC_MATRIX': {
-            // FIX: The payload for this action does not contain recentActivity.
-            // This logic has been corrected to only spread the provided payload properties.
             return {
                 synapticMatrix: {
                     ...state.synapticMatrix,
@@ -226,6 +247,169 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 }
             };
         }
+
+        case 'PRUNE_SYNAPTIC_MATRIX': {
+            const { threshold } = action.payload;
+            const oldLinks = state.synapticMatrix.links;
+            const newLinks: { [key: string]: SynapticLink } = {};
+            let prunedCount = 0;
+    
+            Object.entries(oldLinks).forEach(([key, link]) => {
+                if (link.weight * link.confidence > threshold) {
+                    newLinks[key] = link;
+                } else {
+                    prunedCount++;
+                }
+            });
+            
+            const newActivity = {
+                timestamp: Date.now(),
+                message: `Crucible Pruning: Removed ${prunedCount} weak synapses.`
+            };
+    
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    links: newLinks,
+                    synapseCount: Object.keys(newLinks).length,
+                    lastPruningEvent: Date.now(),
+                    recentActivity: [newActivity, ...state.synapticMatrix.recentActivity].slice(0, 10),
+                }
+            };
+        }
+
+        case 'UPDATE_SYNAPTIC_LINK_FROM_LLM': {
+            const { sourceNode, targetNode, action: linkAction, causalityDirection, reasoning } = action.payload;
+            if (!state.synapticMatrix.nodes[sourceNode] || !state.synapticMatrix.nodes[targetNode]) {
+                console.warn(`LLM proposed link for non-existent nodes: ${sourceNode}, ${targetNode}`);
+                return {};
+            }
+        
+            const linkKey = [sourceNode, targetNode].sort().join('-');
+
+            if (linkAction === 'PRUNE_LINK') {
+                const { [linkKey]: deletedLink, ...remainingLinks } = state.synapticMatrix.links;
+                const newActivity = {
+                    timestamp: Date.now(),
+                    message: `LLM Causal Inference (Prune): ${reasoning}`
+                };
+                return {
+                    synapticMatrix: {
+                        ...state.synapticMatrix,
+                        links: remainingLinks,
+                        synapseCount: state.synapticMatrix.links[linkKey] ? state.synapticMatrix.synapseCount - 1 : state.synapticMatrix.synapseCount,
+                        recentActivity: [newActivity, ...state.synapticMatrix.recentActivity].slice(0, 10),
+                    }
+                };
+            }
+            
+            const currentLink = state.synapticMatrix.links[linkKey] || { weight: 0.1, causality: 0, confidence: 0, observations: 0 };
+            
+            const weightChange = linkAction === 'CREATE_OR_STRENGTHEN_LINK' ? 0.15 : -0.15;
+            
+            let causalityChange = 0;
+            if (causalityDirection === 'source_to_target') {
+                const sortOrder = [sourceNode, targetNode].sort();
+                causalityChange = (sortOrder[0] === sourceNode) ? 0.2 : -0.2;
+            } else if (causalityDirection === 'target_to_source') {
+                const sortOrder = [sourceNode, targetNode].sort();
+                causalityChange = (sortOrder[0] === targetNode) ? 0.2 : -0.2;
+            }
+        
+            const updatedLink = {
+                ...currentLink,
+                weight: clamp(currentLink.weight + weightChange),
+                causality: clamp(currentLink.causality + causalityChange, -1, 1),
+                observations: currentLink.observations + 1,
+                confidence: 1 - (1 / (currentLink.observations + 2)),
+            };
+        
+            const newActivity = {
+                timestamp: Date.now(),
+                message: `LLM Causal Inference: ${reasoning}`
+            };
+        
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    links: {
+                        ...state.synapticMatrix.links,
+                        [linkKey]: updatedLink,
+                    },
+                    synapseCount: state.synapticMatrix.links[linkKey] ? state.synapticMatrix.synapseCount : state.synapticMatrix.synapseCount + 1,
+                    recentActivity: [newActivity, ...state.synapticMatrix.recentActivity].slice(0, 10),
+                }
+            };
+        }
+
+        case 'UPDATE_RICCI_FLOW_MANIFOLD':
+            return {
+                ricciFlowManifoldState: {
+                    ...state.ricciFlowManifoldState,
+                    ...action.payload,
+                }
+            };
+
+        case 'INITIATE_SELF_PROGRAMMING_CYCLE':
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    isActive: true,
+                    statusMessage: action.payload.statusMessage,
+                    cycleCount: state.selfProgrammingState.cycleCount + 1,
+                    candidates: [],
+                }
+            };
+
+        case 'POPULATE_SELF_PROGRAMMING_CANDIDATES': {
+            const newCandidates = action.payload.candidates.map(c => ({
+                ...c,
+                id: self.crypto.randomUUID(),
+                // If the payload includes a score, it's already evaluated.
+                status: (c.evaluationScore !== undefined && c.evaluationScore !== null) ? 'evaluated' as const : 'pending_evaluation' as const,
+                evaluationScore: c.evaluationScore !== undefined ? c.evaluationScore : null,
+            }));
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    statusMessage: action.payload.statusMessage,
+                    candidates: newCandidates,
+                }
+            };
+        }
+
+        case 'UPDATE_SELF_PROGRAMMING_CANDIDATE':
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    candidates: state.selfProgrammingState.candidates.map(c =>
+                        c.id === action.payload.id ? { ...c, ...action.payload.updates } : c
+                    )
+                }
+            };
+
+        case 'CONCLUDE_SELF_PROGRAMMING_CYCLE':
+            const { implementedCandidateId, logMessage } = action.payload;
+            const implementedCandidate = state.selfProgrammingState.candidates.find(c => c.id === implementedCandidateId);
+            const scoreGain = implementedCandidate?.evaluationScore || 0;
+
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    isActive: false,
+                    statusMessage: "Cycle complete. Awaiting new instructions.",
+                    candidates: state.selfProgrammingState.candidates.map(c => 
+                        c.id === implementedCandidateId 
+                            ? { ...c, status: 'implemented' }
+                            : { ...c, status: 'discarded' }
+                    ),
+                    log: [logMessage, ...state.selfProgrammingState.log].slice(0, 20)
+                },
+                cognitiveArchitecture: {
+                    ...state.cognitiveArchitecture,
+                    modelComplexityScore: state.cognitiveArchitecture.modelComplexityScore + (scoreGain / 100), // Apply simulated gain
+                }
+            };
 
         default:
             return {};

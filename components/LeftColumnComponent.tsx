@@ -1,15 +1,36 @@
 import React from 'react';
-import { useLogsState, useMemoryState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useLogsState, useAuraDispatch, useLocalization } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
 import { CoreMonitor } from './CoreMonitor';
 import { LoadingOverlay } from './LoadingOverlay';
 import { SafeMarkdown } from './SafeMarkdown';
 import { WorkingMemoryPanel } from './WorkingMemoryPanel';
-import { HistoryEntry, PerformanceLogEntry } from '../types';
+import { HistoryEntry, PerformanceLogEntry, InternalState } from '../types';
+
+const getChromaStyle = (state?: InternalState): React.CSSProperties => {
+    if (!state) return {};
+
+    const { wisdomSignal, happinessSignal, loveSignal, enlightenmentSignal } = state;
+    
+    // Create a color blend. More signals = more complex gradient.
+    const colors = [
+        `rgba(230, 126, 34, ${wisdomSignal})`, // Wisdom - Orange
+        `rgba(255, 215, 0, ${happinessSignal})`, // Happiness - Gold
+        `rgba(255, 105, 180, ${loveSignal})`, // Love - Pink
+        `rgba(156, 39, 176, ${enlightenmentSignal})` // Enlightenment - Purple
+    ].filter(color => !color.endsWith('0)')); // Filter out transparent colors
+
+    if (colors.length === 0) {
+        return { '--chroma-gradient': 'linear-gradient(to bottom, var(--border-color), var(--border-color))' } as React.CSSProperties;
+    }
+
+    const gradient = `linear-gradient(to bottom, ${colors.join(', ')})`;
+    
+    return { '--chroma-gradient': gradient } as React.CSSProperties;
+};
 
 export const LeftColumnComponent = () => {
     const { history, performanceLogs } = useLogsState();
-    const { workingMemory } = useMemoryState();
     const {
         activeLeftTab, setActiveLeftTab, outputPanelRef, currentCommand, setCurrentCommand,
         attachedFile, handleRemoveAttachment, fileInputRef, handleFileChange, handleMicClick,
@@ -34,7 +55,7 @@ export const LeftColumnComponent = () => {
                     <div className="output-panel" ref={outputPanelRef}>
                         {history.map((entry: HistoryEntry) => (
                             <div key={entry.id} id={`history-entry-${entry.id}`} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
-                                <div className="entry-content">
+                                <div className="entry-content" style={getChromaStyle(entry.internalStateSnapshot)}>
                                     {entry.text && <SafeMarkdown text={entry.text} />}
                                     {entry.from === 'user' && entry.fileName && (
                                         <div className="file-attachment-display">

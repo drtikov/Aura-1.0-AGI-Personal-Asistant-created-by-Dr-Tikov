@@ -1,6 +1,5 @@
 import React from 'react';
 import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
-import { Action } from '../types';
 
 export const CodeEvolutionPanel = () => {
     const { codeEvolutionProposals } = useArchitectureState();

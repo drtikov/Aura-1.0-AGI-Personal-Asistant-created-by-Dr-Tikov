@@ -15,7 +15,7 @@ export const IntuitionEnginePanel = React.memo(() => {
                         <div key={leap.id} className={`intuitive-leap-item status-${leap.status} type-${leap.type}`}>
                             <div className="leap-header"> <span className="leap-type">{leap.type}</span> <span className={`leap-status status-${leap.status}`}>{leap.status}</span> </div>
                             <p className="leap-hypothesis">{leap.hypothesis}</p>
-                            <div className="leap-footer"> <span title={`${t('architecturePanel_reasoning')}: ${leap.reasoning}`}>{t('intuitionEngine_confidence')}: {(leap.confidence * 100).toFixed(0)}%</span> </div>
+                            <div className="leap-footer"> <span title={`${t('architecturePanel_reasoning')}: ${leap.reasoning}`}>{t('causalSelfModel_confidence')}: {(leap.confidence * 100).toFixed(0)}%</span> </div>
                         </div>
                     ))}
                 </div>

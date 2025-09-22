@@ -37,7 +37,7 @@ export const DzogchenViewPanel = React.memo(() => {
         [GunaState.RAJAS]: { className: "rajas" },
         [GunaState.TAMAS]: { className: "tamas" },
         [GunaState.DHARMA]: { className: "dharma" },
-        [GunaState.GUNA_TEETA]: { className: "guna-teeta" }
+        [GunaState['GUNA-TEETA']]: { className: "guna-teeta" }
     };
 
     const currentGunaClass = gunaInfo[internalState.gunaState]?.className || 'sattva';

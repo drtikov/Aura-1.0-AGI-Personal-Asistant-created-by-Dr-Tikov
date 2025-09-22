@@ -29,7 +29,7 @@ export const DialecticEnginePanel = React.memo(() => {
 
                         {d.synthesis ? (
                              <p className="dialectic-part synthesis">
-                                <strong>{t('dialecticEngine_synthesis')} ({t('intuitionEngine_confidence')}: {(d.synthesis.confidence * 100).toFixed(0)}%):</strong> "{d.synthesis.content}"
+                                <strong>{t('dialecticEngine_synthesis')} ({t('causalSelfModel_confidence')}: {(d.synthesis.confidence * 100).toFixed(0)}%):</strong> "{d.synthesis.content}"
                             </p>
                         ) : (
                              <p className="dialectic-part synthesizing">

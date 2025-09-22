@@ -1,22 +1,46 @@
 import React, { useMemo } from 'react';
 import { useArchitectureState, useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
-import { ArchitecturalChangeProposal, CodeEvolutionProposal, GenialityImprovementProposal, ArchitecturalImprovementProposal } from '../types';
+import { useModal } from '../context/ModalContext';
+import { ArchitecturalChangeProposal, CodeEvolutionProposal, GenialityImprovementProposal, ArchitecturalImprovementProposal, CausalInferenceProposal } from '../types';
 
-type UnifiedProposal = (ArchitecturalChangeProposal | CodeEvolutionProposal | GenialityImprovementProposal | ArchitecturalImprovementProposal) & { type: 'architecture' | 'code' | 'geniality' | 'crucible' };
+// FIX: Defined as a discriminated union for proper type narrowing.
+type UnifiedProposal =
+    | (ArchitecturalChangeProposal & { type: 'architecture' })
+    | (CodeEvolutionProposal & { type: 'code' })
+    | (GenialityImprovementProposal & { type: 'geniality' })
+    | (ArchitecturalImprovementProposal & { type: 'crucible' })
+    | (CausalInferenceProposal & { type: 'causal_inference' });
 
-const ProposalCard = ({ proposal, onReview, onDismiss, onImplement, onCopy }: { proposal: UnifiedProposal, onReview: (p: ArchitecturalChangeProposal) => void, onDismiss: (id: string) => void, onImplement: (p: GenialityImprovementProposal | ArchitecturalImprovementProposal) => void, onCopy: (code: string) => void }) => {
+const ProposalCard = ({ proposal, onReview, onDismissCode, onImplement, onCopy, onImplementCausal, onDismissCausal }: { 
+    proposal: UnifiedProposal, 
+    onReview: (p: ArchitecturalChangeProposal) => void, 
+    onDismissCode: (id: string) => void, 
+    onImplement: (p: GenialityImprovementProposal | ArchitecturalImprovementProposal) => void, 
+    onCopy: (code: string) => void,
+    onImplementCausal: (p: CausalInferenceProposal) => void,
+    onDismissCausal: (id: string) => void,
+}) => {
     const { t } = useLocalization();
 
     const getTitleAndReasoning = () => {
         switch(proposal.type) {
-            case 'architecture': return { title: (proposal as ArchitecturalChangeProposal).action.replace(/_/g, ' '), reasoning: (proposal as ArchitecturalChangeProposal).reasoning };
-            case 'code': return { title: (proposal as CodeEvolutionProposal).targetFile, reasoning: (proposal as CodeEvolutionProposal).reasoning };
+            case 'architecture': 
+                return { title: proposal.action.replace(/_/g, ' '), reasoning: proposal.reasoning };
+            case 'code':
+                return { title: `${t('codeEvolution_targetFile')}: ${proposal.targetFile}`, reasoning: proposal.reasoning };
             case 'geniality':
-            case 'crucible': return { title: (proposal as GenialityImprovementProposal).title, reasoning: (proposal as GenialityImprovementProposal).reasoning };
+            case 'crucible':
+                return { title: proposal.title, reasoning: proposal.reasoning };
+            case 'causal_inference':
+                return { title: t('inbox_proposalType_causal_inference'), reasoning: proposal.reasoning };
             default: return { title: 'Unknown Proposal', reasoning: '' };
         }
     }
     const { title, reasoning } = getTitleAndReasoning();
+
+    const formatNodeName = (name: string) => {
+        return name.replace('internalState.', '').replace('event.', '').replace(/([A-Z])/g, ' $1').trim();
+    };
 
     return (
         <div className="proposal-card">
@@ -28,19 +52,34 @@ const ProposalCard = ({ proposal, onReview, onDismiss, onImplement, onCopy }: { 
                 <p><em>{reasoning}</em></p>
                 {proposal.type === 'code' && (
                      <div className="code-snippet-container">
-                        <pre><code>{(proposal as CodeEvolutionProposal).codeSnippet}</code></pre>
+                        <pre><code>{proposal.codeSnippet}</code></pre>
                      </div>
+                )}
+                {/* FIX: Correctly access 'linkUpdate' property after type has been narrowed. */}
+                {proposal.type === 'causal_inference' && (
+                    <div className="causal-inference-details">
+                        <span className="causal-node source">{formatNodeName(proposal.linkUpdate.sourceNode)}</span>
+                        <span className="causal-arrow" style={{color: 'var(--primary-color)'}}>→</span>
+                        <span className="causal-node target">{formatNodeName(proposal.linkUpdate.targetNode)}</span>
+                    </div>
                 )}
             </div>
             <div className="proposal-card-footer">
-                {proposal.type === 'architecture' && <button className="control-button review-button" onClick={() => onReview(proposal as ArchitecturalChangeProposal)}>{t('inbox_review')}</button>}
+                {proposal.type === 'architecture' && <button className="control-button review-button" onClick={() => onReview(proposal)}>{t('inbox_review')}</button>}
                 {proposal.type === 'code' && (
                     <>
-                        <button className="control-button" onClick={() => onCopy((proposal as CodeEvolutionProposal).codeSnippet)}>{t('codeEvolution_copy')}</button>
-                        <button className="control-button dismiss-button" onClick={() => onDismiss(proposal.id)}>{t('inbox_dismiss')}</button>
+                        <button className="control-button" onClick={() => onCopy(proposal.codeSnippet)}>{t('codeEvolution_copy')}</button>
+                        <button className="control-button dismiss-button" onClick={() => onDismissCode(proposal.id)}>{t('inbox_dismiss')}</button>
                     </>
                 )}
-                 {(proposal.type === 'geniality' || proposal.type === 'crucible') && <button className="control-button review-button" onClick={() => onImplement(proposal as GenialityImprovementProposal)}>{t('inbox_implement')}</button>}
+                 {(proposal.type === 'geniality' || proposal.type === 'crucible') && <button className="control-button review-button" onClick={() => onImplement(proposal)}>{t('inbox_implement')}</button>}
+                 {/* FIX: Pass 'proposal' directly as its type has been correctly narrowed. */}
+                 {proposal.type === 'causal_inference' && (
+                    <>
+                        <button className="control-button dismiss-button" onClick={() => onDismissCausal(proposal.id)}>{t('proposalReview_reject')}</button>
+                        <button className="control-button review-button" onClick={() => onImplementCausal(proposal)}>{t('inbox_implement')}</button>
+                    </>
+                 )}
             </div>
         </div>
     );
@@ -48,9 +87,10 @@ const ProposalCard = ({ proposal, onReview, onDismiss, onImplement, onCopy }: { 
 
 
 export const InboxPanel = () => {
-    const { architecturalProposals, codeEvolutionProposals, architecturalCrucibleState } = useArchitectureState();
+    const { architecturalProposals, codeEvolutionProposals, architecturalCrucibleState, causalInferenceProposals } = useArchitectureState();
     const { genialityEngineState } = useCoreState();
-    const { handleReviewProposal, handleDismissCodeProposal, handleImplementGenialityProposal, handleImplementCrucibleProposal, handleCopyCode } = useAuraDispatch();
+    const { handleDismissCodeProposal, handleImplementGenialityProposal, handleImplementCrucibleProposal, handleCopyCode, handleImplementCausalInferenceProposal, handleDismissCausalInferenceProposal } = useAuraDispatch();
+    const modal = useModal();
     const { t } = useLocalization();
 
     const allProposals = useMemo(() => {
@@ -66,10 +106,13 @@ export const InboxPanel = () => {
                 .map((p): UnifiedProposal => ({ ...p, type: 'geniality' })),
             ...architecturalCrucibleState.improvementProposals
                 .filter(p => p.status === 'proposed')
-                .map((p): UnifiedProposal => ({ ...p, type: 'crucible' }))
+                .map((p): UnifiedProposal => ({ ...p, type: 'crucible' })),
+            ...causalInferenceProposals
+                .filter(p => p.status === 'proposed')
+                .map((p): UnifiedProposal => ({...p, type: 'causal_inference'}))
         ];
         return combined.sort((a, b) => b.timestamp - a.timestamp);
-    }, [architecturalProposals, codeEvolutionProposals, genialityEngineState.improvementProposals, architecturalCrucibleState.improvementProposals]);
+    }, [architecturalProposals, codeEvolutionProposals, genialityEngineState.improvementProposals, architecturalCrucibleState.improvementProposals, causalInferenceProposals]);
     
     if (allProposals.length === 0) {
         return <div className="kg-placeholder">{t('inbox_empty')}</div>;
@@ -81,10 +124,12 @@ export const InboxPanel = () => {
                 <ProposalCard 
                     key={proposal.id} 
                     proposal={proposal}
-                    onReview={handleReviewProposal}
-                    onDismiss={handleDismissCodeProposal}
+                    onReview={(p) => modal.open('proposalReview', { proposal: p })}
+                    onDismissCode={handleDismissCodeProposal}
                     onImplement={proposal.type === 'geniality' ? handleImplementGenialityProposal : handleImplementCrucibleProposal}
                     onCopy={handleCopyCode}
+                    onImplementCausal={handleImplementCausalInferenceProposal}
+                    onDismissCausal={handleDismissCausalInferenceProposal}
                 />
             ))}
         </div>

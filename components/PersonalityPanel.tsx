@@ -1,6 +1,6 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
-import { PersonalityState } from '../types';
+import { PersonalityState, Persona } from '../types';
 
 const TraitBar = ({ label, value, color }: { label: string, value: number, color: string }) => {
     // Convert value from [-1, 1] to [0, 100] for the bar width
@@ -29,7 +29,7 @@ const TraitBar = ({ label, value, color }: { label: string, value: number, color
     );
 };
 
-export const PsychometricSubstratePanel = React.memo(() => {
+export const PersonalityPanel = React.memo(() => {
     const { personalityState } = useCoreState();
     const { t } = useLocalization();
 
@@ -57,7 +57,7 @@ export const PsychometricSubstratePanel = React.memo(() => {
             
              <div className="panel-subsection-title" style={{marginTop: '1rem'}}>{t('personality_personas')}</div>
             <div className="personas-container">
-                {personalityState.personas && Object.entries(personalityState.personas).map(([id, persona]) => (
+                {personalityState.personas && Object.entries(personalityState.personas).map(([id, persona]: [string, Persona]) => (
                     <div key={id} className={`persona-item ${personalityState.dominantPersona === id ? 'dominant' : ''}`}>
                         <div className="persona-header">
                             <span className="persona-name">{t(`personality_${id}_name`)}</span>

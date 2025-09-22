@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLogsState, useLocalization } from '../context/AuraContext';
+import { StateAdjustment } from '../types';
 
 export const CognitiveRegulationPanel = React.memo(() => {
     const { cognitiveRegulationLog: log } = useLogsState();
@@ -27,13 +28,12 @@ export const CognitiveRegulationPanel = React.memo(() => {
                         <div className="rie-insight-body">
                             <p><strong>{t('cogRegulation_directive')}:</strong> {entry.primingDirective}</p>
                             <div className="adjustments-list" style={{marginTop: '0.5rem'}}>
-                                {/* FIX: This previously errored because stateAdjustments was not correctly typed. The fix in types.ts resolves this. */}
-                                {Object.entries(entry.stateAdjustments).map(([key, { from, to }]) => (
+                                {Object.entries(entry.stateAdjustments).map(([key, adjustment]: [string, StateAdjustment]) => (
                                     <p key={key} className="rie-insight-model-update" style={{fontSize: '0.8rem'}}>
                                         <strong>{key.replace('Signal', '')}:</strong>
-                                        <span className="rie-insight-model-update-value"> {from.toFixed(2)} → {to.toFixed(2)}</span>
-                                        <span style={{color: to > from ? 'var(--success-color)' : 'var(--failure-color)', marginLeft: '0.5rem'}}>
-                                            {to > from ? '▲' : '▼'}
+                                        <span className="rie-insight-model-update-value"> {adjustment.from.toFixed(2)} → {adjustment.to.toFixed(2)}</span>
+                                        <span style={{color: adjustment.to > adjustment.from ? 'var(--success-color)' : 'var(--failure-color)', marginLeft: '0.5rem'}}>
+                                            {adjustment.to > adjustment.from ? '▲' : '▼'}
                                         </span>
                                     </p>
                                 ))}

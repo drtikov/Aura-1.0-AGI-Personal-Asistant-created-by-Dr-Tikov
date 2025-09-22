@@ -11,6 +11,22 @@ export const enginesReducer = (state: AuraState, action: Action): Partial<AuraSt
             };
         }
 
+        case 'SET_PROACTIVE_CACHE':
+            return {
+                proactiveEngineState: {
+                    ...state.proactiveEngineState,
+                    cachedResponsePlan: action.payload,
+                }
+            };
+
+        case 'CLEAR_PROACTIVE_CACHE':
+            return {
+                proactiveEngineState: {
+                    ...state.proactiveEngineState,
+                    cachedResponsePlan: null,
+                }
+            };
+
         default:
             return {};
     }
