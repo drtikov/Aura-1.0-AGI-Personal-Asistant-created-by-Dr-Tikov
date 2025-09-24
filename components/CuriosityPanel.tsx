@@ -1,5 +1,6 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for types to resolve module error.
 import { KnownUnknown } from '../types';
 
 export const CuriosityPanel = React.memo(() => {

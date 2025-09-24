@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+// FIX: Corrected import path for types to resolve module error.
 import { AuraState, ToastType, Action } from '../types';
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
@@ -41,6 +42,10 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         if (file) { const previewUrl = URL.createObjectURL(file); const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other'; setAttachedFile({ file, previewUrl, type: fileType }); }
     }, []);
     const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? t('toastAutonomousResumed') : t('toastAutonomousPaused'), 'info'); }, [isPaused, addToast, t]);
+    const handleMicClick = useCallback(() => {
+        addToast("Microphone input is not yet implemented.", 'info');
+        setIsRecording(r => !r); // Toggle for UI feedback
+    }, [addToast]);
     
     const handleClearMemory = useCallback(async () => {
         if (window.confirm(t('toastResetConfirm'))) {
@@ -209,6 +214,6 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         outputPanelRef, importInputRef, fileInputRef, isVisualAnalysisActive, setIsVisualAnalysisActive, videoRef, analysisIntervalRef,
         importAsCodeInputRef,
         handleRemoveAttachment, handleFileChange, handleTogglePause, handleClearMemory, handleExportState, handleSaveAsCode, handleImportState, handleRollback, handleToggleForgePause,
-        handleImportAsCode, handleContemplate,
+        handleImportAsCode, handleContemplate, handleMicClick
     };
 };

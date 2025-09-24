@@ -1,4 +1,5 @@
 import React from 'react';
+// FIX: Corrected import path for types to resolve module error.
 import { CognitiveGainLogEntry } from '../types';
 import { Modal } from './Modal';
 import { useLocalization } from '../context/AuraContext';

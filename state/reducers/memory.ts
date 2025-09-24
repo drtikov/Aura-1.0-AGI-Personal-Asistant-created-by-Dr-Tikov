@@ -64,6 +64,18 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
                         .slice(0, 100),
                 }
             };
+        
+        case 'UPDATE_EPISODE': {
+            const { id, updates } = action.payload;
+            return {
+                episodicMemoryState: {
+                    ...state.episodicMemoryState,
+                    episodes: state.episodicMemoryState.episodes.map(e => 
+                        e.id === id ? { ...e, ...updates } : e
+                    )
+                }
+            };
+        }
 
         case 'UPDATE_CONSOLIDATION_STATUS':
             return {

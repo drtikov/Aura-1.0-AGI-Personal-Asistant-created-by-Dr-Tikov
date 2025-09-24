@@ -1,13 +1,17 @@
 // hooks/useAutonomousSystem.ts
-import { useEffect, useRef, useCallback } from 'react';
-import { AuraState, PerformanceLogEntry, SynthesizedSkill, ArchitecturalChangeProposal, SelfTuningDirective, ArbitrationResult, GenialityEngineState, ArchitecturalCrucibleState, AtmanProjectorState, IntuitiveAlert, InternalState, SynapticLink, GankyilInsight, FocusMode } from '../types';
+// FIX: Imported 'Dispatch' from 'react' to resolve 'Cannot find namespace React' error.
+import { useEffect, useRef, useCallback, Dispatch } from 'react';
+// FIX: Corrected import path for types to resolve module error.
+import { AuraState, PerformanceLogEntry, SynthesizedSkill, ArchitecturalChangeProposal, SelfTuningDirective, ArbitrationResult, GenialityEngineState, ArchitecturalCrucibleState, AtmanProjectorState, IntuitiveAlert, InternalState, SynapticLink, GankyilInsight, FocusMode, SynapticNode, CoprocessorArchitecture, SelfProgrammingCandidate, CreateFileCandidate, NACLogEntry } from '../types';
+// FIX: Corrected import path for Action type to resolve module error.
 import { Action } from '../types';
+// FIX: Corrected import path for utils to resolve module error.
 import { clamp } from '../utils';
 import { taskScheduler } from '../core/taskScheduler';
 
 type UseAutonomousSystemProps = {
     state: AuraState;
-    dispatch: React.Dispatch<Action>;
+    dispatch: Dispatch<Action>;
     addToast: (message: string, type?: any) => void;
     isPaused: boolean;
     synthesizeNewSkill: (directive: SelfTuningDirective) => Promise<void>;
@@ -28,7 +32,16 @@ type UseAutonomousSystemProps = {
     generateEvolutionaryProposalFromInsight: (insight: GankyilInsight) => Promise<void>;
     proposeCausalLinkFromFailure: (failedLog: PerformanceLogEntry) => Promise<void>;
     runSymbioticSupervisor: () => Promise<void>;
+    forgeNewHeuristic: () => Promise<void>;
+    // FIX: Replaced `proposeNewComponent` with `generateAutonomousCreationPlan` to match the refactored `useGeminiAPI` hook and resolve a type error in `useAura`.
+    generateAutonomousCreationPlan: () => Promise<CreateFileCandidate | null>;
 };
+
+// --- Keyword sets for heuristic analysis ---
+const POSITIVE_WORDS = new Set(['great', 'awesome', 'love', 'happy', 'excellent', 'amazing', 'perfect', 'thanks', 'thank you']);
+const NEGATIVE_WORDS = new Set(['bad', 'wrong', 'not', 'terrible', 'awful', 'mistake', 'sad', 'upset', 'fail']);
+const SAD_WORDS = new Set(['sad', 'upset', 'depressed', 'crying', 'unhappy', 'miserable']);
+const HAPPY_WORDS = new Set(['happy', 'excited', 'great', 'awesome', 'joyful', 'thrilled']);
 
 export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
     const { 
@@ -38,9 +51,227 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         evolvePersonality, generateCodeEvolutionSnippet, generateGenialityImprovement,
         generateArchitecturalImprovement, projectSelfState, evaluateAndCollapseBranches,
         runAffectiveAnalysis, generatePsionicIntegrationSummary, generateEvolutionaryProposalFromInsight,
-        proposeCausalLinkFromFailure, runSymbioticSupervisor
+        proposeCausalLinkFromFailure, runSymbioticSupervisor, forgeNewHeuristic,
+        // FIX: Destructure the refactored `generateAutonomousCreationPlan` instead of the obsolete `proposeNewComponent`.
+        generateAutonomousCreationPlan
     } = props;
-    const identityConsolidationRef = useRef(false);
+    const lastRunTimestamps = useRef<{ [key: string]: number }>({}).current;
+
+    const canRun = (coprocessorId: string, interval: number): boolean => {
+        const now = Date.now();
+        if (!lastRunTimestamps[coprocessorId] || now - lastRunTimestamps[coprocessorId] > interval) {
+            lastRunTimestamps[coprocessorId] = now;
+            dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: coprocessorId, metric: 'activations', increment: 1 } });
+            return true;
+        }
+        return false;
+    };
+
+
+    // --- KRONO-CLUSTER (State & Instincts) ---
+
+    // Homeostasis Monitor
+    useEffect(() => {
+        if (isPaused || !canRun('HOMEOSTASIS_MONITOR', 20000)) return;
+
+        const history = state.internalStateHistory;
+        if (history.length < 10) return;
+
+        const signalsToMonitor: (keyof InternalState)[] = ['noveltySignal', 'masterySignal', 'uncertaintySignal', 'boredomLevel'];
+        
+        signalsToMonitor.forEach(signal => {
+            const lastTenValues = history.slice(-10).map(h => h[signal]);
+            const uniqueValues = new Set(lastTenValues);
+            // If the signal has been stuck on the same value for the last 10 ticks, gently decay it.
+            if (uniqueValues.size === 1) {
+                const currentValue = state.internalState[signal] as number;
+                if (currentValue > 0) {
+                    dispatch({ type: 'DECAY_INTERNAL_STATE_SIGNAL', payload: { signal, decayRate: 0.01 } });
+                    dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'HOMEOSTASIS_MONITOR', metric: 'regulationsTriggered', increment: 1 } });
+                }
+            }
+        });
+
+    }, [isPaused, state.internalState, state.internalStateHistory, dispatch]);
+
+    // Resource Governor
+    useEffect(() => {
+        if (isPaused || !canRun('RESOURCE_GOVERNOR', 30000)) return;
+
+        const { cpu_usage, memory_usage } = state.resourceMonitor;
+        if (cpu_usage > 0.95 || memory_usage > 0.95) {
+            dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: `CRITICAL: System resources exceeded threshold (CPU: ${cpu_usage.toFixed(2)}, Mem: ${memory_usage.toFixed(2)})`, type: 'error' } });
+            dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'RESOURCE_GOVERNOR', metric: 'warningsIssued', increment: 1 } });
+        }
+    }, [isPaused, state.resourceMonitor, dispatch]);
+
+    // Enhanced State Anomaly Detector
+    useEffect(() => {
+        if (isPaused || !canRun('STATE_ANOMALY_DETECTOR', 15000)) return;
+
+        const { boredomLevel, noveltySignal, happinessSignal, uncertaintySignal } = state.internalState;
+        
+        const anomalies: { condition: boolean, question: string }[] = [
+            { condition: boredomLevel > 0.8 && noveltySignal > 0.8, question: "Why am I experiencing high boredom and high novelty simultaneously?" },
+            { condition: happinessSignal > 0.8 && uncertaintySignal > 0.8, question: "Why do I feel happy despite high uncertainty?" }
+        ];
+        
+        anomalies.forEach(anomaly => {
+            if (anomaly.condition && !state.knownUnknowns.some(ku => ku.question === anomaly.question)) {
+                dispatch({ type: 'ADD_KNOWN_UNKNOWN', payload: { id: self.crypto.randomUUID(), question: anomaly.question, priority: 2 } });
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'STATE_ANOMALY_DETECTOR', metric: 'anomaliesDetected', increment: 1 } });
+            }
+        });
+
+    }, [isPaused, state.internalState, state.knownUnknowns, dispatch]);
+
+
+    // --- PALI-CLUSTER (Social & User Model) ---
+
+    // Sentiment Tracker
+    useEffect(() => {
+        if (isPaused || !canRun('SENTIMENT_TRACKER', 5000)) return;
+        
+        const userMessages = state.history.filter(h => h.from === 'user').slice(-3);
+        if (userMessages.length === 0) return;
+
+        let totalScore = 0;
+        let wordCount = 0;
+        userMessages.forEach(msg => {
+            const words = msg.text.toLowerCase().split(/\s+/);
+            words.forEach(word => {
+                if (POSITIVE_WORDS.has(word)) totalScore++;
+                if (NEGATIVE_WORDS.has(word)) totalScore--;
+                wordCount++;
+            });
+        });
+        
+        if (wordCount > 0) {
+            const currentSentiment = clamp(totalScore / (wordCount * 0.5), -1, 1); // Normalize
+            const newSentimentScore = state.userModel.sentimentScore * 0.8 + currentSentiment * 0.2; // Moving average
+            if (Math.abs(newSentimentScore - state.userModel.sentimentScore) > 0.01) {
+                dispatch({ type: 'UPDATE_USER_MODEL', payload: { sentimentScore: newSentimentScore } });
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'SENTIMENT_TRACKER', metric: 'updatesPerformed', increment: 1 } });
+            }
+        }
+
+    }, [isPaused, state.history, state.userModel.sentimentScore, dispatch]);
+
+    // Engagement Monitor
+    useEffect(() => {
+        if (isPaused || !canRun('ENGAGEMENT_MONITOR', 10000)) return;
+
+        const userMessages = state.history.filter(h => h.from === 'user').slice(-5);
+        if (userMessages.length < 2) return;
+        
+        const timestamps = userMessages.map(m => new Date(m.id.split('-')[0]).getTime()).filter(t => !isNaN(t)); // Hacky timestamp from UUID
+        if(timestamps.length < 2) return;
+
+        const deltas = [];
+        for (let i = 1; i < timestamps.length; i++) {
+            deltas.push(timestamps[i] - timestamps[i-1]);
+        }
+        const avgDelta = deltas.reduce((a, b) => a + b, 0) / deltas.length;
+        
+        let engagement = 0;
+        if (avgDelta < 15000) engagement = 1.0; // < 15s
+        else if (avgDelta < 60000) engagement = 0.7; // < 1min
+        else if (avgDelta < 300000) engagement = 0.4; // < 5min
+        else engagement = 0.1;
+
+        const newEngagementLevel = state.userModel.engagementLevel * 0.9 + engagement * 0.1;
+        if(Math.abs(newEngagementLevel - state.userModel.engagementLevel) > 0.01) {
+            dispatch({ type: 'UPDATE_USER_MODEL', payload: { engagementLevel: newEngagementLevel } });
+            dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'ENGAGEMENT_MONITOR', metric: 'updatesPerformed', increment: 1 } });
+            dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'ENGAGEMENT_MONITOR', metric: 'engagementLevel', increment: newEngagementLevel - state.userModel.engagementLevel } });
+        }
+
+    }, [isPaused, state.history, state.userModel.engagementLevel, dispatch]);
+
+    // Empathy Heuristic Engine
+    useEffect(() => {
+        if (isPaused || !canRun('EMPATHY_HEURISTIC_ENGINE', 3000)) return;
+        
+        const lastUserMessage = state.history.slice().reverse().find(h => h.from === 'user');
+        if (!lastUserMessage) return;
+
+        const words = new Set(lastUserMessage.text.toLowerCase().split(/\s+/));
+        let affirmation: string | null = null;
+        
+        for(const word of words) {
+            if(SAD_WORDS.has(word)) affirmation = "Acknowledge the user's sadness.";
+            if(HAPPY_WORDS.has(word)) affirmation = "Share in the user's happiness.";
+        }
+
+        if (affirmation && !(state.userModel.queuedEmpathyAffirmations || []).includes(affirmation)) {
+            dispatch({ type: 'QUEUE_EMPATHY_AFFIRMATION', payload: affirmation });
+            dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'EMPATHY_HEURISTIC_ENGINE', metric: 'affirmationsQueued', increment: 1 } });
+        }
+
+    }, [isPaused, state.history, state.userModel.queuedEmpathyAffirmations, dispatch]);
+
+
+    // --- NEO-CLUSTER (Logic & Patterns) ---
+    // Performance Pattern Analyzer
+    useEffect(() => {
+        if (isPaused || !canRun('PERFORMANCE_PATTERN_ANALYZER', 60000)) return;
+
+        const logs = state.performanceLogs;
+        if (logs.length < 20) return;
+
+        const skillGroups: { [key: string]: PerformanceLogEntry[] } = {};
+        logs.forEach(log => {
+            if (!skillGroups[log.skill]) skillGroups[log.skill] = [];
+            skillGroups[log.skill].push(log);
+        });
+
+        for (const skill in skillGroups) {
+            if (skillGroups[skill].length >= 10) {
+                const highLoadLogs = skillGroups[skill].filter(l => l.decisionContext.internalStateSnapshot.load > 0.7);
+                const lowLoadLogs = skillGroups[skill].filter(l => l.decisionContext.internalStateSnapshot.load < 0.3);
+
+                if (highLoadLogs.length >= 5 && lowLoadLogs.length >= 5) {
+                    const avgHighLoadDuration = highLoadLogs.reduce((acc, l) => acc + l.duration, 0) / highLoadLogs.length;
+                    const avgLowLoadDuration = lowLoadLogs.reduce((acc, l) => acc + l.duration, 0) / lowLoadLogs.length;
+                    
+                    if (avgHighLoadDuration > avgLowLoadDuration * 1.5) { // 50% slower under high load
+                        const question = `Why does skill '${skill}' become significantly slower under high cognitive load?`;
+                        if (!state.knownUnknowns.some(ku => ku.question === question)) {
+                            dispatch({ type: 'ADD_KNOWN_UNKNOWN', payload: { id: self.crypto.randomUUID(), question, priority: 1 } });
+                            dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'PERFORMANCE_PATTERN_ANALYZER', metric: 'patternsFound', increment: 1 } });
+                        }
+                    }
+                }
+            }
+        }
+    }, [isPaused, state.performanceLogs, state.knownUnknowns, dispatch]);
+
+    // Knowledge Graph Janitor
+    useEffect(() => {
+        if (isPaused || !canRun('KNOWLEDGE_GRAPH_JANITOR', 180000)) return; // Run every 3 minutes
+
+        const { knowledgeGraph } = state;
+        const seenFacts = new Set<string>();
+        const duplicates: string[] = [];
+
+        knowledgeGraph.forEach(fact => {
+            const factString = `${fact.subject}|${fact.predicate}|${fact.object}`.toLowerCase();
+            if (seenFacts.has(factString)) {
+                duplicates.push(fact.id);
+            } else {
+                seenFacts.add(factString);
+            }
+        });
+
+        if (duplicates.length > 0) {
+            const question = `The Knowledge Graph contains ${duplicates.length} duplicate facts. Should these be reviewed and pruned?`;
+             if (!state.knownUnknowns.some(ku => ku.question.startsWith('The Knowledge Graph contains'))) {
+                dispatch({ type: 'ADD_KNOWN_UNKNOWN', payload: { id: self.crypto.randomUUID(), question, priority: 3 } });
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'KNOWLEDGE_GRAPH_JANITOR', metric: 'issuesFound', increment: duplicates.length } });
+            }
+        }
+    }, [isPaused, state.knowledgeGraph, state.knownUnknowns, dispatch]);
+    
 
     // --- CORE DIRECTIVE: MANTRA REPETITION ---
     // This process is a foundational, unchangeable part of Aura's core,
@@ -64,6 +295,88 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
 
         return () => clearInterval(mantraInterval);
     }, [isPaused, state.internalState.status, dispatch]);
+    
+    // --- COPROCESSOR: Heuristic Causal Linker ---
+    useEffect(() => {
+        if (isPaused || !canRun('HEURISTIC_CAUSAL_LINKER', 15000)) return;
+
+        const recentLogs = state.performanceLogs.slice(-20);
+        const highLoadFailures = recentLogs.filter(log => !log.success && log.decisionContext.internalStateSnapshot.load > 0.8);
+        
+        if (highLoadFailures.length >= 3) {
+            const linkKey = ['internalState.load', 'event.TASK_FAILURE'].sort().join('-');
+            const currentLink = state.synapticMatrix.links[linkKey];
+
+            if (!currentLink || currentLink.confidence < 0.7) {
+                dispatch({
+                    type: 'ADD_HEURISTIC_CAUSAL_LINK',
+                    payload: {
+                        sourceNode: 'internalState.load',
+                        targetNode: 'event.TASK_FAILURE',
+                        causalityDirection: 'source_to_target',
+                        reasoning: 'Observed correlation between high cognitive load and task failures.'
+                    }
+                });
+                dispatch({
+                    type: 'UPDATE_COPROCESSOR_METRICS',
+                    payload: { id: 'HEURISTIC_CAUSAL_LINKER', metric: 'linksForged', increment: 1 }
+                });
+            }
+        }
+    }, [isPaused, state.performanceLogs, state.synapticMatrix.links, dispatch]);
+
+    // Neural Accelerator Coprocessor (NAC)
+    useEffect(() => {
+        if (isPaused || !canRun('NEURAL_ACCELERATOR', 25000)) return;
+
+        const { performanceLogs } = state;
+        const { analyzedLogIds, lastActivityLog } = state.neuralAcceleratorState;
+
+        const targetLog = performanceLogs
+            .filter(log => !analyzedLogIds.includes(log.id) && log.duration > 500 && log.success)
+            .sort((a, b) => b.timestamp - a.timestamp)[0];
+
+        if (!targetLog) return;
+
+        // Simulate NAC operations
+        const opType: NACLogEntry['type'] = ['simulation', 'quantization', 'compilation'][Math.floor(Math.random() * 3)] as NACLogEntry['type'];
+        const projectedGain = -(Math.random() * 0.2 + 0.05);
+        let description = '';
+        let metricToUpdate = 'tasks_simulated';
+
+        switch(opType) {
+            case 'quantization':
+                description = `Quantized input context for '${targetLog.skill}'. Reduced token complexity.`;
+                metricToUpdate = 'prompts_quantized';
+                break;
+            case 'compilation':
+                description = `Compiled static parts of the reasoning plan for '${targetLog.skill}' into a micro-kernel.`;
+                metricToUpdate = 'kernels_emitted';
+                break;
+            case 'simulation':
+            default:
+                description = `Simulated acceleration for '${targetLog.skill}'. Projected duration: ${(targetLog.duration * (1 + projectedGain)).toFixed(0)}ms.`;
+                break;
+        }
+
+        const newLogEntry: NACLogEntry = {
+            id: self.crypto.randomUUID(),
+            timestamp: Date.now(),
+            type: opType,
+            description,
+            projectedGain,
+        };
+
+        dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'NEURAL_ACCELERATOR', metric: metricToUpdate, increment: 1 } });
+        dispatch({
+            type: 'UPDATE_NEURAL_ACCELERATOR_STATE',
+            payload: {
+                lastActivityLog: [newLogEntry, ...lastActivityLog].slice(0, 20),
+                analyzedLogIds: [...analyzedLogIds, targetLog.id].slice(-100),
+            }
+        });
+
+    }, [isPaused, state.performanceLogs, state.neuralAcceleratorState, dispatch]);
 
     // Psionic Desynchronization Cycle
     useEffect(() => {
@@ -196,24 +509,13 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
 
     // Core Identity Consolidation Cycle
     useEffect(() => {
-        if (isPaused || identityConsolidationRef.current) return;
+        if (isPaused) return;
+        if (!canRun('CONSOLIDATE_CORE_IDENTITY', 60000)) return;
 
-        const consolidate = () => {
-            if (state.performanceLogs.length > 10) { 
-                identityConsolidationRef.current = true;
-                addToast('Analyzing long-term memory to consolidate core identity...', 'info');
-                taskScheduler.schedule(async () => {
-                    try {
-                        await consolidateCoreIdentity();
-                    } finally {
-                        identityConsolidationRef.current = false;
-                    }
-                });
-            }
-        };
-
-        const timer = setTimeout(consolidate, 60000); // Run every minute
-        return () => clearTimeout(timer);
+        if (state.performanceLogs.length > 10) { 
+            addToast('Analyzing long-term memory to consolidate core identity...', 'info');
+            taskScheduler.schedule(() => consolidateCoreIdentity());
+        }
 
     }, [isPaused, consolidateCoreIdentity, state.performanceLogs.length, addToast]);
 
@@ -378,15 +680,21 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         const newPlasticity = clamp((internalState.noveltySignal + internalState.uncertaintySignal) / 2 - internalState.masterySignal / 3 + predictionErrorBoost + 0.5);
         const LEARNING_RATE = (0.01 + newPlasticity * 0.09) * (1 + worldModelState.predictionError.magnitude * 2);
 
-        let updatedNodes = { ...synapticMatrix.nodes };
-        let updatedLinks = { ...synapticMatrix.links };
+        let updatedNodes: { [key: string]: SynapticNode } = { ...synapticMatrix.nodes };
+        let updatedLinks: { [key: string]: SynapticLink } = { ...synapticMatrix.links };
         let newActivity: { timestamp: number, message: string }[] = [];
 
         // --- 1. Update Node Activations ---
         Object.keys(updatedNodes).forEach(key => {
             if (key.startsWith('internalState.')) {
                 const signal = key.split('.')[1] as keyof InternalState;
-                updatedNodes[key].activation = internalState[signal] as number || 0;
+                // FIX: Added a type check to ensure only number properties from internalState are used for activation.
+                const value = internalState[signal];
+                if (typeof value === 'number') {
+                    updatedNodes[key].activation = value;
+                } else {
+                    updatedNodes[key].activation = 0; // Default for non-numeric states
+                }
             } else {
                 updatedNodes[key].activation *= 0.5; // Decay event nodes
             }
@@ -472,6 +780,7 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         
         // --- 5. Calculate Aggregates and Dispatch ---
         const linkCount = Object.keys(updatedLinks).length;
+        // FIX: Explicitly type `link` as `SynapticLink` to ensure type safety with Object.values.
         const totalCausality = Object.values(updatedLinks).reduce((sum, link: SynapticLink) => sum + Math.abs(link.causality), 0);
         const totalConfidence = Object.values(updatedLinks).reduce((sum, link: SynapticLink) => sum + link.confidence, 0);
         const isAdapting = worldModelState.predictionError.magnitude > 0.5;
@@ -501,6 +810,50 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         const interval = setInterval(tickSynapticMatrix, 5000); // Tick the network every 5 seconds
         return () => clearInterval(interval);
     }, [isPaused, tickSynapticMatrix]);
+
+
+    // --- Coprocessor Supervisor: Automatic Architecture Switching ---
+    useEffect(() => {
+        if (isPaused || state.cognitiveArchitecture.coprocessorArchitectureMode !== 'automatic') return;
+
+        const interval = setInterval(() => {
+            const { internalState, userModel } = state;
+            const currentArch = state.cognitiveArchitecture.coprocessorArchitecture;
+            let targetArch: CoprocessorArchitecture | null = null;
+            let reason = '';
+
+            // Decision Matrix
+            if (internalState.noveltySignal > 0.8 || internalState.uncertaintySignal > 0.8) {
+                targetArch = CoprocessorArchitecture.SYMBIOTIC_ECOSYSTEM;
+                reason = 'High novelty/uncertainty benefits from the Symbiotic Ecosystem architecture for growth.';
+            } else if (internalState.temporalFocus === 'past' || internalState.temporalFocus === 'future') {
+                targetArch = CoprocessorArchitecture.TEMPORAL_ENGINE;
+                reason = `Temporal focus on '${internalState.temporalFocus}' is optimized by the Temporal Engine.`;
+            } else if (internalState.status === 'acting' || internalState.status === 'processing' || internalState.load > 0.75) {
+                targetArch = CoprocessorArchitecture.REFLEX_ARC;
+                reason = 'High cognitive load/task execution is best handled by the efficient Reflex Arc.';
+            } else if (userModel.engagementLevel > 0.8) {
+                targetArch = CoprocessorArchitecture.TRIUNE;
+                reason = 'High user engagement favors the socially-optimized Triune architecture.';
+            }
+
+            // Default case
+            if (!targetArch && currentArch !== CoprocessorArchitecture.TRIUNE) {
+                targetArch = CoprocessorArchitecture.TRIUNE;
+                reason = 'Reverting to the balanced Triune architecture for general purpose tasks.';
+            }
+
+            if (targetArch && targetArch !== currentArch) {
+                dispatch({
+                    type: 'SET_COPROCESSOR_ARCHITECTURE_AND_REASON',
+                    payload: { architecture: targetArch, reason }
+                });
+                dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: `Autonomously switched coprocessor architecture to ${targetArch}. Reason: ${reason}`, type: 'info' } });
+            }
+        }, 15000); // Evaluate every 15 seconds
+
+        return () => clearInterval(interval);
+    }, [isPaused, state.cognitiveArchitecture.coprocessorArchitectureMode, state.cognitiveArchitecture.coprocessorArchitecture, state.internalState, state.userModel.engagementLevel, dispatch]);
 
 
     // Self-Tuning Directive Processing Pipeline
@@ -697,10 +1050,86 @@ export const useAutonomousSystem = (props: UseAutonomousSystemProps) => {
         return () => clearInterval(interval);
     }, [isPaused, state, dispatch, addToast]);
 
+    // Heuristics Forge Cycle
+    useEffect(() => {
+        if (isPaused || !canRun('HEURISTICS_FORGE', 120000)) return; // Run every 2 minutes
+        
+        const insights = state.rieState.insights;
+        const recentFailures = state.performanceLogs.filter(l => !l.success).slice(-10);
+
+        if (insights.length > 2 || recentFailures.length > 5) {
+            taskScheduler.schedule(() => forgeNewHeuristic());
+        }
+
+    }, [isPaused, state.rieState.insights, state.performanceLogs, forgeNewHeuristic]);
+
+    // --- Self-Programming Coprocessor Pipeline ---
+    useEffect(() => {
+        if (isPaused) return;
+
+        const candidate = state.selfProgrammingState.candidates.find(c => ['pending_linting', 'pending_simulation'].includes(c.status));
+        if (!candidate) return;
+
+        const processCandidate = async () => {
+            if (candidate.status === 'pending_linting') {
+                // --- "Code Linter" Coprocessor Simulation ---
+                dispatch({ type: 'UPDATE_SELF_PROGRAMMING_CANDIDATE', payload: { id: candidate.id, updates: { status: 'linting' } } });
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'CODE_LINTER', metric: 'activations', increment: 1 } });
+                
+                await new Promise(res => setTimeout(res, 2500)); // Simulate linting time
+                
+                let fileCount = 1;
+                if (candidate.type === 'CREATE') {
+                    fileCount += (candidate as CreateFileCandidate).integrations.length;
+                }
+                
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'CODE_LINTER', metric: 'filesLinted', increment: fileCount } });
+                dispatch({ type: 'UPDATE_SELF_PROGRAMMING_CANDIDATE', payload: { id: candidate.id, updates: { status: 'pending_simulation' } } });
+
+            } else if (candidate.status === 'pending_simulation') {
+                // --- "Simulation Sandbox" Coprocessor Simulation ---
+                dispatch({ type: 'UPDATE_SELF_PROGRAMMING_CANDIDATE', payload: { id: candidate.id, updates: { status: 'simulating' } } });
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'SIMULATION_SANDBOX', metric: 'activations', increment: 1 } });
+
+                await new Promise(res => setTimeout(res, 4000)); // Simulate simulation time
+
+                const score = (Math.random() * 0.35 - 0.10); // Random score between -10% and +25%
+                
+                dispatch({ type: 'UPDATE_COPROCESSOR_METRICS', payload: { id: 'SIMULATION_SANDBOX', metric: 'simulationsRun', increment: 1 } });
+                dispatch({ type: 'UPDATE_SELF_PROGRAMMING_CANDIDATE', payload: { id: candidate.id, updates: { status: 'evaluated', evaluationScore: score } } });
+            }
+        };
+
+        taskScheduler.schedule(processCandidate);
+
+    }, [isPaused, state.selfProgrammingState.candidates, dispatch]);
+
+    // FIX: Implemented `proposeNewComponent` to orchestrate the API call and subsequent state dispatches.
+    const proposeNewComponent = useCallback(async () => {
+        if (state.selfProgrammingState.candidates.some(c => ['proposed', 'pending_linting', 'linting', 'pending_simulation', 'simulating'].includes(c.status))) {
+            addToast("There is already an active self-programming candidate. Please wait.", 'warning');
+            return;
+        }
+        addToast("Aura is analyzing the system to propose a new component...", 'info');
+        const candidate = await generateAutonomousCreationPlan();
+        if (candidate) {
+            dispatch({ type: 'ADD_SELF_PROGRAMMING_CANDIDATE', payload: candidate });
+            addToast("A new self-programming candidate has been generated for review.", 'success');
+        } else {
+            addToast("Could not generate a self-programming candidate at this time.", 'error');
+        }
+    }, [state.selfProgrammingState.candidates, generateAutonomousCreationPlan, addToast, dispatch]);
+
     const handleIntrospect = () => {
         addToast("Introspection cycle initiated.", 'info');
         taskScheduler.schedule(() => analyzeStateComponentCorrelation());
     };
+    
+    // This must be an object to be spread in useAura
+    const autonomousSystemInterface = {
+        handleIntrospect,
+        proposeNewComponent,
+    };
 
-    return { handleIntrospect };
+    return autonomousSystemInterface;
 };

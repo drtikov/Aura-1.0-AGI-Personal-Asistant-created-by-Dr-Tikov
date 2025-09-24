@@ -1,9 +1,20 @@
 import React from 'react';
 import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { DesignHeuristic } from '../types';
 
 export const HeuristicsForgePanel = React.memo(() => {
     const { heuristicsForge: state } = useArchitectureState();
     const { t } = useLocalization();
+
+    const getStatusColor = (status: DesignHeuristic['validationStatus']) => {
+        switch(status) {
+            case 'validated': return 'var(--success-color)';
+            case 'refuted': return 'var(--failure-color)';
+            case 'unvalidated':
+            default:
+                return 'var(--text-muted)';
+        }
+    };
 
     return (
         <div className="side-panel heuristics-forge-panel">
@@ -23,8 +34,11 @@ export const HeuristicsForgePanel = React.memo(() => {
                         <div className="causal-effect" style={{ fontStyle: 'italic', marginTop: '0.25rem' }}>
                            "{item.heuristic}"
                         </div>
-                         <div className="causal-link-footer" style={{textAlign: 'left', marginTop: '0.5rem'}}>
-                            <strong>{t('phenomenology_source')}:</strong> {item.source}
+                         <div className="causal-link-footer" style={{textAlign: 'left', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between'}}>
+                            <span><strong>{t('phenomenology_source')}:</strong> {item.source}</span>
+                            <span style={{ color: getStatusColor(item.validationStatus), fontWeight: 'bold', textTransform: 'uppercase' }} title={`Effectiveness: ${item.effectivenessScore.toFixed(3)}`}>
+                                {t(`heuristic_status_${item.validationStatus}`)}
+                            </span>
                         </div>
                     </div>
                 ))

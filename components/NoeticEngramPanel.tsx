@@ -4,7 +4,7 @@ import { NoeticEngram } from '../types';
 
 export const NoeticEngramPanel = React.memo(() => {
     const { noeticEngramState } = useCoreState();
-    const { handleShareWisdom, addToast, dispatch } = useAuraDispatch();
+    const { handleShareWisdom, addToast } = useAuraDispatch();
     const { t } = useLocalization();
     const { status, engram } = noeticEngramState;
 
@@ -21,7 +21,6 @@ export const NoeticEngramPanel = React.memo(() => {
     };
     
     const handleGenerate = () => {
-        dispatch({ type: 'UPDATE_NOETIC_ENGRAM_STATE', payload: { status: 'idle', engram: null } });
         handleShareWisdom();
     }
 

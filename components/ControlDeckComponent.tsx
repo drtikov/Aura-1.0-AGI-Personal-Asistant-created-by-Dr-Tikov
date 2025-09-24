@@ -3,7 +3,8 @@ import { useArchitectureState, useLogsState, useMemoryState, useCoreState, useEn
 import { Accordion } from './Accordion';
 import { mainControlDeckLayout, advancedControlsLayout, PanelConfig } from './controlDeckConfig';
 import { useModal } from '../context/ModalContext';
-import { translations } from '@/localization';
+// FIX: Corrected import path alias for translations to resolve module error.
+import { translations } from '../localization';
 
 // --- New Component Definition ---
 const LocalizationPanel = () => {
@@ -91,7 +92,7 @@ export const ControlDeckComponent = () => {
                 <LocalizationPanel />
                 {mainControlDeckLayout.map(panel => renderPanel(panel, stateSlices, handlers, t))}
 
-                <div className="panel-group-title" style={{ marginTop: '1.5rem' }}>{t('panelAdvancedModules')}</div>
+                <div className="panel-group-title" style={{ marginTop: '1.5rem' }}>{t('title_advancedModules')}</div>
                 <div className="button-grid advanced-modules-grid">
                     {advancedControlsLayout.map(panel => {
                         const summary = panel.summary ? panel.summary(stateSlices, t) : undefined;

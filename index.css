@@ -1,3 +1,5 @@
+
+
 /* --- UI 1: Cyberpunk/Glitch Theme --- */
 .ui-1 {
   --background: #0d0d0d;
@@ -817,6 +819,14 @@ body {
 .rie-insight-item .code-snippet-container {
     margin-top: 1rem;
 }
+.rie-insight-item.type-CREATE {
+    border-left: 3px solid var(--success-color) !important;
+}
+.rie-insight-item .proposal-title-CREATE {
+    color: var(--success-color);
+    font-weight: bold;
+}
+
 
 /* Specific footer for proposals/engrams */
 .proposal-actions-footer {
@@ -1959,7 +1969,8 @@ body {
 
 /* --- Image & Video Generation Modal --- */
 .modal-content.image-generation-modal,
-.modal-content.video-generation-modal {
+.modal-content.video-generation-modal,
+.modal-content.music-generation-modal {
     max-width: 98vw;
     padding: 1rem;
 }
@@ -2363,6 +2374,10 @@ input[type=range]:disabled::-moz-range-thumb {
 .radio-button-label input:checked ~ span {
     color: var(--text-color);
 }
+.radio-button-group.disabled-group {
+    opacity: 0.6;
+    pointer-events: none;
+}
 .directors-toolkit-header {
     font-family: var(--font-heading);
     color: var(--primary-color);
@@ -2432,4 +2447,93 @@ input[type=range]:disabled::-moz-range-thumb {
     margin-bottom: 0.25rem;
     font-style: italic;
     line-height: 1.4;
+}
+
+/* --- Music Generation Modal --- */
+.sonic-forge-layout {
+    display: grid;
+    grid-template-columns: 420px 1fr;
+    gap: 1.5rem;
+    min-height: 80vh; /* A bit smaller than image gen */
+}
+
+.sonic-forge-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.sonic-forge-controls textarea {
+    min-height: 150px;
+    resize: vertical;
+}
+
+.sonic-forge-controls input[type="text"] {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    font-family: var(--font-body);
+    color: var(--text-color);
+    font-size: 0.9rem;
+}
+
+
+.sonic-forge-preview {
+    display: flex;
+    flex-direction: column;
+    background: rgba(0,0,0,0.2);
+    border: 1px dashed var(--border-color);
+    height: 100%;
+    position: relative;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+.generated-music-output {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow-y: auto;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border-color);
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) transparent;
+}
+
+.generated-music-output pre {
+    padding: 1rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+    height: 100%;
+}
+.generated-music-output code {
+    font-family: var(--font-body);
+    font-size: 0.9rem;
+}
+
+.generated-music-output .image-item-actions {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    display: flex;
+    gap: 0.5rem;
+}
+.generated-music-output .image-item-actions button {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.generated-music-output .image-item-actions button:hover {
+    background: var(--primary-color);
+    color: var(--background);
 }

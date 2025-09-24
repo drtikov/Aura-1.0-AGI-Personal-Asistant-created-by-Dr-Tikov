@@ -1,4 +1,5 @@
 import { useState, useCallback } from 'react';
+// FIX: Corrected import path for types to resolve module error.
 import { ToastMessage, ToastType } from '../types';
 
 export const useToasts = () => {

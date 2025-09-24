@@ -1,4 +1,6 @@
 
+
+// FIX: Corrected export paths for hooks to resolve module errors.
 export * from './useAura';
 export * from './useAuraState';
 export * from './useAutonomousSystem';

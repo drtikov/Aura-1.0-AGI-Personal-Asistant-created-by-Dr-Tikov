@@ -1,4 +1,7 @@
+
+
 import React from 'react';
+// FIX: Corrected import path for types to resolve module error.
 import { ArchitecturalChangeProposal } from '../types';
 import { Modal } from './Modal';
 import { useLocalization } from '../context/AuraContext';
@@ -65,3 +68,6 @@ export const ProposalReviewModal = ({ proposal, onApprove, onReject, onClose }: 
                     </div>
                 </>
             )}
+        </Modal>
+    );
+};

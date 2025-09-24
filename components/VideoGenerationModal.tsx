@@ -68,11 +68,11 @@ const styleGroups: StyleGroup[] = [
         labelKey: 'imageGen_style_group_painting',
         styles: [
             { id: 'watercolor', labelKey: 'videoGen_style_watercolor' },
-            { id: 'oilPainting', labelKey: 'imageGen_style_oilPainting' },
-            { id: 'impressionism', labelKey: 'imageGen_style_impressionism' },
-            { id: 'surrealism', labelKey: 'imageGen_style_surrealism' },
-            { id: 'charcoalSketch', labelKey: 'imageGen_style_charcoalSketch' },
-            { id: 'impasto', labelKey: 'imageGen_style_impasto' },
+            { id: 'oilPainting', labelKey: 'videoGen_style_oilPainting' },
+            { id: 'impressionism', labelKey: 'videoGen_style_impressionism' },
+            { id: 'surrealism', labelKey: 'videoGen_style_surrealism' },
+            { id: 'charcoalSketch', labelKey: 'videoGen_style_charcoalSketch' },
+            { id: 'impasto', labelKey: 'videoGen_style_impasto' },
         ]
     },
     {
@@ -405,33 +405,33 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                     )}
 
                     {/* Director's Toolkit */}
-                     <Accordion title={t('videoGen_directorsToolkit')} defaultOpen={true}>
+                     <Accordion title={t('imageGen_directorsToolkit')} defaultOpen={true}>
                         <div className="image-gen-control-group">
-                            <label htmlFor="vid-movement">{t('videoGen_cinematicMovement')}</label>
+                            <label htmlFor="vid-movement">{t('videoGen_movement')}</label>
                             <select id="vid-movement" value={cinematicMovement} onChange={e => setCinematicMovement(e.target.value as CinematicMovement)} disabled={isGenerating}>
                                 {cinematicMovements.map(m => <option key={m.id} value={m.id}>{t(m.labelKey)}</option>)}
                             </select>
                         </div>
                         <div className="image-gen-control-group slider-label-group">
-                            <label htmlFor="vid-move-speed">{t('videoGen_movementSpeed')}</label>
+                            <label htmlFor="vid-move-speed">{t('videoGen_speed')}</label>
                             <span>{t('videoGen_speedSlow')}</span>
                             <input type="range" id="vid-move-speed" min="0" max="100" value={movementSpeed} onChange={e => setMovementSpeed(Number(e.target.value))} disabled={isGenerating || cinematicMovement === 'static'} />
                             <span>{t('videoGen_speedFast')}</span>
                         </div>
                         <div className="image-gen-control-group">
-                            <label htmlFor="vid-framing">{t('videoGen_shotFraming')}</label>
+                            <label htmlFor="vid-framing">{t('videoGen_framing')}</label>
                             <select id="vid-framing" value={shotFraming} onChange={e => setShotFraming(e.target.value as ShotFraming)} disabled={isGenerating}>
                                 {shotFramings.map(f => <option key={f.id} value={f.id}>{t(f.labelKey)}</option>)}
                             </select>
                         </div>
                         <div className="image-gen-control-group">
-                            <label htmlFor="vid-lens">{t('videoGen_lensChoice')}</label>
+                            <label htmlFor="vid-lens">{t('videoGen_lens')}</label>
                             <select id="vid-lens" value={lensChoice} onChange={e => setLensChoice(e.target.value as LensChoice)} disabled={isGenerating}>
                                 {lensChoices.map(l => <option key={l.id} value={l.id}>{t(l.labelKey)}</option>)}
                             </select>
                         </div>
                         <div className="image-gen-control-group slider-label-group">
-                            <label htmlFor="vid-motion-intensity">{t('videoGen_motionIntensity')}</label>
+                            <label htmlFor="vid-motion-intensity">{t('videoGen_intensity')}</label>
                             <span>{t('videoGen_intensitySubtle')}</span>
                             <input type="range" id="vid-motion-intensity" min="0" max="100" value={motionIntensity} onChange={e => setMotionIntensity(Number(e.target.value))} disabled={isGenerating} />
                             <span>{t('videoGen_intensityExtreme')}</span>
@@ -439,9 +439,9 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                     </Accordion>
                     
                     {/* Artistic Controls */}
-                     <Accordion title="Artistic Controls">
+                     <Accordion title={t('videoGen_artisticControls_title')}>
                         <div className="image-gen-control-group">
-                            <label htmlFor="vid-art-style">{t('videoGen_artisticStyle')}</label>
+                            <label htmlFor="vid-art-style">{t('videoGen_style')}</label>
                             <select id="vid-art-style" value={artisticStyle} onChange={e => setArtisticStyle(e.target.value)} disabled={isGenerating}>
                                 <option value="none">{t('imageGen_style_none')}</option>
                                 {styleGroups.map(group => (
@@ -452,13 +452,13 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                             </select>
                         </div>
                         <div className="image-gen-control-group slider-label-group">
-                            <label htmlFor="vid-style-adherence">{t('videoGen_styleAdherence')}</label>
+                            <label htmlFor="vid-style-adherence">{t('videoGen_styleStrength')}</label>
                              <span>{t('videoGen_adherenceSubtle')}</span>
                             <input type="range" id="vid-style-adherence" min="0" max="100" value={styleAdherence} onChange={e => setStyleAdherence(Number(e.target.value))} disabled={isGenerating || artisticStyle === 'none'} />
                             <span>{t('videoGen_adherenceTotal')}</span>
                         </div>
                         <div className="image-gen-control-group">
-                            <label htmlFor="vid-color-grade">{t('videoGen_colorGrade')}</label>
+                            <label htmlFor="vid-color-grade">{t('videoGen_color')}</label>
                             <select id="vid-color-grade" value={colorGrade} onChange={e => setColorGrade(e.target.value)} disabled={isGenerating}>
                                 {colorGrades.map(g => <option key={g.id} value={g.id}>{t(g.labelKey)}</option>)}
                             </select>
@@ -470,7 +470,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                     </Accordion>
 
                     {/* Technical Controls */}
-                     <Accordion title="Technical Controls">
+                     <Accordion title={t('videoGen_technicalControls_title')}>
                         <div className="image-gen-control-group slider-label-group">
                             <label htmlFor="vid-duration">{t('videoGen_duration')}</label>
                             <input type="range" id="vid-duration" min="2" max="60" value={duration} onChange={e => setDuration(Number(e.target.value))} disabled={isGenerating} />
@@ -488,7 +488,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                             <button onClick={() => setSeed(Math.floor(Math.random() * 1000000))} disabled={isGenerating} title={t('videoGen_randomize')}>🎲</button>
                         </div>
                          <div className="image-gen-control-group slider-label-group">
-                            <label htmlFor="vid-prompt-adherence">{t('videoGen_promptAdherence')}</label>
+                            <label htmlFor="vid-prompt-adherence">{t('videoGen_promptStrength')}</label>
                             <span>{t('videoGen_adherenceCreative')}</span>
                             <input type="range" id="vid-prompt-adherence" min="0" max="100" value={promptAdherence} onChange={e => setPromptAdherence(Number(e.target.value))} disabled={isGenerating} />
                             <span>{t('videoGen_adherenceStrict')}</span>
@@ -512,7 +512,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                         <p className="control-group-description">{t('videoGen_perfectLoopDesc')}</p>
                     </Accordion>
 
-                    <Accordion title={t('videoGen_auraIntegration')}>
+                    <Accordion title={t('imageGen_auraIntegration')}>
                         <div className="image-gen-control-group toggle-group">
                             <label htmlFor="vid-aura-mood-toggle" className="toggle-switch-label">{t('videoGen_useAuraMood')}</label>
                             <label className="toggle-switch">
@@ -583,7 +583,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                                     <button onClick={() => handleDownload(generatedVideoUrl)} title={t('videoGen_download')}>
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                                     </button>
-                                    <button onClick={() => handleUseInChat(generatedVideoUrl)} title={t('videoGen_useInChat')}>
+                                    <button onClick={() => handleUseInChat(generatedVideoUrl)} title={t('imageGen_use_in_chat')}>
                                         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
                                     </button>
                                 </div>

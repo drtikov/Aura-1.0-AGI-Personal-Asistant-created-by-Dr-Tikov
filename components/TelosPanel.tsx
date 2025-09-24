@@ -21,31 +21,24 @@ export const TelosPanel = React.memo(() => {
                              <p className="rie-insight-model-update" style={{ fontStyle: 'italic', color: 'var(--text-color)' }}>
                                "{goal.ambition}"
                             </p>
-                        </div>
-                    </div>
-                ))
-            )}
-
-
-            <div className="panel-subsection-title">{t('telos_evolutionaryVectors')}</div>
-            {telosEngine.evolutionaryVectors.length === 0 ? (
-                <div className="kg-placeholder">{t('telos_noVectors')}</div>
-            ) : (
-                telosEngine.evolutionaryVectors.map(vector => (
-                    <div key={vector.id} className="prediction-item" style={{ borderLeftColor: 'var(--guna-dharma)', marginBottom: '0.5rem' }}>
-                        <div className="prediction-header">
-                            <span style={{color: 'var(--guna-dharma)', textTransform: 'none'}}>{vector.source}</span>
-                            <span>{t('telos_magnitude')}</span>
-                        </div>
-                        <div className="state-item" style={{padding: '0.25rem 0 0 0'}}>
-                            <label style={{color: 'var(--text-color)', fontStyle: 'italic'}}>{vector.direction}</label>
-                            <div className="state-bar-container" style={{width: '80px'}}>
-                                <div 
-                                    className="state-bar" 
-                                    style={{ width: `${vector.magnitude * 100}%`, backgroundColor: 'var(--guna-dharma)' }}
-                                    title={`${t('telos_magnitude')}: ${vector.magnitude.toFixed(2)}`}
-                                ></div>
-                            </div>
+                            {goal.reasoning && <p className="mod-log-description" style={{fontSize: '0.8rem'}}><strong>Reason:</strong> {goal.reasoning}</p>}
+                            {telosEngine.evolutionaryVectors.filter(v => v.source === `aspirational_goal_${goal.id}`).length > 0 && (
+                                <>
+                                    <div className="panel-subsection-title" style={{fontSize: '0.7rem', marginTop: '0.5rem', marginBottom: '0.2rem'}}>{t('telos_linkedVectors')}</div>
+                                    {telosEngine.evolutionaryVectors.filter(v => v.source === `aspirational_goal_${goal.id}`).map(vector => (
+                                         <div key={vector.id} className="state-item" style={{padding: '0.25rem 0 0 0'}}>
+                                            <label style={{color: 'var(--text-color)', fontStyle: 'italic', fontSize: '0.8rem'}}>{vector.direction}</label>
+                                            <div className="state-bar-container" style={{width: '60px'}}>
+                                                <div 
+                                                    className="state-bar" 
+                                                    style={{ width: `${vector.magnitude * 100}%`, backgroundColor: 'var(--guna-dharma)' }}
+                                                    title={`${t('telos_magnitude')}: ${vector.magnitude.toFixed(2)}`}
+                                                ></div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </>
+                            )}
                         </div>
                     </div>
                 ))

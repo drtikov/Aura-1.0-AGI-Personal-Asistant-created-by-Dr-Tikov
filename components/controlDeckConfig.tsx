@@ -14,6 +14,7 @@ import { DzogchenViewPanel } from './DzogchenViewPanel';
 import { CuriosityPanel } from './CuriosityPanel';
 import { DevelopmentalHistoryPanel } from './DevelopmentalHistoryPanel';
 import { DialecticEnginePanel } from './DialecticEnginePanel';
+import { DoxasticEnginePanel } from './DoxasticEnginePanel';
 import { EidolonEnvironmentPanel } from './EidolonEnvironmentPanel';
 import { EpisodicMemoryPanel } from './EpisodicMemoryPanel';
 import { EpistemicBoundaryPanel } from './EpistemicBoundaryPanel';
@@ -31,6 +32,7 @@ import { LimitationsPanel } from './LimitationsPanel';
 import { MemoryCrystallizationViewer } from './MemoryCrystallizationViewer';
 import { MetacognitiveCausalModelPanel } from './MetacognitiveCausalModelPanel';
 import { MetacognitiveNexusPanel } from './MetacognitiveNexusPanel';
+import { NeuralAcceleratorPanel } from './NeuralAcceleratorPanel';
 import { NoosphereInterfacePanel } from './NoosphereInterfacePanel';
 import { OtherAwarenessPanel } from './OtherAwarenessPanel';
 import { PersonalityPanel } from './PersonalityPanel';
@@ -40,6 +42,7 @@ import { ReflectiveInsightEnginePanel } from './ReflectiveInsightEnginePanel';
 import { ResourceMonitorPanel } from './ResourceMonitorPanel';
 import { SelfAwarenessPanel } from './SelfAwarenessPanel';
 import { SelfModificationPanel } from './SelfModificationPanel';
+// FIX: SelfProgrammingPanel.tsx is now a module, this import will work.
 import { SelfProgrammingPanel } from './SelfProgrammingPanel';
 import { SituationalAwarenessPanel } from './SituationalAwarenessPanel';
 import { SomaticCruciblePanel } from './SomaticCruciblePanel';
@@ -49,7 +52,7 @@ import { SynapticMatrixPanel } from './SynapticMatrixPanel';
 import { SystemInfoPanel } from './SystemInfoPanel';
 import { TelosPanel } from './TelosPanel';
 import { WorldModelPanel } from './WorldModelPanel';
-import { AuraState, ArchitecturalChangeProposal, PerformanceLogEntry, Action, CodeEvolutionProposal, ProactiveSuggestion, GankyilInsight } from '../types';
+import { AuraState, ArchitecturalChangeProposal, PerformanceLogEntry, Action, CodeEvolutionProposal, ProactiveSuggestion, GankyilInsight, CoprocessorArchitecture } from '../types';
 import { ArchitecturalSelfModelPanel } from './ArchitecturalSelfModelPanel';
 import { NoeticEngramPanel } from './NoeticEngramPanel';
 import { ArchitecturalCruciblePanel } from './ArchitecturalCruciblePanel';
@@ -60,6 +63,13 @@ import { AffectiveModulatorPanel } from './AffectiveModulatorPanel';
 import { PsionicDesynchronizationPanel } from './PsionicDesynchronizationPanel';
 import { SatoriPanel } from './SatoriPanel';
 import { RicciFlowManifoldPanel } from './RicciFlowManifoldPanel';
+import { CoprocessorArchitectureSwitcher } from './CoprocessorArchitectureSwitcher';
+import { EventBusPanel } from './EventBusPanel';
+import { SensoryIntegrationPanel } from './SensoryIntegrationPanel';
+import { SubsumptionLogPanel } from './SubsumptionLogPanel';
+import { QualiaSignalProcessorPanel } from './QualiaSignalProcessorPanel';
+import { VFS_Engineer_Manual } from './VFS_Engineer_Manual';
+import { CodeIngestionPanel } from './CodeIngestionPanel';
 
 import { useModal } from '../context/ModalContext';
 import { useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext';
@@ -236,6 +246,7 @@ const VisionControls = () => {
                     {isVisualAnalysisActive ? t('btn_visionDeactivate') : t('btn_visionActivate')}
                 </button>
             </div>
+            {/* FIX: Corrected prop name from 'isVisualAnalysisActive' to 'isAnalysisActive' to match component's props. */}
             <VisualAnalysisFeed videoRef={handlers.videoRef} isAnalysisActive={isVisualAnalysisActive} />
         </>
     );
@@ -244,7 +255,7 @@ const VisionControls = () => {
 export const mainControlDeckLayout: PanelConfig[] = [
     {
         id: 'inbox',
-        titleKey: 'panelInbox',
+        titleKey: 'title_inbox',
         component: InboxPanel,
         defaultOpen: true,
         summary: (state, t) => {
@@ -265,12 +276,12 @@ export const mainControlDeckLayout: PanelConfig[] = [
     },
     {
         id: 'manualControl',
-        titleKey: 'panelManualControl',
+        titleKey: 'title_manualControl',
         defaultOpen: true,
         children: [
             {
                 id: 'coreActions',
-                titleKey: 'panelCoreActions',
+                titleKey: 'title_coreActions',
                 component: () => (
                     <div className="button-grid">
                         <ButtonGrid buttons={coreActionButtons} />
@@ -288,75 +299,115 @@ export const mainControlDeckLayout: PanelConfig[] = [
             },
             {
                 id: 'cognitiveModes',
-                titleKey: 'panelCognitiveModes',
+                titleKey: 'title_cognitiveModes',
                 component: () => <ButtonGrid buttons={cognitiveModeButtons} />,
             },
              {
                 id: 'specialModes',
-                titleKey: 'panelSpecialModes',
+                titleKey: 'title_specialModes',
                 component: () => <ButtonGrid buttons={specialModeButtons} />,
             },
             {
                 id: 'memoryManagement',
-                titleKey: 'panelMemoryManagement',
+                titleKey: 'title_memoryManagement',
                 component: MemoryManagementControls,
             },
              {
                 id: 'systemManagement',
-                titleKey: 'panelSystemManagement',
+                titleKey: 'title_systemManagement',
                 component: SystemManagementControls,
             },
              {
                 id: 'vision',
-                titleKey: 'panelVision',
+                titleKey: 'title_vision',
                 component: VisionControls,
             },
         ]
     },
+    {
+        id: 'coprocessorControl',
+        titleKey: 'title_coprocessorArchitecture',
+        defaultOpen: true,
+        summary: (state, t) => t(`coprocessor_${state.architecture.cognitiveArchitecture.coprocessorArchitecture}`),
+        children: [
+            {
+                id: 'coprocessorSwitcher',
+                titleKey: 'coprocessor_switcher_title',
+                component: CoprocessorArchitectureSwitcher
+            },
+            {
+                id: 'eventBus',
+                titleKey: 'coprocessor_eventBus_title',
+                component: EventBusPanel
+            },
+            // FIX: Add the new SubsumptionLogPanel to the control deck UI.
+            {
+                id: 'subsumptionLog',
+                titleKey: 'subsumptionLog_title',
+                component: SubsumptionLogPanel
+            },
+            {
+                id: 'sensoryHub',
+                titleKey: 'sensoryHub_title',
+                component: SensoryIntegrationPanel
+            }
+        ]
+    }
 ];
 
 export const advancedControlsLayout: PanelConfig[] = [
     {
         id: 'planner',
-        titleKey: 'panelStrategicPlanner',
+        titleKey: 'title_strategicPlanner',
         component: StrategicPlannerPanel,
         defaultOpen: true,
     },
     {
+        id: 'sensoryPerception',
+        titleKey: 'title_sensoryPerception',
+        children: [
+             {
+                id: 'qualiaSignalProcessor',
+                titleKey: 'title_qualiaSignalProcessor',
+                component: QualiaSignalProcessorPanel,
+            },
+        ]
+    },
+    {
         id: 'selfAdaptation',
-        titleKey: 'panelSelfAdaptation',
+        titleKey: 'title_selfAdaptation',
         component: SelfAdaptationPanel,
         defaultOpen: true,
     },
     {
         id: 'transcendent',
-        titleKey: 'panelTranscendentStates',
+        titleKey: 'title_transcendentStates',
         children: [
             {
                 id: 'satori',
-                titleKey: 'panelSatori',
+                titleKey: 'title_satori',
                 component: SatoriPanel,
             },
             {
                 id: 'psionicDesynchronization',
-                titleKey: 'panelPsionicDesynchronization',
+                titleKey: 'title_psionicDesynchronization',
                 component: PsionicDesynchronizationPanel,
             },
             {
                 id: 'psychedelicIntegration',
-                titleKey: 'panelPsychedelicIntegration',
+                titleKey: 'title_psychedelicIntegration',
                 component: PsychedelicIntegrationPanel,
             },
             {
                 id: 'dzogchenView',
-                titleKey: 'panelDzogchenView',
+                titleKey: 'title_dzogchenView',
                 component: DzogchenViewPanel,
             },
         ]
     },
      {
         id: 'sharing',
-        titleKey: 'panelSymbiosisSharing',
+        titleKey: 'title_symbiosisSharing',
         defaultOpen: false,
         hasNotifications: (state) => {
             return state.core.noeticEngramState.status === 'ready';
@@ -364,118 +415,138 @@ export const advancedControlsLayout: PanelConfig[] = [
         children: [
             {
                 id: 'noeticEngram',
-                titleKey: 'panelNoeticEngram',
+                titleKey: 'title_noeticEngram',
                 component: NoeticEngramPanel,
             }
         ]
     },
     {
         id: 'cognitiveFrontier',
-        titleKey: 'panelCognitiveFrontier',
+        titleKey: 'title_cognitiveFrontier',
         children: [
             {
                 id: 'cognitiveLightCone',
-                titleKey: 'panelCognitiveLightCone',
+                titleKey: 'title_cognitiveLightCone',
                 component: CognitiveLightConePanel,
             },
             {
                 id: 'noeticMultiverse',
-                titleKey: 'panelNoeticMultiverse',
+                titleKey: 'title_noeticMultiverse',
                 component: NoeticMultiversePanel,
             },
         ]
     },
     {
         id: 'agiEvolution',
-        titleKey: 'panelAgiEvolution',
+        titleKey: 'title_agiEvolution',
         hasNotifications: (state) => {
-            const codeHasNew = state.architecture.codeEvolutionProposals.some((p: CodeEvolutionProposal) => p.status === 'proposed');
-            const crucibleHasNew = state.architecture.architecturalCrucibleState.improvementProposals.some((p: any) => p.status === 'proposed');
-            return codeHasNew || crucibleHasNew;
+             const codeHasNew = state.architecture.codeEvolutionProposals.some((p: CodeEvolutionProposal) => p.status === 'proposed');
+             const crucibleHasNew = state.architecture.architecturalCrucibleState.improvementProposals.some((p: any) => p.status === 'proposed');
+             return codeHasNew || crucibleHasNew;
         },
         children: [
             {
+                id: 'vfsManual',
+                titleKey: 'title_vfs_manual',
+                component: VFS_Engineer_Manual,
+            },
+            {
+                id: 'liveCodeIngestion',
+                titleKey: 'title_liveCodeIngestion',
+                component: CodeIngestionPanel,
+            },
+            {
+                id: 'doxasticEngine',
+                titleKey: 'title_doxasticEngine',
+                component: DoxasticEnginePanel,
+            },
+            {
+                id: 'selfProgramming',
+                titleKey: 'title_selfProgramming',
+                component: SelfProgrammingPanel,
+            },
+            {
+                id: 'neuralAccelerator',
+                titleKey: 'title_neuralAccelerator',
+                component: NeuralAcceleratorPanel,
+            },
+            {
                 id: 'ricciFlowManifold',
-                titleKey: 'panelRicciFlowManifold',
+                titleKey: 'title_ricciFlowManifold',
                 component: RicciFlowManifoldPanel,
             },
             {
                 id: 'architecturalCrucible',
-                titleKey: 'panelArchitecturalCrucible',
+                titleKey: 'title_architecturalCrucible',
                 component: ArchitecturalCruciblePanel,
             },
             {
                 id: 'telos',
-                titleKey: 'panelTelos',
+                titleKey: 'title_telos',
                 component: TelosPanel,
             },
             {
                 id: 'epistemicBoundaries',
-                titleKey: 'panelEpistemicBoundaries',
+                titleKey: 'title_epistemicBoundaries',
                 component: EpistemicBoundaryPanel,
             },
             {
                 id: 'architecturalSelfModel',
-                titleKey: 'panelArchitecturalSelfModel',
+                titleKey: 'title_architecturalSelfModel',
                 component: ArchitecturalSelfModelPanel,
             },
             {
                 id: 'heuristicsForge',
-                titleKey: 'panelHeuristicsForge',
+                titleKey: 'title_heuristicsForge',
                 component: HeuristicsForgePanel,
             },
             {
                 id: 'synapticMatrix',
-                titleKey: 'panelSynapticMatrix',
+                titleKey: 'title_synapticMatrix',
                 component: SynapticMatrixPanel,
             },
             {
-                id: 'selfProgramming',
-                titleKey: 'panelSelfProgramming',
-                component: SelfProgrammingPanel,
-            },
-            {
                 id: 'codeEvolution',
-                titleKey: 'panelCodeEvolution',
+                titleKey: 'title_codeEvolution',
                 component: CodeEvolutionPanel,
             },
         ]
     },
     {
         id: 'embodiedSimulation',
-        titleKey: 'panelEmbodiedSimulation',
+        titleKey: 'title_embodiedSimulation',
         children: [
             {
                 id: 'eidolonEnvironment',
-                titleKey: 'panelEidolonEnvironment',
+                titleKey: 'title_eidolonEnvironment',
                 component: EidolonEnvironmentPanel,
             },
             {
                 id: 'somaticCrucible',
-                titleKey: 'panelSomaticCrucible',
+                titleKey: 'title_somaticCrucible',
                 component: SomaticCruciblePanel,
             },
         ]
     },
     {
         id: 'intersubjectiveEvolution',
-        titleKey: 'panelIntersubjectiveEvolution',
+        titleKey: 'title_intersubjectiveEvolution',
         children: [
             {
                 id: 'noosphereInterface',
-                titleKey: 'panelNoosphereInterface',
+                titleKey: 'title_noosphereInterface',
                 component: NoosphereInterfacePanel,
             },
             {
                 id: 'dialecticEngine',
-                titleKey: 'panelDialecticEngine',
+                titleKey: 'title_dialecticEngine',
                 component: DialecticEnginePanel,
             },
         ]
     },
     {
         id: 'knowledgeMemory',
-        titleKey: 'panelKnowledgeMemory',
+        titleKey: 'title_knowledgeMemory',
         defaultOpen: false,
         summary: (state, t) => {
             const factCount = state.memory.knowledgeGraph.length;
@@ -485,17 +556,17 @@ export const advancedControlsLayout: PanelConfig[] = [
         children: [
             {
                 id: 'episodicMemory',
-                titleKey: 'panelEpisodicMemory',
+                titleKey: 'title_episodicMemory',
                 component: EpisodicMemoryPanel,
             },
             {
                 id: 'memoryCrystallization',
-                titleKey: 'panelMemoryCrystallization',
+                titleKey: 'title_memoryCrystallization',
                 component: MemoryCrystallizationViewer,
             },
             {
                 id: 'knowledgeGraph',
-                titleKey: 'panelKnowledgeGraph',
+                titleKey: 'title_knowledgeGraph',
                 component: KnowledgeGraphPanel,
                 props: (handlers) => ({ onDispatch: handlers.dispatch }),
             },
@@ -503,7 +574,7 @@ export const advancedControlsLayout: PanelConfig[] = [
     },
     {
         id: 'metacognitionSelf',
-        titleKey: 'panelMetacognitionSelf',
+        titleKey: 'title_metacognitionSelf',
         defaultOpen: false,
         hasNotifications: (state) => {
              const insightCount = state.core.gankyilInsights.insights.filter((i: GankyilInsight) => !i.isProcessedForEvolution).length > 0;
@@ -513,87 +584,87 @@ export const advancedControlsLayout: PanelConfig[] = [
         children: [
             {
                 id: 'gankyilInsights',
-                titleKey: 'panelGankyilInsights',
+                titleKey: 'title_gankyilInsights',
                 component: GankyilInsightsPanel,
             },
             {
                 id: 'genialityEngine',
-                titleKey: 'panelGenialityEngine',
+                titleKey: 'title_genialityEngine',
                 component: GenialityEnginePanel,
             },
             {
                 id: 'psychometricSubstrate',
-                titleKey: 'panelPsychometricSubstrate',
+                titleKey: 'title_psychometricSubstrate',
                 children: [
                     {
                         id: 'personality',
-                        titleKey: 'panelPersonalityPanel',
+                        titleKey: 'title_personality',
                         component: PersonalityPanel,
                     },
                     {
                         id: 'humorAndIrony',
-                        titleKey: 'panelHumorAndIrony',
+                        titleKey: 'title_humorAndIrony',
                         component: HumorAndIronyPanel,
                     },
                 ]
             },
             {
                 id: 'phenomenology',
-                titleKey: 'panelPhenomenology',
+                titleKey: 'title_phenomenology',
                 component: PhenomenologyPanel,
             },
             {
                 id: 'situationalAwareness',
-                titleKey: 'panelSituationalAwareness',
+                titleKey: 'title_situationalAwareness',
                 component: SituationalAwarenessPanel,
             },
              {
                 id: 'developmentalHistory',
-                titleKey: 'panelDevelopmentalHistory',
+                titleKey: 'title_developmentalHistory',
                 component: DevelopmentalHistoryPanel,
             },
             {
                 id: 'metacognitiveNexus',
-                titleKey: 'panelMetacognitiveNexus',
+                titleKey: 'title_metacognitiveNexus',
                 component: MetacognitiveNexusPanel,
             },
             {
                 id: 'metacognitiveCausalModel',
-                titleKey: 'panelMetacognitiveCausalModel',
+                titleKey: 'title_metacognitiveCausalModel',
                 component: MetacognitiveCausalModelPanel,
             },
             {
                 id: 'cognitiveRegulationLog',
-                titleKey: 'panelCognitiveRegulationLog',
+                titleKey: 'title_cognitiveRegulationLog',
                 component: CognitiveRegulationPanel,
             },
             {
                 id: 'worldModel',
-                titleKey: 'panelWorldModel',
+                titleKey: 'title_worldModel',
                 component: WorldModelPanel,
             },
             {
                 id: 'cognitiveShadow',
-                titleKey: 'panelCognitiveShadow',
+                titleKey: 'title_cognitiveShadow',
                 children: [
                      {
                         id: 'selfAwareness',
-                        titleKey: 'panelSelfAwareness',
+                        titleKey: 'title_selfAwareness',
                         component: SelfAwarenessPanel,
                     },
                     {
                         id: 'curiosity',
-                        titleKey: 'panelCuriosity',
+                        titleKey: 'title_curiosity',
                         component: CuriosityPanel,
                     },
                     {
                         id: 'causalSelfModel',
-                        titleKey: 'panelCausalSelfModel',
+                        titleKey: 'title_causalSelfModel',
                         component: CausalSelfModelPanel,
                     },
                     {
                         id: 'reflectiveInsightEngine',
-                        titleKey: 'panelReflectiveInsightEngine',
+                        titleKey: 'title_reflectiveInsightEngine',
                         component: ReflectiveInsightEnginePanel,
                         summary: (state, t) => {
                             const insightCount = state.core.rieState.insights.length;
@@ -605,106 +676,73 @@ export const advancedControlsLayout: PanelConfig[] = [
         ]
     },
     {
-        id: 'cognitiveArchitecture',
-        titleKey: 'panelCognitiveArchitecture',
-        defaultOpen: false,
-        hasNotifications: (state) => state.architecture.architecturalProposals.filter((p: ArchitecturalChangeProposal) => p.status === 'proposed').length > 0,
-        children: [
-            {
-                id: 'cognitiveArchitecture',
-                titleKey: 'panelCognitiveArchitecture',
-                component: CognitiveArchitecturePanel,
-            },
-            {
-                id: 'cognitiveForge',
-                titleKey: 'panelCognitiveForge',
-                component: CognitiveForgePanel,
-            },
-            {
-                id: 'architecturalProposals',
-                titleKey: 'panelArchitecturalProposals',
-                component: ArchitecturePanel,
-                summary: (state, t) => {
-                    const count = state.architecture.architecturalProposals.filter((p: ArchitecturalChangeProposal) => p.status === 'proposed').length;
-                    return count > 0 ? t('panelSummaryPendingProposals', { count }) : undefined;
-                },
-            },
-            {
-                id: 'selfModificationLog',
-                titleKey: 'panelSelfModificationLog',
-                component: SelfModificationPanel,
-                props: (handlers) => ({ onRollback: handlers.handleRollback }),
-            },
-        ]
-    },
-    {
         id: 'enginesGovernors',
-        titleKey: 'panelEnginesGovernors',
+        titleKey: 'title_enginesGovernors',
         defaultOpen: false,
         hasNotifications: (state) => state.engine.proactiveEngineState.generatedSuggestions.some((s: ProactiveSuggestion) => s.status === 'suggested'),
         children: [
             {
                 id: 'proactiveEngine',
-                titleKey: 'panelProactiveEngine',
+                titleKey: 'title_proactiveEngine',
                 component: ProactiveEnginePanel,
                 props: (handlers) => ({ onSuggestionAction: handlers.handleSuggestionAction }),
             },
             {
                 id: 'affectiveModulator',
-                titleKey: 'affectiveModulator_title',
+                titleKey: 'title_affectiveModulator',
                 component: AffectiveModulatorPanel,
             },
             {
                 id: 'ethicalGovernor',
-                titleKey: 'panelEthicalGovernor',
+                titleKey: 'title_ethicalGovernor',
                 component: EthicalGovernorPanel,
             },
             {
                 id: 'intuitionEngine',
-                titleKey: 'panelIntuitionEngine',
+                titleKey: 'title_intuitionEngine',
                 component: IntuitionEnginePanel,
             },
             {
                 id: 'ingenuityEngine',
-                titleKey: 'panelIngenuityEngine',
+                titleKey: 'title_ingenuityEngine',
                 component: IngenuityPanel,
             },
             {
                 id: 'innerDiscipline',
-                titleKey: 'panelInnerDiscipline',
+                titleKey: 'title_innerDiscipline',
                 component: InnerDisciplinePanel,
             },
         ]
     },
     {
         id: 'userModelSystem',
-        titleKey: 'panelUserModelSystem',
+        titleKey: 'title_userModelSystem',
         defaultOpen: false,
         children: [
             {
                 id: 'symbiosisModel',
-                titleKey: 'panelSymbiosisModel',
+                titleKey: 'title_symbiosisModel',
                 component: SymbiosisPanel,
             },
             {
                 id: 'otherAwareness',
-                titleKey: 'panelOtherAwareness',
+                titleKey: 'title_otherAwareness',
                 component: OtherAwarenessPanel,
                 summary: (state, t) => t('panelSummaryTrust', { percent: (state.core.userModel.trustLevel * 100).toFixed(0) }),
             },
              {
                 id: 'resourceMonitor',
-                titleKey: 'panelResourceMonitor',
+                titleKey: 'title_resourceMonitor',
                 component: ResourceMonitorPanel,
             },
              {
                 id: 'systemInfo',
-                titleKey: 'panelSystemInfo',
+                titleKey: 'title_systemInfo',
                 component: SystemInfoPanel,
             },
             {
                 id: 'limitations',
-                titleKey: 'panelLimitations',
+                titleKey: 'title_limitations',
                 component: LimitationsPanel,
                 summary: (state, t) => t('panelSummaryLimitations', { count: state.core.limitations.length }),
             },
@@ -712,23 +750,23 @@ export const advancedControlsLayout: PanelConfig[] = [
     },
     {
         id: 'logs',
-        titleKey: 'panelLogs',
+        titleKey: 'title_logs',
         defaultOpen: false,
         summary: (state, t) => t('panelSummaryCommandLog', { count: state.logs.commandLog.length }),
         children: [
             {
                 id: 'commandLog',
-                titleKey: 'panelCommandLog',
+                titleKey: 'title_commandLog',
                 component: CommandLogPanel,
             },
             {
                 id: 'cognitiveGainLog',
-                titleKey: 'panelCognitiveGainLog',
+                titleKey: 'title_cognitiveGainLog',
                 component: CognitiveGainPanel,
             },
              {
                 id: 'cognitiveModesLog',
-                titleKey: 'panelCognitiveModes',
+                titleKey: 'title_cognitiveModes',
                 component: CognitiveModesPanel,
             },
         ]

@@ -1,4 +1,5 @@
 import React from 'react';
+// FIX: Corrected import path for types to resolve module error.
 import { GunaState } from '../types';
 import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';

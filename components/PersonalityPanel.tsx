@@ -2,7 +2,14 @@ import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
 import { PersonalityState, Persona } from '../types';
 
-const TraitBar = ({ label, value, color }: { label: string, value: number, color: string }) => {
+interface TraitBarProps {
+    label: string;
+    value: number;
+    color: string;
+}
+
+// FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list, resolving type errors.
+const TraitBar = React.memo(({ label, value, color }: TraitBarProps) => {
     // Convert value from [-1, 1] to [0, 100] for the bar width
     const isNegative = value < 0;
     
@@ -27,7 +34,7 @@ const TraitBar = ({ label, value, color }: { label: string, value: number, color
             <span>{value.toFixed(2)}</span>
         </div>
     );
-};
+});
 
 export const PersonalityPanel = React.memo(() => {
     const { personalityState } = useCoreState();

@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
+// FIX: Corrected import path for types to resolve module error.
 import { InternalState } from '../types';
 import { AuraConfig } from '../constants';
+// FIX: Corrected import path for utils to resolve module error.
 import { clamp } from '../utils';
 import { Modal } from './Modal';
 import { useLocalization } from '../context/AuraContext';

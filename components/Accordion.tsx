@@ -1,7 +1,16 @@
 
 import React, { useState, useId } from 'react';
 
-export const Accordion = ({ title, children, defaultOpen = false, summary, hasNotifications = false }: { title: string, children: React.ReactNode, defaultOpen?: boolean, summary?: string, hasNotifications?: boolean }) => {
+interface AccordionProps {
+    title: string;
+    children?: React.ReactNode;
+    defaultOpen?: boolean;
+    summary?: string;
+    hasNotifications?: boolean;
+}
+
+// FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list, resolving type errors in consuming components.
+export const Accordion = React.memo(({ title, children, defaultOpen = false, summary, hasNotifications = false }: AccordionProps) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const contentId = useId();
     return (
@@ -34,4 +43,4 @@ export const Accordion = ({ title, children, defaultOpen = false, summary, hasNo
             </div>
         </div>
     );
-};
+});

@@ -1,11 +1,13 @@
 
+
 import React, { useEffect, useRef } from 'react';
 
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
-    children: React.ReactNode;
+    // FIX: Made children prop optional to resolve errors in components using Modal without explicit children.
+    children?: React.ReactNode;
     footer?: React.ReactNode;
     className?: string;
 }
@@ -23,7 +25,8 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
             );
             
             if (focusableElements && focusableElements.length > 0) {
-                focusableElements[0].focus();
+                // FIX: Cast to HTMLElement to ensure .focus() is available.
+                (focusableElements[0] as HTMLElement).focus();
             }
 
             const handleKeyDown = (event: KeyboardEvent) => {
@@ -31,9 +34,10 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
                     onClose();
                 }
                 if (event.key === 'Tab' && modalRef.current) {
-                    const focusable = Array.from(modalRef.current.querySelectorAll<HTMLElement>(
+                    // FIX: Cast querySelectorAll result to HTMLElement array to fix type errors on el.offsetParent.
+                    const focusable = (Array.from(modalRef.current.querySelectorAll<HTMLElement>(
                         `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
-                    )).filter(el => el.offsetParent !== null);
+                    )) as HTMLElement[]).filter(el => el.offsetParent !== null);
                     
                     if (focusable.length === 0) return;
 
@@ -42,12 +46,14 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
                     
                     if (event.shiftKey) { // Shift + Tab
                         if (document.activeElement === firstElement) {
-                            lastElement.focus();
+                            // FIX: Cast lastElement to HTMLElement to ensure .focus() is available.
+                            (lastElement as HTMLElement).focus();
                             event.preventDefault();
                         }
                     } else { // Tab
                         if (document.activeElement === lastElement) {
-                            firstElement.focus();
+                            // FIX: Cast firstElement to HTMLElement to ensure .focus() is available.
+                            (firstElement as HTMLElement).focus();
                             event.preventDefault();
                         }
                     }

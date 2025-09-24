@@ -1,3 +1,5 @@
+
+
 import React, { useMemo } from 'react';
 import { useArchitectureState, useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
@@ -11,15 +13,18 @@ type UnifiedProposal =
     | (ArchitecturalImprovementProposal & { type: 'crucible' })
     | (CausalInferenceProposal & { type: 'causal_inference' });
 
-const ProposalCard = ({ proposal, onReview, onDismissCode, onImplement, onCopy, onImplementCausal, onDismissCausal }: { 
-    proposal: UnifiedProposal, 
-    onReview: (p: ArchitecturalChangeProposal) => void, 
-    onDismissCode: (id: string) => void, 
-    onImplement: (p: GenialityImprovementProposal | ArchitecturalImprovementProposal) => void, 
-    onCopy: (code: string) => void,
-    onImplementCausal: (p: CausalInferenceProposal) => void,
-    onDismissCausal: (id: string) => void,
-}) => {
+interface ProposalCardProps {
+    proposal: UnifiedProposal;
+    onReview: (p: ArchitecturalChangeProposal) => void;
+    onDismissCode: (id: string) => void;
+    onImplement: (p: GenialityImprovementProposal | ArchitecturalImprovementProposal) => void;
+    onCopy: (code: string) => void;
+    onImplementCausal: (p: CausalInferenceProposal) => void;
+    onDismissCausal: (id: string) => void;
+}
+
+// FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list, resolving type errors.
+const ProposalCard = React.memo(({ proposal, onReview, onDismissCode, onImplement, onCopy, onImplementCausal, onDismissCausal }: ProposalCardProps) => {
     const { t } = useLocalization();
 
     const getTitleAndReasoning = () => {
@@ -83,7 +88,7 @@ const ProposalCard = ({ proposal, onReview, onDismissCode, onImplement, onCopy, 
             </div>
         </div>
     );
-};
+});
 
 
 export const InboxPanel = () => {

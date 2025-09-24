@@ -1,9 +1,6 @@
-
-
-
-
 import React, { useMemo, ReactNode } from 'react';
-import { useAura } from './hooks/useAura';
+// FIX: Corrected import path for useAura hook.
+import { useAura } from './hooks';
 import { ToastContainer, LeftColumnComponent, ControlDeckComponent, Header } from './components';
 import { 
     AuraDispatchContext, 
@@ -38,7 +35,8 @@ const MainLayout = () => {
 // This component is responsible for setting up all the granular state context providers.
 // It subscribes to the main state from AuraDispatchContext and splits it into slices.
 // This prevents components from re-rendering due to changes in unrelated state slices.
-const StateProviders = ({ children }: { children: ReactNode }) => {
+// FIX: Made children prop optional to resolve "Property 'children' is missing" error.
+const StateProviders = ({ children }: { children?: ReactNode }) => {
     const { state } = useAuraDispatch();
 
     const coreStateValue = useMemo(() => ({
@@ -76,7 +74,11 @@ const StateProviders = ({ children }: { children: ReactNode }) => {
         psychedelicIntegrationState: state.psychedelicIntegrationState, 
         affectiveModulatorState: state.affectiveModulatorState, 
         psionicDesynchronizationState: state.psionicDesynchronizationState,
-        satoriState: state.satoriState
+        satoriState: state.satoriState,
+        doxasticEngineState: state.doxasticEngineState,
+        qualiaSignalProcessorState: state.qualiaSignalProcessorState,
+        sensoryIntegration: state.sensoryIntegration,
+        narrativeSummary: state.narrativeSummary,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -86,7 +88,8 @@ const StateProviders = ({ children }: { children: ReactNode }) => {
         state.situationalAwareness, state.symbioticState, state.humorAndIronyState, state.personalityState,
         state.gankyilInsights, state.noeticEngramState, state.genialityEngineState, state.noeticMultiverse,
         state.selfAdaptationState, state.psychedelicIntegrationState,
-        state.affectiveModulatorState, state.psionicDesynchronizationState, state.satoriState
+        state.affectiveModulatorState, state.psionicDesynchronizationState, state.satoriState,
+        state.doxasticEngineState, state.qualiaSignalProcessorState, state.sensoryIntegration, state.narrativeSummary
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -114,13 +117,14 @@ const StateProviders = ({ children }: { children: ReactNode }) => {
         // FIX: Added missing 'selfProgrammingState' property to the object.
         selfProgrammingState: state.selfProgrammingState,
         causalInferenceProposals: state.causalInferenceProposals,
+        neuralAcceleratorState: state.neuralAcceleratorState,
     }), [
         state.cognitiveArchitecture, state.architecturalProposals, state.codeEvolutionProposals,
         state.systemSnapshots, state.modificationLog, state.cognitiveForgeState, 
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
         state.architecturalCrucibleState, state.synapticMatrix, state.ricciFlowManifoldState,
         state.selfProgrammingState,
-        state.causalInferenceProposals
+        state.causalInferenceProposals, state.neuralAcceleratorState
     ]);
 
     const planningStateValue = useMemo(() => ({
@@ -162,17 +166,17 @@ const StateProviders = ({ children }: { children: ReactNode }) => {
     return (
         <CoreStateContext.Provider value={coreStateValue}>
             <MemoryStateContext.Provider value={memoryStateValue}>
-            <ArchitectureStateContext.Provider value={architectureStateValue}>
-            <PlanningStateContext.Provider value={planningStateValue}>
-            <EngineStateContext.Provider value={engineStateValue}>
-            <LogsStateContext.Provider value={logsStateValue}>
-            <SystemStateContext.Provider value={systemStateValue}>
-                {children}
-            </SystemStateContext.Provider>
-            </LogsStateContext.Provider>
-            </EngineStateContext.Provider>
-            </PlanningStateContext.Provider>
-            </ArchitectureStateContext.Provider>
+                <ArchitectureStateContext.Provider value={architectureStateValue}>
+                    <PlanningStateContext.Provider value={planningStateValue}>
+                        <EngineStateContext.Provider value={engineStateValue}>
+                            <LogsStateContext.Provider value={logsStateValue}>
+                                <SystemStateContext.Provider value={systemStateValue}>
+                                    {children}
+                                </SystemStateContext.Provider>
+                            </LogsStateContext.Provider>
+                        </EngineStateContext.Provider>
+                    </PlanningStateContext.Provider>
+                </ArchitectureStateContext.Provider>
             </MemoryStateContext.Provider>
         </CoreStateContext.Provider>
     );

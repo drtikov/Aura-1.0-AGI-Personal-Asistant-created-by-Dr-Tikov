@@ -1,3 +1,5 @@
+
+
 import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
 import { CausalChainModal } from '../components/CausalChainModal';
 import { ProposalReviewModal } from '../components/ProposalReviewModal';
@@ -9,8 +11,10 @@ import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal
 import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal';
 import { BrainstormModal } from '../components/BrainstormModal';
 import { ImageGenerationModal } from '../components/ImageGenerationModal';
+import { ImageEditingModal } from '../components/ImageEditingModal';
 import { VideoGenerationModal } from '../components/VideoGenerationModal';
 import { AdvancedControlsModal } from '../components/AdvancedControlsModal';
+import { MusicGenerationModal } from '../components/MusicGenerationModal';
 import { useAuraDispatch } from './AuraContext';
 import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types';
 
@@ -25,8 +29,10 @@ type ModalType =
     | 'multiverseBranching'
     | 'brainstorm'
     | 'imageGeneration'
+    | 'imageEditing'
     | 'videoGeneration'
-    | 'advancedControls';
+    | 'advancedControls'
+    | 'musicGeneration';
 
 interface ModalContextType {
     open: <T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => void;
@@ -35,7 +41,8 @@ interface ModalContextType {
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
-export const ModalProvider = ({ children }: { children: ReactNode }) => {
+// FIX: Made children prop optional to resolve "Property 'children' is missing" error.
+export const ModalProvider = ({ children }: { children?: ReactNode }) => {
     const [modal, setModal] = useState<{ type: ModalType; payload: any } | null>(null);
     const { 
         approveProposal, rejectProposal, handleWhatIf, 
@@ -121,12 +128,21 @@ export const ModalProvider = ({ children }: { children: ReactNode }) => {
                 onClose={close}
                 initialPrompt={modal?.type === 'imageGeneration' ? modal.payload.initialPrompt : undefined}
             />
+            <ImageEditingModal
+                isOpen={modal?.type === 'imageEditing'}
+                onClose={close}
+                initialImage={modal?.type === 'imageEditing' ? modal.payload.initialImage : undefined}
+            />
             <VideoGenerationModal
                 isOpen={modal?.type === 'videoGeneration'}
                 onClose={close}
             />
             <AdvancedControlsModal
                 isOpen={modal?.type === 'advancedControls'}
+                onClose={close}
+            />
+            <MusicGenerationModal
+                isOpen={modal?.type === 'musicGeneration'}
                 onClose={close}
             />
         </ModalContext.Provider>

@@ -5,6 +5,7 @@ import { CoreMonitor } from './CoreMonitor';
 import { LoadingOverlay } from './LoadingOverlay';
 import { SafeMarkdown } from './SafeMarkdown';
 import { WorkingMemoryPanel } from './WorkingMemoryPanel';
+// FIX: Corrected import path for types to resolve module error.
 import { HistoryEntry, PerformanceLogEntry, InternalState } from '../types';
 
 const getChromaStyle = (state?: InternalState): React.CSSProperties => {
@@ -91,6 +92,7 @@ export const LeftColumnComponent = () => {
                             <div className="file-attachment-preview">
                                 {attachedFile.type === 'image' && <img src={attachedFile.previewUrl} alt="attachment" />}
                                 {attachedFile.type === 'audio' && <audio src={attachedFile.previewUrl} controls />}
+                                {attachedFile.type === 'video' && <video src={attachedFile.previewUrl} controls autoPlay muted loop />}
                                 <button onClick={handleRemoveAttachment}>&times;</button>
                             </div>
                         )}

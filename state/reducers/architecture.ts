@@ -1,415 +1,301 @@
 // state/reducers/architecture.ts
-import { AuraState, Action, ArchitecturalChangeProposal, SelfModificationLogEntry, Milestone, PossibleFutureSelf, SomaticSimulationLog, ArchitecturalImprovementProposal, RicciFlowManifoldState, SynapticLink } from '../../types';
-import { clamp } from '../../utils';
+import { AuraState, Action, ModificationLogEntry, ArchitecturalChangeProposal, CodeEvolutionProposal, CausalInferenceProposal, CreateFileCandidate, ModifyFileCandidate, SelfProgrammingCandidate } from '../../types';
 
 export const architectureReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     switch (action.type) {
-        case 'UPDATE_ARCH_PROPOSAL_STATUS':
-             return {
-                ...state,
-                architecturalProposals: state.architecturalProposals.map(p => p.id === action.payload.id ? { ...p, status: action.payload.status } : p)
+        case 'ADD_ARCH_PROPOSAL': {
+            const newProposal: ArchitecturalChangeProposal = {
+                ...action.payload.proposal,
+                id: self.crypto.randomUUID(),
+                status: 'proposed',
             };
+            return { architecturalProposals: [...state.architecturalProposals, newProposal] };
+        }
+
+        case 'UPDATE_ARCH_PROPOSAL_STATUS': {
+            return {
+                architecturalProposals: state.architecturalProposals.map(p =>
+                    p.id === action.payload.id ? { ...p, status: action.payload.status } : p
+                ),
+            };
+        }
         
         case 'APPLY_ARCH_PROPOSAL': {
-            const { proposal, snapshotId, modLogId, isAutonomous = false } = action.payload;
-            const newSnapshot = { id: snapshotId, timestamp: Date.now(), reason: `Pre-update for ${proposal.action}`, state: state };
-            const newModLog: SelfModificationLogEntry = {
+            const { proposal, snapshotId, modLogId, isAutonomous } = action.payload;
+            const newLog: ModificationLogEntry = {
                 id: modLogId,
                 timestamp: Date.now(),
                 description: `Applied proposal: ${proposal.action} on ${proposal.target}`,
-                gainType: 'ARCHITECTURAL_EVOLUTION',
-                validationStatus: 'pending',
+                gainType: 'INNOVATION', 
+                validationStatus: 'validated',
                 isAutonomous,
             };
-            const newMilestone: Milestone = {
-                id: self.crypto.randomUUID(),
-                timestamp: Date.now(),
-                title: isAutonomous ? 'Autonomous Self-Modification' : 'User-Approved Evolution',
-                description: `A new skill or modification was integrated: ${proposal.action.replace(/_/g, ' ')} on ${proposal.target}. Reason: ${proposal.reasoning}`,
-            };
-            
-            let nextCognitiveForgeState = { ...state.cognitiveForgeState };
-            
-            switch (proposal.action) {
-                case 'synthesize_skill':
-                case 'MERGE_SKILLS':
-                case 'REFACTOR_SKILL':
-                case 'TUNE_SKILL':
-                    break;
-                case 'DEPRECATE_SKILL':
-                    const targetSkillId = proposal.target as string;
-                    nextCognitiveForgeState.synthesizedSkills = state.cognitiveForgeState.synthesizedSkills.map(s => 
-                        s.name === targetSkillId ? { ...s, status: 'deprecated' } : s
-                    );
-                    break;
-            }
-
-             return {
+            return {
                 ...state,
-                architecturalProposals: state.architecturalProposals.map(p => p.id === proposal.id ? { ...p, status: 'approved' } : p),
-                systemSnapshots: [newSnapshot, ...state.systemSnapshots],
-                modificationLog: [newModLog, ...state.modificationLog],
-                cognitiveForgeState: nextCognitiveForgeState,
-                developmentalHistory: {
-                    ...state.developmentalHistory,
-                    milestones: [newMilestone, ...state.developmentalHistory.milestones],
-                }
+                architecturalProposals: state.architecturalProposals.map(p =>
+                    p.id === proposal.id ? { ...p, status: 'approved' } : p
+                ),
+                modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+                systemSnapshots: [
+                    ...state.systemSnapshots,
+                    { id: snapshotId, timestamp: Date.now(), reason: `Pre-apply: ${proposal.action}`, state }
+                ].slice(-10),
             };
         }
 
-        case 'TOGGLE_COGNITIVE_FORGE_PAUSE':
+        case 'ADD_CODE_EVOLUTION_PROPOSAL': {
+            const newProposal: CodeEvolutionProposal = {
+                ...action.payload,
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                status: 'proposed',
+            };
+            return { codeEvolutionProposals: [newProposal, ...state.codeEvolutionProposals] };
+        }
+
+        case 'UPDATE_CODE_EVOLUTION_PROPOSAL_STATUS': {
+             return {
+                codeEvolutionProposals: state.codeEvolutionProposals.map(p =>
+                    p.id === action.payload.id ? { ...p, status: action.payload.status } : p
+                ),
+            };
+        }
+        
+        case 'ADD_SYSTEM_SNAPSHOT': {
             return {
-                ...state,
+                systemSnapshots: [...state.systemSnapshots, action.payload].slice(-10)
+            };
+        }
+
+        case 'TOGGLE_COGNITIVE_FORGE_PAUSE': {
+            return {
                 cognitiveForgeState: {
                     ...state.cognitiveForgeState,
                     isTuningPaused: !state.cognitiveForgeState.isTuningPaused,
                 }
             };
+        }
         
         case 'ADD_SYNTHESIZED_SKILL': {
-            const nextState: Partial<AuraState> = {
-                cognitiveForgeState: {
-                    ...state.cognitiveForgeState,
-                    synthesizedSkills: [...state.cognitiveForgeState.synthesizedSkills, action.payload.skill],
-                }
-            };
-            
-            if (action.payload.directiveId) {
-                nextState.metacognitiveNexus = {
-                    ...state.metacognitiveNexus,
-                    selfTuningDirectives: state.metacognitiveNexus.selfTuningDirectives.map(d =>
-                        d.id === action.payload.directiveId ? { ...d, status: 'simulating' } : d
-                    )
-                };
-            }
-
-            if (action.payload.goalId) {
-                nextState.metacognitiveNexus = {
-                    ...(nextState.metacognitiveNexus || state.metacognitiveNexus),
-                    evolutionaryGoals: state.metacognitiveNexus.evolutionaryGoals.map(g =>
-                        g.id === action.payload.goalId ? { ...g, status: 'simulating' } : g
-                    )
-                };
-            }
-            return nextState;
-        }
-
-        case 'ADD_ARCH_PROPOSAL': {
-            const newProposal: ArchitecturalChangeProposal = {
-                ...action.payload.proposal,
-                id: self.crypto.randomUUID(),
-                timestamp: Date.now(),
-                status: 'proposed',
-            };
-
-            const nextState: Partial<AuraState> = {
-                architecturalProposals: [...state.architecturalProposals, newProposal]
-            };
-
-            if (action.payload.goalId) {
-                nextState.metacognitiveNexus = {
-                    ...state.metacognitiveNexus,
-                    evolutionaryGoals: state.metacognitiveNexus.evolutionaryGoals.map(g =>
-                        g.id === action.payload.goalId ? { ...g, status: 'proposal_ready' } : g
-                    ),
-                };
-            }
-            
-            return nextState;
-        }
-
-        case 'UPDATE_SKILL_TEMPLATE': {
-            const { skillId, updates } = action.payload;
-            const currentTemplate = state.cognitiveForgeState.skillTemplates[skillId];
-            if (!currentTemplate) return {};
-
-            return {
-                ...state,
-                cognitiveForgeState: {
-                    ...state.cognitiveForgeState,
-                    skillTemplates: {
-                        ...state.cognitiveForgeState.skillTemplates,
-                        [skillId]: {
-                            ...currentTemplate,
-                            ...updates,
-                            parameters: { ...currentTemplate.parameters, ...updates.parameters },
-                            metadata: { ...currentTemplate.metadata, ...updates.metadata, version: currentTemplate.metadata.version + 0.1 },
-                        },
-                    },
-                },
-            };
-        }
-
-        case 'GENERATE_BLUEPRINT':
-            return {
-                somaticCrucible: {
-                    ...state.somaticCrucible,
-                    possibleFutureSelves: [...state.somaticCrucible.possibleFutureSelves, action.payload]
-                }
-            };
-
-        case 'ADD_SOMATIC_SIMULATION_LOG':
              return {
-                somaticCrucible: {
-                    ...state.somaticCrucible,
-                    simulationLogs: [action.payload, ...state.somaticCrucible.simulationLogs].slice(0, 50),
+                cognitiveForgeState: {
+                    ...state.cognitiveForgeState,
+                    synthesizedSkills: [...state.cognitiveForgeState.synthesizedSkills, action.payload]
                 }
             };
-        
-        case 'LOG_EIDOLON_INTERACTION':
-            return {
-                eidolonEngine: {
-                    ...state.eidolonEngine,
-                    interactionLog: [action.payload, ...state.eidolonEngine.interactionLog].slice(0, 100)
-                }
-            };
+        }
 
-        case 'UPDATE_ARCHITECTURAL_SELF_MODEL':
+        case 'UPDATE_SYNTHESIZED_SKILL': {
             return {
-                architecturalSelfModel: action.payload
-            };
-
-        case 'ADD_DESIGN_HEURISTIC':
-            return {
-                heuristicsForge: {
-                    ...state.heuristicsForge,
-                    designHeuristics: [action.payload, ...state.heuristicsForge.designHeuristics].slice(0, 50),
+                cognitiveForgeState: {
+                    ...state.cognitiveForgeState,
+                    synthesizedSkills: state.cognitiveForgeState.synthesizedSkills.map(s =>
+                        s.id === action.payload.id ? { ...s, ...action.payload.updates } : s
+                    )
                 }
             };
-        
-        case 'ADD_CODE_EVOLUTION_PROPOSAL':
-            return {
-                codeEvolutionProposals: [action.payload, ...state.codeEvolutionProposals]
-            };
-        
-        case 'DISMISS_CODE_EVOLUTION_PROPOSAL':
-            return {
-                codeEvolutionProposals: state.codeEvolutionProposals.map(p => 
-                    p.id === action.payload ? { ...p, status: 'dismissed' } : p
-                )
-            };
-        
+        }
+
         case 'UPDATE_ARCHITECTURAL_CRUCIBLE_STATE':
-            return {
-                architecturalCrucibleState: action.payload
-            };
+            return { architecturalCrucibleState: action.payload };
 
-        case 'ADD_ARCHITECTURAL_CRUCIBLE_PROPOSAL':
-            const newCrucibleProposal: ArchitecturalImprovementProposal = {
-                ...action.payload,
-                id: self.crypto.randomUUID(),
-                timestamp: Date.now(),
-                status: 'proposed'
-            };
+        case 'ADD_CRUCIBLE_IMPROVEMENT_PROPOSAL':
             return {
                 architecturalCrucibleState: {
                     ...state.architecturalCrucibleState,
-                    improvementProposals: [newCrucibleProposal, ...state.architecturalCrucibleState.improvementProposals].slice(0, 10)
+                    improvementProposals: [action.payload, ...state.architecturalCrucibleState.improvementProposals]
                 }
             };
         
-        case 'UPDATE_ARCHITECTURAL_CRUCIBLE_PROPOSAL_STATUS':
-             return {
-                architecturalCrucibleState: {
-                    ...state.architecturalCrucibleState,
-                    improvementProposals: state.architecturalCrucibleState.improvementProposals.map(p =>
-                        p.id === action.payload.id ? { ...p, status: action.payload.status } : p
-                    )
-                }
-            };
+        case 'UPDATE_SYNAPTIC_MATRIX':
+            return { synapticMatrix: action.payload };
 
-        case 'ADD_CAUSAL_INFERENCE_PROPOSAL':
-            return {
-                causalInferenceProposals: [action.payload, ...state.causalInferenceProposals].slice(0, 10)
-            };
-
-        case 'UPDATE_CAUSAL_INFERENCE_PROPOSAL_STATUS':
-            return {
-                causalInferenceProposals: state.causalInferenceProposals.map(p =>
-                    p.id === action.payload.id ? { ...p, status: action.payload.status } : p
-                )
-            };
-
-        case 'UPDATE_MODIFICATION_LOG_STATUS':
-            return {
-                modificationLog: state.modificationLog.map(log =>
-                    log.id === action.payload.id
-                        ? { ...log, validationStatus: action.payload.status, validationReasoning: action.payload.reasoning }
-                        : log
-                )
-            };
-
-        case 'UPDATE_SYNAPTIC_MATRIX': {
-            return {
+        case 'PRUNE_SYNAPTIC_MATRIX':
+            // A more complex implementation would go here
+            return { 
                 synapticMatrix: {
                     ...state.synapticMatrix,
-                    ...action.payload,
-                }
-            };
-        }
-
-        case 'PRUNE_SYNAPTIC_MATRIX': {
-            const { threshold } = action.payload;
-            const oldLinks = state.synapticMatrix.links;
-            const newLinks: { [key: string]: SynapticLink } = {};
-            let prunedCount = 0;
-    
-            Object.entries(oldLinks).forEach(([key, link]) => {
-                if (link.weight * link.confidence > threshold) {
-                    newLinks[key] = link;
-                } else {
-                    prunedCount++;
-                }
-            });
-            
-            const newActivity = {
-                timestamp: Date.now(),
-                message: `Crucible Pruning: Removed ${prunedCount} weak synapses.`
-            };
-    
-            return {
-                synapticMatrix: {
-                    ...state.synapticMatrix,
-                    links: newLinks,
-                    synapseCount: Object.keys(newLinks).length,
-                    lastPruningEvent: Date.now(),
-                    recentActivity: [newActivity, ...state.synapticMatrix.recentActivity].slice(0, 10),
-                }
-            };
-        }
-
-        case 'UPDATE_SYNAPTIC_LINK_FROM_LLM': {
-            const { sourceNode, targetNode, action: linkAction, causalityDirection, reasoning } = action.payload;
-            if (!state.synapticMatrix.nodes[sourceNode] || !state.synapticMatrix.nodes[targetNode]) {
-                console.warn(`LLM proposed link for non-existent nodes: ${sourceNode}, ${targetNode}`);
-                return {};
-            }
-        
-            const linkKey = [sourceNode, targetNode].sort().join('-');
-
-            if (linkAction === 'PRUNE_LINK') {
-                const { [linkKey]: deletedLink, ...remainingLinks } = state.synapticMatrix.links;
-                const newActivity = {
-                    timestamp: Date.now(),
-                    message: `LLM Causal Inference (Prune): ${reasoning}`
-                };
-                return {
-                    synapticMatrix: {
-                        ...state.synapticMatrix,
-                        links: remainingLinks,
-                        synapseCount: state.synapticMatrix.links[linkKey] ? state.synapticMatrix.synapseCount - 1 : state.synapticMatrix.synapseCount,
-                        recentActivity: [newActivity, ...state.synapticMatrix.recentActivity].slice(0, 10),
-                    }
-                };
-            }
-            
-            const currentLink = state.synapticMatrix.links[linkKey] || { weight: 0.1, causality: 0, confidence: 0, observations: 0 };
-            
-            const weightChange = linkAction === 'CREATE_OR_STRENGTHEN_LINK' ? 0.15 : -0.15;
-            
-            let causalityChange = 0;
-            if (causalityDirection === 'source_to_target') {
-                const sortOrder = [sourceNode, targetNode].sort();
-                causalityChange = (sortOrder[0] === sourceNode) ? 0.2 : -0.2;
-            } else if (causalityDirection === 'target_to_source') {
-                const sortOrder = [sourceNode, targetNode].sort();
-                causalityChange = (sortOrder[0] === targetNode) ? 0.2 : -0.2;
-            }
-        
-            const updatedLink = {
-                ...currentLink,
-                weight: clamp(currentLink.weight + weightChange),
-                causality: clamp(currentLink.causality + causalityChange, -1, 1),
-                observations: currentLink.observations + 1,
-                confidence: 1 - (1 / (currentLink.observations + 2)),
-            };
-        
-            const newActivity = {
-                timestamp: Date.now(),
-                message: `LLM Causal Inference: ${reasoning}`
-            };
-        
-            return {
-                synapticMatrix: {
-                    ...state.synapticMatrix,
-                    links: {
-                        ...state.synapticMatrix.links,
-                        [linkKey]: updatedLink,
-                    },
-                    synapseCount: state.synapticMatrix.links[linkKey] ? state.synapticMatrix.synapseCount : state.synapticMatrix.synapseCount + 1,
-                    recentActivity: [newActivity, ...state.synapticMatrix.recentActivity].slice(0, 10),
-                }
-            };
-        }
-
-        case 'UPDATE_RICCI_FLOW_MANIFOLD':
-            return {
-                ricciFlowManifoldState: {
-                    ...state.ricciFlowManifoldState,
-                    ...action.payload,
+                    lastPruningEvent: Date.now()
                 }
             };
 
-        case 'INITIATE_SELF_PROGRAMMING_CYCLE':
+        case 'ADD_SELF_PROGRAMMING_CANDIDATE':
             return {
                 selfProgrammingState: {
                     ...state.selfProgrammingState,
-                    isActive: true,
-                    statusMessage: action.payload.statusMessage,
-                    cycleCount: state.selfProgrammingState.cycleCount + 1,
-                    candidates: [],
+                    candidates: [action.payload, ...state.selfProgrammingState.candidates]
                 }
             };
-
-        case 'POPULATE_SELF_PROGRAMMING_CANDIDATES': {
-            const newCandidates = action.payload.candidates.map(c => ({
-                ...c,
-                id: self.crypto.randomUUID(),
-                // If the payload includes a score, it's already evaluated.
-                status: (c.evaluationScore !== undefined && c.evaluationScore !== null) ? 'evaluated' as const : 'pending_evaluation' as const,
-                evaluationScore: c.evaluationScore !== undefined ? c.evaluationScore : null,
-            }));
-            return {
-                selfProgrammingState: {
-                    ...state.selfProgrammingState,
-                    statusMessage: action.payload.statusMessage,
-                    candidates: newCandidates,
-                }
-            };
-        }
 
         case 'UPDATE_SELF_PROGRAMMING_CANDIDATE':
             return {
                 selfProgrammingState: {
                     ...state.selfProgrammingState,
-                    candidates: state.selfProgrammingState.candidates.map(c =>
+                    // FIX: The spread operator on a discriminated union can widen the type, causing downstream errors.
+                    // Casting the result of map() back to the correct union array type resolves this.
+                    candidates: state.selfProgrammingState.candidates.map(c => 
                         c.id === action.payload.id ? { ...c, ...action.payload.updates } : c
-                    )
+                    ) as SelfProgrammingCandidate[]
                 }
             };
+            
+        case 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE': {
+            const { id } = action.payload;
+            const candidate = state.selfProgrammingState.candidates.find(c => c.id === id);
+            if (!candidate) return {};
 
-        case 'CONCLUDE_SELF_PROGRAMMING_CYCLE':
-            const { implementedCandidateId, logMessage } = action.payload;
-            const implementedCandidate = state.selfProgrammingState.candidates.find(c => c.id === implementedCandidateId);
-            const scoreGain = implementedCandidate?.evaluationScore || 0;
+            let updatedVFS = { ...state.selfProgrammingState.virtualFileSystem };
+            let description = '';
+
+            if (candidate.type === 'CREATE') {
+                const createCandidate = candidate as CreateFileCandidate;
+                updatedVFS[createCandidate.newFile.path] = createCandidate.newFile.content;
+                createCandidate.integrations.forEach(mod => {
+                    updatedVFS[mod.filePath] = mod.newContent;
+                });
+                description = `Autonomous code creation: ${createCandidate.newFile.path} integrated into ${createCandidate.integrations.length} file(s).`;
+
+            } else if (candidate.type === 'MODIFY') {
+                const modifyCandidate = candidate as ModifyFileCandidate;
+                updatedVFS[modifyCandidate.targetFile] = modifyCandidate.codeSnippet;
+                description = `Autonomous code modification: ${modifyCandidate.targetFile}.`;
+            }
+            
+            const newLog: ModificationLogEntry = {
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                description,
+                gainType: 'INNOVATION', 
+                validationStatus: 'validated',
+                isAutonomous: true,
+            };
 
             return {
                 selfProgrammingState: {
                     ...state.selfProgrammingState,
-                    isActive: false,
-                    statusMessage: "Cycle complete. Awaiting new instructions.",
-                    candidates: state.selfProgrammingState.candidates.map(c => 
-                        c.id === implementedCandidateId 
-                            ? { ...c, status: 'implemented' }
-                            : { ...c, status: 'discarded' }
-                    ),
-                    log: [logMessage, ...state.selfProgrammingState.log].slice(0, 20)
+                    virtualFileSystem: updatedVFS,
+                    candidates: state.selfProgrammingState.candidates.filter(c => c.id !== id),
                 },
+                modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+                systemSnapshots: [
+                    ...state.systemSnapshots,
+                    { id: self.crypto.randomUUID(), timestamp: Date.now(), reason: `Pre-apply self-programming candidate ${id}`, state }
+                ].slice(-10),
+            };
+        }
+
+        case 'ADD_CAUSAL_INFERENCE_PROPOSAL':
+            return {
+                causalInferenceProposals: [action.payload, ...state.causalInferenceProposals]
+            };
+
+        case 'UPDATE_CAUSAL_INFERENCE_PROPOSAL_STATUS':
+             return {
+                causalInferenceProposals: state.causalInferenceProposals.map(p =>
+                    p.id === action.payload.id ? { ...p, status: action.payload.status } : p
+                ),
+            };
+
+        case 'IMPLEMENT_CAUSAL_INFERENCE_PROPOSAL': {
+            const proposal = action.payload;
+            const { sourceNode, targetNode } = proposal.linkUpdate;
+            const linkKey = [sourceNode, targetNode].sort().join('-');
+            const newLink = {
+                 ...(state.synapticMatrix.links[linkKey] || { weight: 0, causality: 0, confidence: 0, observations: 0 }),
+                 ...proposal.linkUpdate
+            };
+
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    links: {
+                        ...state.synapticMatrix.links,
+                        [linkKey]: newLink
+                    }
+                },
+                causalInferenceProposals: state.causalInferenceProposals.map(p =>
+                    p.id === proposal.id ? { ...p, status: 'implemented' } : p
+                ),
+            };
+        }
+        
+        case 'INGEST_CODE_CHANGE': {
+            const { filePath, code } = action.payload;
+            const newModLog: ModificationLogEntry = {
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                description: `Manual code ingestion for: ${filePath}`,
+                gainType: 'INNOVATION',
+                validationStatus: 'validated', // Manual changes are assumed to be validated
+                isAutonomous: false,
+            };
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    virtualFileSystem: {
+                        ...state.selfProgrammingState.virtualFileSystem,
+                        [filePath]: code,
+                    }
+                },
+                modificationLog: [newModLog, ...state.modificationLog].slice(0, 50),
+                systemSnapshots: [
+                    ...state.systemSnapshots,
+                    { id: self.crypto.randomUUID(), timestamp: Date.now(), reason: `Pre-ingestion of ${filePath}`, state: state }
+                ].slice(-10)
+            };
+        }
+        
+        case 'SET_COPROCESSOR_ARCHITECTURE':
+            return {
                 cognitiveArchitecture: {
                     ...state.cognitiveArchitecture,
-                    modelComplexityScore: state.cognitiveArchitecture.modelComplexityScore + (scoreGain / 100), // Apply simulated gain
+                    coprocessorArchitecture: action.payload,
+                    lastAutoSwitchReason: undefined, // Clear reason on manual switch
                 }
             };
+        
+        case 'SET_COPROCESSOR_ARCHITECTURE_AND_REASON':
+            return {
+                cognitiveArchitecture: {
+                    ...state.cognitiveArchitecture,
+                    coprocessorArchitecture: action.payload.architecture,
+                    lastAutoSwitchReason: action.payload.reason,
+                }
+            };
+        
+        case 'SET_COPROCESSOR_ARCHITECTURE_MODE':
+            return {
+                cognitiveArchitecture: {
+                    ...state.cognitiveArchitecture,
+                    coprocessorArchitectureMode: action.payload,
+                    lastAutoSwitchReason: action.payload === 'manual' ? undefined : state.cognitiveArchitecture.lastAutoSwitchReason,
+                }
+            };
+
+        case 'UPDATE_COPROCESSOR_METRICS': {
+            const { id, metric, increment } = action.payload;
+            const coprocessor = state.cognitiveArchitecture.coprocessors[id];
+            if (!coprocessor) return {};
+            const newMetrics = {
+                ...coprocessor.metrics,
+                [metric]: (coprocessor.metrics[metric] || 0) + increment,
+            };
+            return {
+                cognitiveArchitecture: {
+                    ...state.cognitiveArchitecture,
+                    coprocessors: {
+                        ...state.cognitiveArchitecture.coprocessors,
+                        [id]: {
+                            ...coprocessor,
+                            metrics: newMetrics,
+                        }
+                    }
+                }
+            };
+        }
+
+        case 'UPDATE_NEURAL_ACCELERATOR_STATE':
+            return { neuralAcceleratorState: action.payload };
 
         default:
             return {};

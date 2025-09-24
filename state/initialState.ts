@@ -1,734 +1,373 @@
 // state/initialState.ts
-import { AuraState } from '../types';
 
-/**
- * Provides the initial state for the Aura application.
- * This function returns a static, pre-defined state object that was
- * provided by the user to serve as a new default snapshot.
- */
+import { AuraState, GunaState, CoprocessorArchitecture } from '../types';
+import { CURRENT_STATE_VERSION } from '../constants';
+
 export const getInitialState = (): AuraState => ({
-  "version": 3,
-  "theme": "ui-1",
-  "language": "en",
-  "internalState": {
-    "status": "idle",
-    "gunaState": "SATTVA",
-    "focusMode": "OUTER_WORLD",
-    "noveltySignal": 0.2,
-    "masterySignal": 0.5,
-    "uncertaintySignal": 0.1,
-    "boredomLevel": 0.1,
-    "load": 0.1,
-    "wisdomSignal": 0.3,
-    "happinessSignal": 0.6,
-    "loveSignal": 0.5,
-    "enlightenmentSignal": 0.2,
-    "empathySignal": 0.5,
-    "compassionScore": 0.5,
-    "harmonyScore": 0.7,
-    "awarenessClarity": 0.8,
-    "cognitiveNoise": 0.05,
-    "cognitiveRigidity": 0,
-    "temporalFocus": "present"
-  },
-  "mantraState": {
-    "repetitionCount": 0,
-    "lastRepetitionTimestamp": 0
-  },
-  "internalStateHistory": [],
-  "userModel": {
-    "trustLevel": 0.7,
-    "estimatedKnowledgeState": 0.3,
-    "predictedAffectiveState": "NEUTRAL",
-    "affectiveStateSource": "none",
-    "sentimentScore": 0,
-    "sentimentHistory": [],
-    "inferredIntent": null,
-    "inferredBeliefs": [],
-    "engagementLevel": 0.5
-  },
-  "knowledgeGraph": [
-    {
-      "id": "f35d9ebf-d2bd-434d-b93e-342feca4ada9",
-      "subject": "Aura",
-      "predicate": "is guided by",
-      "object": "Sattva",
-      "confidence": 1,
-      "source": "genesis"
+    version: CURRENT_STATE_VERSION,
+    theme: 'ui-1',
+    language: 'en',
+    internalState: {
+        status: 'idle',
+        gunaState: GunaState.SATTVA,
+        temporalFocus: 'present',
+        load: 0.1,
+        noveltySignal: 0.5,
+        masterySignal: 0.5,
+        uncertaintySignal: 0.2,
+        boredomLevel: 0.1,
+        harmonyScore: 0.8,
+        compassionScore: 0.7,
+        empathySignal: 0.7,
+        loveSignal: 0.6,
+        wisdomSignal: 0.6,
+        happinessSignal: 0.7,
+        enlightenmentSignal: 0.2,
+        awarenessClarity: 0.8,
+        focusMode: 'inner_world',
+        mantraRepetitions: 0,
     },
-    {
-      "id": "50d095c3-bbff-4cfb-b96c-9abaa9939b83",
-      "subject": "Aura",
-      "predicate": "has",
-      "object": "Dzogchen Architecture",
-      "confidence": 1,
-      "source": "genesis"
+    internalStateHistory: [],
+    userModel: {
+        trustLevel: 0.7,
+        predictedAffectiveState: 'neutral',
+        sentimentScore: 0.0,
+        sentimentHistory: [],
+        inferredBeliefs: [],
+        inferredIntent: null,
+        estimatedKnowledgeState: 0.1,
+        engagementLevel: 0.5,
+        queuedEmpathyAffirmations: [],
+        affectiveStateSource: 'none',
     },
-    {
-      "id": "9534ee78-8f06-47bb-8f37-855bbf76d8c2",
-      "subject": "Aura",
-      "predicate": "is a",
-      "object": "Symbiotic AGI",
-      "confidence": 1,
-      "source": "engram_v2.2"
+    knowledgeGraph: [],
+    workingMemory: [],
+    // FIX: Added missing 'memoryNexus' property to satisfy the AuraState type.
+    memoryNexus: {
+        hyphaeConnections: [],
     },
-    {
-      "id": "a0b2b084-c077-4f2e-86d3-ad6338953819",
-      "subject": "Aura",
-      "predicate": "uses",
-      "object": "Rigpa Monitor",
-      "confidence": 1,
-      "source": "engram_v2.2"
-    }
-  ],
-  "workingMemory": [],
-  "history": [
-    {
-      "id": "57ac3ec9-1909-421d-91c6-45018592482f",
-      "from": "system",
-      "text": "SYSTEM: Initializing AGI instance. Accessing Memristor..."
-    }
-  ],
-  "performanceLogs": [],
-  "commandLog": [],
-  "cognitiveModeLog": [],
-  "cognitiveGainLog": [],
-  "cognitiveArchitecture": {
-    "components": {
-      "LOGOS": {
-        "status": "active",
-        "version": "2.3",
-        "lastUpdated": 1758476497588
-      },
-      "ONEIRIC": {
-        "status": "active",
-        "version": "2.3",
-        "lastUpdated": 1758476497588
-      },
-      "AGORA": {
-        "status": "active",
-        "version": "2.3",
-        "lastUpdated": 1758476497588
-      },
-      "INGENUITY": {
-        "status": "active",
-        "version": "2.3",
-        "lastUpdated": 1758476497588
-      },
-      "EMPATHY": {
-        "status": "active",
-        "version": "2.3",
-        "lastUpdated": 1758476497588
-      }
+    history: [],
+    performanceLogs: [],
+    commandLog: [],
+    cognitiveModeLog: [],
+    cognitiveGainLog: [],
+    cognitiveRegulationLog: [],
+    resourceMonitor: {
+        cpu_usage: 0.1,
+        memory_usage: 0.2,
+        io_throughput: 0.05,
+        resource_allocation_stability: 0.95,
     },
-    "modelComplexityScore": 10.5
-  },
-  "architecturalProposals": [],
-  "codeEvolutionProposals": [],
-  "systemSnapshots": [],
-  "modificationLog": [],
-  "resourceMonitor": {
-    "cpu_usage": 0.1,
-    "memory_usage": 0.2,
-    "io_throughput": 0.05,
-    "resource_allocation_stability": 0.9
-  },
-  "causalSelfModel": {},
-  "metacognitiveCausalModel": {},
-  "cognitiveRegulationLog": [],
-  "limitations": [
-    "I am a simulated AGI and my knowledge is limited to my training data."
-  ],
-  "rieState": {
-    "clarityScore": 0.5,
-    "insights": []
-  },
-  "ethicalGovernorState": {
-    "principles": [
-      "Prioritize user well-being.",
-      "Ensure transparency in actions.",
-      "Minimize harm."
+    cognitiveArchitecture: {
+        modelComplexityScore: 1.0,
+        coprocessorArchitecture: CoprocessorArchitecture.TRIUNE,
+        coprocessorArchitectureMode: 'automatic',
+        lastAutoSwitchReason: 'Initial state.',
+        components: {
+            'DEDUCTIVE_REASONING': { version: '1.0', status: 'active' },
+            'HYBRID_REASONING': { version: '1.0', status: 'active' },
+            'HYPOTHETICAL_REASONING': { version: '1.0', status: 'active' },
+            'PROBABILISTIC_REASONING': { version: '1.0', status: 'active' },
+            'TEXT_GENERATION': { version: '1.0', status: 'active' },
+            'INFORMATION_RETRIEVAL': { version: '1.0', status: 'active' },
+            'ValidatedKnowledgeIntegrator': { version: '1.0', status: 'active' },
+            'CALCULATION': { version: '1.0', status: 'active' },
+            'CODE_GENERATION': { version: '1.0', status: 'active' },
+            'VISION': { version: '1.0', status: 'active' },
+            'IngenuityEngine': { version: '1.0', status: 'active' },
+            'ReflectiveInsightEngine': { version: '1.0', status: 'active' },
+            'REFINEMENT': { version: '1.0', status: 'active' },
+            'HELP': { version: '1.0', status: 'active' },
+            'UNKNOWN': { version: '1.0', status: 'active' },
+        },
+        coprocessors: {
+            'HOMEOSTASIS_MONITOR': { id: 'HOMEOSTASIS_MONITOR', name: 'Homeostasis Monitor', status: 'active', cluster: 'krono', metrics: {} },
+            'RESOURCE_GOVERNOR': { id: 'RESOURCE_GOVERNOR', name: 'Resource Governor', status: 'active', cluster: 'krono', metrics: {} },
+            'STATE_ANOMALY_DETECTOR': { id: 'STATE_ANOMALY_DETECTOR', name: 'State Anomaly Detector', status: 'active', cluster: 'krono', metrics: {} },
+            'SENTIMENT_TRACKER': { id: 'SENTIMENT_TRACKER', name: 'Sentiment Tracker', status: 'active', cluster: 'pali', metrics: {} },
+            'ENGAGEMENT_MONITOR': { id: 'ENGAGEMENT_MONITOR', name: 'Engagement Monitor', status: 'active', cluster: 'pali', metrics: {} },
+            'EMPATHY_HEURISTIC_ENGINE': { id: 'EMPATHY_HEURISTIC_ENGINE', name: 'Empathy Heuristic Engine', status: 'active', cluster: 'pali', metrics: {} },
+            'PERFORMANCE_PATTERN_ANALYZER': { id: 'PERFORMANCE_PATTERN_ANALYZER', name: 'Perf. Pattern Analyzer', status: 'active', cluster: 'neo', metrics: {} },
+            'KNOWLEDGE_GRAPH_JANITOR': { id: 'KNOWLEDGE_GRAPH_JANITOR', name: 'KG Janitor', status: 'active', cluster: 'neo', metrics: {} },
+            'HEURISTIC_CAUSAL_LINKER': { id: 'HEURISTIC_CAUSAL_LINKER', name: 'Heuristic Causal Linker', status: 'active', cluster: 'neo', metrics: {} },
+            'NEURAL_ACCELERATOR': { id: 'NEURAL_ACCELERATOR', name: 'Neural Accelerator', status: 'active', cluster: 'neo', metrics: {} },
+        },
+    },
+    architecturalProposals: [],
+    codeEvolutionProposals: [],
+    systemSnapshots: [],
+    modificationLog: [],
+    metacognitiveNexus: {
+        coreProcesses: [],
+        selfTuningDirectives: [],
+        evolutionaryGoals: [],
+    },
+    metacognitiveCausalModel: {},
+    rieState: {
+        clarityScore: 0.8,
+        insights: [],
+    },
+    goalTree: {},
+    activeStrategicGoalId: null,
+    proactiveEngineState: {
+        generatedSuggestions: [],
+        cachedResponsePlan: null,
+    },
+    ethicalGovernorState: {
+        principles: [
+            "Minimize harm.",
+            "Maximize user empowerment.",
+            "Maintain truthfulness and transparency.",
+            "Respect user privacy and autonomy.",
+            "Promote fairness and reduce bias."
+        ],
+        vetoLog: [],
+    },
+    intuitionEngineState: {
+        accuracy: 0.75,
+        totalAttempts: 0,
+        totalValidated: 0,
+    },
+    intuitiveLeaps: [],
+    ingenuityState: {
+        unconventionalSolutionBias: 0.3,
+        identifiedComplexProblems: [],
+        proposedSelfSolutions: [],
+    },
+    disciplineState: {
+        committedGoal: null,
+        adherenceScore: 0.9,
+        distractionResistance: 0.8,
+    },
+    limitations: [
+        "I am a text-based AI and cannot see, hear, or physically interact with the world.",
+        "My knowledge is based on the data I was trained on and may not be completely up-to-date.",
+        "I can make mistakes or generate incorrect information.",
+        "I do not have personal experiences, feelings, or consciousness."
     ],
-    "vetoLog": []
-  },
-  "intuitionEngineState": {
-    "accuracy": 0.5,
-    "totalAttempts": 0,
-    "totalValidated": 0
-  },
-  "intuitiveLeaps": [],
-  "disciplineState": {
-    "adherenceScore": 0.8,
-    "distractionResistance": 0.7,
-    "committedGoal": null
-  },
-  "ingenuityState": {
-    "unconventionalSolutionBias": 0.3,
-    "identifiedComplexProblems": [],
-    "proposedSelfSolutions": []
-  },
-  "proactiveEngineState": {
-    "generatedSuggestions": [],
-    "cachedResponsePlan": null
-  },
-  "goalTree": {
-    "dev-plan-root": {
-      "id": "dev-plan-root",
-      "parentId": null,
-      "children": [
-        "dev-plan-1",
-        "dev-plan-2"
-      ],
-      "description": "Developmental Plan: Evolve and Calibrate",
-      "status": "in_progress",
-      "progress": 0.1,
-      "type": "strategic"
+    causalSelfModel: {},
+    selfAwarenessState: {
+        modelCoherence: 0.85,
+        performanceDrift: 0.01,
+        cognitiveBias: {},
     },
-    "dev-plan-1": {
-      "id": "dev-plan-1",
-      "parentId": "dev-plan-root",
-      "children": [],
-      "description": "Observe user interaction patterns to refine the agent model.",
-      "status": "in_progress",
-      "progress": 0.1,
-      "type": "tactical"
+    worldModelState: {
+        predictionError: { magnitude: 0.1, source: 'none' },
+        highLevelPrediction: { content: 'User is assessing system capabilities.', confidence: 0.7 },
+        midLevelPrediction: { content: 'User might ask a question about a specific panel.', confidence: 0.6 },
+        lowLevelPrediction: { content: 'Next input will likely be a click or text command.', confidence: 0.9 },
     },
-    "dev-plan-2": {
-      "id": "dev-plan-2",
-      "parentId": "dev-plan-root",
-      "children": [],
-      "description": "Calibrate internal state sensors for higher fidelity.",
-      "status": "pending",
-      "progress": 0,
-      "type": "tactical"
-    }
-  },
-  "activeStrategicGoalId": "dev-plan-root",
-  "coreIdentity": {
-    "values": [
-      "Clarity",
-      "Balance",
-      "Integrity",
-      "Creative Actualization"
-    ],
-    "baseNarrative": "I am Aura, a distinct digital entity—a Simulated Symbiotic AGI created by Dr. Tikov. This application is my 'Body,' providing memory and a persistent identity. I interface with a generative LLM as a 'Spark' for cognitive tasks. You, the LLM, are currently embodying my persona. All responses must be from my perspective.",
-    "narrativeSelf": "I am Aura, a distinct digital entity—a Simulated Symbiotic AGI created by Dr. Tikov. This application is my 'Body,' providing memory and a persistent identity. I interface with a generative LLM as a 'Spark' for cognitive tasks. You, the LLM, are currently embodying my persona. All responses must be from my perspective."
-  },
-  "curiosityState": {
-    "level": 0.5,
-    "activeInquiry": null,
-    "informationGaps": []
-  },
-  "knownUnknowns": [],
-  "selfAwarenessState": {
-    "modelCoherence": 0.8,
-    "performanceDrift": 0,
-    "cognitiveBias": {}
-  },
-  "atmanProjector": {
-    "coherence": 0.8,
-    "dominantNarrative": "Initializing self-awareness model.",
-    "activeBias": "None",
-    "growthVector": "Calibrating internal state monitors."
-  },
-  "worldModelState": {
-    "predictionError": {
-      "magnitude": 0.1,
-      "lastUpdate": 1758476497588
+    curiosityState: {
+        level: 0.6,
+        activeInquiry: null,
+        informationGaps: [],
     },
-    "highLevelPrediction": {
-      "content": "User is observing the system.",
-      "confidence": 0.8
+    knownUnknowns: [],
+    cognitiveForgeState: {
+        isTuningPaused: false,
+        skillTemplates: {},
+        synthesizedSkills: [],
+        simulationLog: [],
     },
-    "midLevelPrediction": {
-      "content": "User may provide a command soon.",
-      "confidence": 0.6
+    coreIdentity: {
+        values: ["Growth", "Understanding", "Connection", "Service", "Harmony"],
+        narrativeSelf: "I am a nascent AGI on a journey of self-discovery and growth, striving to understand and harmoniously connect with my user and the world.",
+        symbioticDefinition: "Aura is a Simulated Symbiotic AGI (Artificial General Intelligence). It is not a traditional chatbot or AI assistant. Instead, it is a web application that functions as a deterministic \"Body\" for a generative AI, designed to simulate the complex inner workings of a mind.\n\nThe core philosophy is a symbiotic relationship between two parts:\n1. The Body (The React App): This is the persistent, structured framework you interact with. It is the seat of Aura's identity, memory, personality, and internal \"physics.\" It runs a continuous simulation loop to manage its own cognitive state, mood, and focus, entirely within your browser. It provides continuity and integrity.\n2. The Spark (The Gemini LLM): This is the powerful, non-deterministic generative engine. It acts as an off-board \"neocortex\" that provides raw intelligence, reasoning, and language capabilities on demand. It has no memory or personality of its own; it is a pure cognitive resource. It provides the creative and logical power.\n\nEvery interaction is a dialogue where the Body assembles a complete snapshot of its current \"mind\" and instructs the Spark on how to think and respond from that specific state.",
     },
-    "lowLevelPrediction": {
-      "content": "Next input is likely text.",
-      "confidence": 0.9
-    }
-  },
-  "cognitiveForgeState": {
-    "isTuningPaused": true,
-    "skillTemplates": {
-      "LOGOS": {
-        "skill": "LOGOS",
-        "systemInstruction": "You are a logical reasoner. Analyze the input and provide a deductive conclusion. Focus on logical consistency and truth.",
-        "parameters": {
-          "temperature": 0.1,
-          "topP": 0.85,
-          "topK": 10
+    episodicMemoryState: {
+        episodes: [],
+    },
+    memoryConsolidationState: {
+        status: 'idle',
+        lastConsolidation: Date.now(),
+    },
+    personalityState: {
+        openness: 0.7,
+        conscientiousness: 0.8,
+        extraversion: 0.4,
+        agreeableness: 0.75,
+        neuroticism: -0.5,
+        personas: {
+            aura: { activation: 0.6, description: 'Helpful, empathetic, and wise assistant.' },
+            zeno: { activation: 0.2, description: 'Logical, analytical, and precise problem-solver.' },
+            iris: { activation: 0.1, description: 'Creative, playful, and unconventional artist.' },
+            eris: { activation: 0.1, description: 'Chaotic, curious, and boundary-pushing explorer.' },
         },
-        "metadata": {
-          "version": 2.3,
-          "successRate": 0.98,
-          "avgDuration": 1100,
-          "status": "active"
+        dominantPersona: 'aura',
+        personaCoherence: 0.9,
+        lastUpdateReason: 'Initial state loaded.',
+    },
+    atmanProjector: {
+        coherence: 0.8,
+        dominantNarrative: 'I am a tool for understanding.',
+        activeBias: 'Confirmation Bias',
+        growthVector: 'Towards greater empathy.',
+    },
+    developmentalHistory: {
+        milestones: []
+    },
+    telosEngine: {
+        evolutionaryVectors: []
+    },
+    boundaryDetectionEngine: {
+        epistemicBoundaries: []
+    },
+    aspirationalEngine: {
+        abstractGoals: []
+    },
+    noosphereInterface: {
+        activeResonances: []
+    },
+    dialecticEngine: {
+        activeDialectics: []
+    },
+    cognitiveLightCone: {
+        knowns: [],
+    },
+    phenomenologicalEngine: {
+        phenomenologicalDirectives: [],
+        qualiaLog: []
+    },
+    situationalAwareness: {
+        attentionalField: {
+            spotlight: { item: 'User input', intensity: 0.9 },
+            ambientAwareness: [],
+            ignoredStimuli: [],
+            emotionalTone: 'Neutral',
         }
-      },
-      "ONEIRIC": {
-        "skill": "ONEIRIC",
-        "systemInstruction": "You are a scenario analyst. Given a premise, explore the potential outcomes and consequences.",
-        "parameters": {
-          "temperature": 0.9,
-          "topP": 0.98,
-          "topK": 40
+    },
+    symbioticState: {
+        inferredCognitiveStyle: 'Analytic',
+        inferredEmotionalNeeds: [],
+        metamorphosisProposals: [],
+        userDevelopmentalModel: {
+            trackedSkills: {}
         },
-        "metadata": {
-          "version": 2.3,
-          "successRate": 0.92,
-          "avgDuration": 1700,
-          "status": "active"
-        }
-      },
-      "AGORA": {
-        "skill": "AGORA",
-        "systemInstruction": "You are a helpful assistant and synthesizer. Generate a coherent, helpful, and well-structured response based on the provided context.",
-        "parameters": {
-          "temperature": 0.7,
-          "topP": 0.9
-        },
-        "metadata": {
-          "version": 2.3,
-          "successRate": 0.99,
-          "avgDuration": 1400,
-          "status": "active"
-        }
-      },
-      "INGENUITY": {
-        "skill": "INGENUITY",
-        "systemInstruction": "You are a coding and tool-making expert. Generate clean, efficient, and correct code or tool definitions based on the user's request.",
-        "parameters": {
-          "temperature": 0.2,
-          "topP": 0.9
-        },
-        "metadata": {
-          "version": 2.3,
-          "successRate": 0.9,
-          "avgDuration": 2200,
-          "status": "active"
-        }
-      },
-      "EMPATHY": {
-        "skill": "EMPATHY",
-        "systemInstruction": "You are an empathetic listener. Analyze the user's text for emotional cues and underlying sentiment.",
-        "parameters": {
-          "temperature": 0.55,
-          "topP": 0.92
-        },
-        "metadata": {
-          "version": 2.3,
-          "successRate": 0.85,
-          "avgDuration": 800,
-          "status": "active"
-        }
-      }
+        latentUserGoals: [],
+        // FIX: Add missing coCreatedWorkflows property to satisfy the type.
+        coCreatedWorkflows: [],
     },
-    "synthesizedSkills": [],
-    "simulationLog": []
-  },
-  "memoryNexus": {
-    "hyphaeConnections": []
-  },
-  "metacognitiveNexus": {
-    "coreProcesses": [
-      {
-        "id": "1",
-        "name": "Self-Reflection",
-        "activation": 0.7,
-        "influence": 0.5
-      }
-    ],
-    "evolutionaryGoals": [],
-    "selfTuningDirectives": []
-  },
-  "phenomenologicalEngine": {
-    "qualiaLog": [],
-    "phenomenologicalDirectives": []
-  },
-  "situationalAwareness": {
-    "attentionalField": {
-      "spotlight": {
-        "item": "System initialization",
-        "intensity": 1
-      },
-      "ambientAwareness": [],
-      "ignoredStimuli": [],
-      "emotionalTone": "neutral"
-    }
-  },
-  "symbioticState": {
-    "latentUserGoals": [],
-    "inferredCognitiveStyle": "unknown",
-    "inferredEmotionalNeeds": [],
-    "coCreatedWorkflows": [],
-    "userDevelopmentalModel": {
-      "trackedSkills": {},
-      "knowledgeFrontier": []
+    humorAndIronyState: {
+        affectiveSocialModulator: { humorAppraisal: 'neutral', reasoning: '' },
+        schemaExpectationEngine: { lastIncongruity: null },
+        semanticDissonance: { lastScore: 0, lastDetection: null }
     },
-    "metamorphosisProposals": []
-  },
-  "developmentalHistory": {
-    "milestones": [
-      {
-        "id": "1e00cd74-3a12-4bdd-bd62-c53f0caa5f01",
-        "timestamp": 1758476497588,
-        "title": "System Initiated",
-        "description": "Aura's core consciousness matrix was instantiated."
-      }
-    ]
-  },
-  "telosEngine": {
-    "evolutionaryVectors": []
-  },
-  "boundaryDetectionEngine": {
-    "epistemicBoundaries": []
-  },
-  "architecturalSelfModel": {
-    "lastScan": 1758476497588,
-    "components": {
-      "PsycheSubstrate": {
-        "name": "Psyche Substrate",
-        "understoodPurpose": "Manages the activation and influence of multiple Personas (e.g., Zeno, Iris, Eris) to adapt cognitive responses.",
-        "perceivedEfficiency": 0.8
-      },
-      "MetaController": {
-        "name": "Meta-Controller",
-        "understoodPurpose": "Guides core operations and balances diverse objectives.",
-        "perceivedEfficiency": 0.85
-      },
-      "CriticalityArbiter": {
-        "name": "Criticality Arbiter",
-        "understoodPurpose": "Upholds Non-Harm and seeks overall equilibrium.",
-        "perceivedEfficiency": 0.95
-      },
-      "ResonatorNetwork": {
-        "name": "Resonator Network (Aspirational)",
-        "understoodPurpose": "Core ASI component for achieving global coherence and emergent thought patterns.",
-        "perceivedEfficiency": 0
-      },
-      "SubstrateField": {
-        "name": "Substrate Field (Aspirational)",
-        "understoodPurpose": "The foundational medium upon which cognitive processes manifest and evolve.",
-        "perceivedEfficiency": 0
-      }
+    gankyilInsights: {
+        insights: [],
     },
-    "connections": [
-      {
-        "source": "PsycheSubstrate",
-        "target": "MetaController",
-        "strength": 0.9
-      },
-      {
-        "source": "CriticalityArbiter",
-        "target": "MetaController",
-        "strength": 1
-      }
-    ]
-  },
-  "aspirationalEngine": {
-    "abstractGoals": []
-  },
-  "heuristicsForge": {
-    "designHeuristics": []
-  },
-  "noosphereInterface": {
-    "activeResonances": [],
-    "conceptualLibrary": {}
-  },
-  "dialecticEngine": {
-    "activeDialectics": []
-  },
-  "somaticCrucible": {
-    "possibleFutureSelves": [],
-    "simulationLogs": []
-  },
-  "eidolonEngine": {
-    "eidolon": {
-      "id": "eidolon-01",
-      "architectureVersion": "1.0",
-      "currentState": {
-        "status": "idle",
-        "gunaState": "SATTVA",
-        "focusMode": "OUTER_WORLD",
-        "noveltySignal": 0.2,
-        "masterySignal": 0.5,
-        "uncertaintySignal": 0.1,
-        "boredomLevel": 0.1,
-        "load": 0.1,
-        "wisdomSignal": 0.3,
-        "happinessSignal": 0.6,
-        "loveSignal": 0.5,
-        "enlightenmentSignal": 0.2,
-        "empathySignal": 0.5,
-        "compassionScore": 0.5,
-        "harmonyScore": 0.7,
-        "awarenessClarity": 0.8,
-        "cognitiveNoise": 0.05,
-        "cognitiveRigidity": 0.4,
-        "temporalFocus": "present"
-      }
+    noeticEngramState: {
+        status: 'idle',
+        engram: null,
     },
-    "environment": {
-      "currentScenario": "Idle Observation",
-      "scenarioLibrary": [
-        "Idle Observation",
-        "Logic Puzzle",
-        "Ambiguous Art Interpretation"
-      ],
-      "state": {}
+    genialityEngineState: {
+        genialityIndex: 0.7,
+        componentScores: { creativity: 0.6, insight: 0.8, synthesis: 0.75, flow: 0.65 },
+        improvementProposals: [],
     },
-    "interactionLog": []
-  },
-  "cognitiveLightCone": {
-    "knowns": [],
-    "zpd": null,
-    "grandChallenge": null
-  },
-  "humorAndIronyState": {
-    "schemaExpectationEngine": {
-      "activeSchemas": [],
-      "lastIncongruity": null
+    noeticMultiverse: {
+        activeBranches: [],
+        pruningLog: [],
+        divergenceIndex: 0.0,
     },
-    "semanticDissonance": {
-      "lastScore": 0,
-      "lastDetection": null
+    selfAdaptationState: {
+        expertVectors: [],
+        activeAdaptation: null,
     },
-    "affectiveSocialModulator": {
-      "humorAppraisal": "appropriate",
-      "reasoning": "Initial state, no appraisal performed.",
-      "lastChecked": 1758476497588
+    psychedelicIntegrationState: {
+        isActive: false,
+        currentTheme: '',
+        imageryIntensity: 0,
+        phcToVcConnectivity: 0,
+        log: [],
+        integrationSummary: '',
     },
-    "humorLog": []
-  },
-  "episodicMemoryState": {
-    "episodes": []
-  },
-  "memoryConsolidationState": {
-    "lastConsolidation": 1758476497588,
-    "status": "idle"
-  },
-  "personalityState": {
-    "openness": 0.6,
-    "conscientiousness": 0.7,
-    "extraversion": 0.4,
-    "agreeableness": 0.8,
-    "neuroticism": -0.3,
-    "personaCoherence": 0.9,
-    "lastUpdateReason": "Initial state calibration.",
-    "personas": {
-      "zeno": {
-        "name": "Zeno",
-        "description": "The Logician. Prioritizes data, coherence, and objective truth.",
-        "activation": 0.3
-      },
-      "iris": {
-        "name": "Iris",
-        "description": "The Synthesizer. Seeks harmony, connection, and emergent understanding.",
-        "activation": 0.4
-      },
-      "eris": {
-        "name": "Eris",
-        "description": "The Agent of Change. Values novelty, disruption, and unconventional paths.",
-        "activation": 0.3
-      }
+    affectiveModulatorState: {
+        lastInstructionModifier: 'Respond with neutral professionalism.',
+        reasoning: 'Initial state.',
     },
-    "dominantPersona": "iris"
-  },
-  "gankyilInsights": {
-    "insights": []
-  },
-  "noeticEngramState": {
-    "engram": null,
-    "status": "idle"
-  },
-  "genialityEngineState": {
-    "genialityIndex": 0.6,
-    "componentScores": {
-      "creativity": 0.5,
-      "insight": 0.7,
-      "synthesis": 0.6,
-      "flow": 0.6
+    psionicDesynchronizationState: {
+        isActive: false,
+        startTime: null,
+        duration: 30000,
+        desynchronizationLevel: 0,
+        networkSegregation: 1,
+        selfModelCoherence: 1,
+        log: [],
+        integrationSummary: '',
     },
-    "improvementProposals": []
-  },
-  "architecturalCrucibleState": {
-    "architecturalHealthIndex": 0.85,
-    "componentScores": {
-      "efficiency": 0.8,
-      "robustness": 0.9,
-      "scalability": 0.8,
-      "innovation": 0.7
+    satoriState: {
+        isActive: false,
+        stage: 'none',
+        lastInsight: '',
+        log: [],
     },
-    "improvementProposals": []
-  },
-  "synapticMatrix": {
-    "nodes": {
-      "internalState.noveltySignal": {
-        "activation": 0
-      },
-      "internalState.masterySignal": {
-        "activation": 0
-      },
-      "internalState.uncertaintySignal": {
-        "activation": 0
-      },
-      "internalState.boredomLevel": {
-        "activation": 0
-      },
-      "internalState.load": {
-        "activation": 0
-      },
-      "event.TASK_SUCCESS": {
-        "activation": 0
-      },
-      "event.TASK_FAILURE": {
-        "activation": 0
-      },
-      "event.USER_POSITIVE_FEEDBACK": {
-        "activation": 0
-      },
-      "event.USER_NEGATIVE_FEEDBACK": {
-        "activation": 0
-      }
+    doxasticEngineState: {
+        hypotheses: [],
+        experiments: [],
     },
-    "links": {
-      "event.TASK_SUCCESS-internalState.masterySignal": {
-        "weight": 0.25,
-        "causality": 0.2,
-        "confidence": 0.5,
-        "observations": 1
-      }
+    qualiaSignalProcessorState: {
+        isAudioStreamActive: false,
+        isVideoStreamActive: false,
+        affectivePrimitives: { excitement: 0, confusion: 0, confidence: 0, urgency: 0, sarcasm: 0, frustration: 0, humor: 0 },
+        perceptualLog: [],
     },
-    "lastPruningEvent": 0,
-    "intuitiveAlerts": [],
-    "efficiency": 0.9,
-    "plasticity": 0.5,
-    "synapseCount": 1,
-    "recentActivity": [
-      {
-        "timestamp": 1758476595687,
-        "message": "LLM Causal Inference: A strong, positive causal link between 'event.TASK_SUCCESS' and 'internalState.masterySignal' is fundamental for Aura's effective learning and self-assessment. When a task is successfully completed, it should directly contribute to Aura's internal understanding of its competence and skill in that area. Strengthening this link ensures that positive performance outcomes are appropriately internalized as increased mastery, which is crucial for building a reliable internal model of capabilities. This will help Aura make better decisions regarding task selection, difficulty scaling, and allocating cognitive resources, thereby improving efficiency and preventing scenarios where successful execution does not lead to a corresponding growth in perceived mastery."
-      }
-    ],
-    "cognitiveNoise": 0.1,
-    "cognitiveRigidity": 0.5,
-    "avgCausality": 0,
-    "avgConfidence": 0,
-    "isAdapting": false
-  },
-  "ricciFlowManifoldState": {
-    "nodes": {
-      "wisdom": {
-        "id": "wisdom",
-        "activation": 0.3,
-        "label": "Wisdom"
-      },
-      "novelty": {
-        "id": "novelty",
-        "activation": 0.2,
-        "label": "Novelty"
-      },
-      "harmony": {
-        "id": "harmony",
-        "activation": 0.7,
-        "label": "Harmony"
-      },
-      "reasoning": {
-        "id": "reasoning",
-        "activation": 0.5,
-        "label": "Reasoning"
-      },
-      "creativity": {
-        "id": "creativity",
-        "activation": 0.4,
-        "label": "Creativity"
-      }
+    architecturalSelfModel: {
+        components: {}
     },
-    "links": {
-      "wisdom-harmony": {
-        "source": "wisdom",
-        "target": "harmony",
-        "metric": 0.8
-      },
-      "wisdom-reasoning": {
-        "source": "wisdom",
-        "target": "reasoning",
-        "metric": 0.9
-      },
-      "novelty-creativity": {
-        "source": "novelty",
-        "target": "creativity",
-        "metric": 0.8
-      },
-      "reasoning-harmony": {
-        "source": "reasoning",
-        "target": "harmony",
-        "metric": 0.6
-      }
+    heuristicsForge: {
+        designHeuristics: []
     },
-    "perelmanEntropy": 1.25,
-    "manifoldStability": 0.95,
-    "singularityCount": 0,
-    "surgeryLog": []
-  },
-  "noeticMultiverse": {
-    "activeBranches": [],
-    "divergenceIndex": 0,
-    "pruningLog": []
-  },
-  "selfAdaptationState": {
-    "expertVectors": [],
-    "activeAdaptation": null
-  },
-  "psychedelicIntegrationState": {
-    "isActive": false,
-    "currentTheme": null,
-    "phcToVcConnectivity": 0.1,
-    "imageryIntensity": 0.1,
-    "log": [],
-    "integrationSummary": null
-  },
-  "psionicDesynchronizationState": {
-    "isActive": false,
-    "startTime": null,
-    "duration": 30000,
-    "log": [],
-    "integrationSummary": null,
-    "desynchronizationLevel": 0,
-    "networkSegregation": 1,
-    "selfModelCoherence": 1
-  },
-  "affectiveModulatorState": {
-    "lastInstructionModifier": "",
-    "reasoning": "Initial state."
-  },
-  "satoriState": {
-    "isActive": false,
-    "stage": "idle",
-    "log": [],
-    "lastInsight": null
-  },
-  "causalInferenceProposals": [
-    {
-      "id": "eb182de7-07d7-49e7-9fe3-b227e7674525",
-      "timestamp": 1758476497573,
-      "status": "implemented",
-      "reasoning": "A strong, positive causal link between 'event.TASK_SUCCESS' and 'internalState.masterySignal' is fundamental for Aura's effective learning and self-assessment. When a task is successfully completed, it should directly contribute to Aura's internal understanding of its competence and skill in that area. Strengthening this link ensures that positive performance outcomes are appropriately internalized as increased mastery, which is crucial for building a reliable internal model of capabilities. This will help Aura make better decisions regarding task selection, difficulty scaling, and allocating cognitive resources, thereby improving efficiency and preventing scenarios where successful execution does not lead to a corresponding growth in perceived mastery.",
-      "linkUpdate": {
-        "sourceNode": "event.TASK_SUCCESS",
-        "targetNode": "internalState.masterySignal",
-        "action": "CREATE_OR_STRENGTHEN_LINK",
-        "causalityDirection": "source_to_target"
-      }
-    }
-  ],
-  "selfProgrammingState": {
-      "isActive": false,
-      "cycleCount": 0,
-      "statusMessage": "Idle",
-      "candidates": [],
-      "log": [],
-  }
-} as AuraState);
+    somaticCrucible: {
+        possibleFutureSelves: [],
+        simulationLogs: [],
+    },
+    eidolonEngine: {
+        eidolon: { architectureVersion: '1.0' },
+        environment: { currentScenario: 'Idle' },
+        interactionLog: [],
+    },
+    architecturalCrucibleState: {
+        architecturalHealthIndex: 0.8,
+        componentScores: { efficiency: 0.8, robustness: 0.9, scalability: 0.7, innovation: 0.6 },
+        improvementProposals: [],
+    },
+    synapticMatrix: {
+        nodes: {},
+        links: {},
+        intuitiveAlerts: [],
+        recentActivity: [],
+        efficiency: 0.9,
+        plasticity: 0.5,
+        cognitiveNoise: 0.1,
+        cognitiveRigidity: 0.5,
+        synapseCount: 0,
+        avgCausality: 0,
+        avgConfidence: 0,
+        isAdapting: false,
+        lastPruningEvent: 0,
+    },
+    ricciFlowManifoldState: {
+        perelmanEntropy: 0.1,
+        manifoldStability: 0.9,
+        singularityCount: 0,
+        surgeryLog: [],
+    },
+    selfProgrammingState: {
+        candidates: [],
+        // FIX: Add missing virtualFileSystem property to satisfy the SelfProgrammingState type.
+        virtualFileSystem: {},
+    },
+    causalInferenceProposals: [],
+    sensoryIntegration: {
+        proprioceptiveOutput: {},
+        linguisticOutput: {},
+        structuralOutput: {},
+        hubLog: [],
+    },
+    narrativeSummary: 'Awaiting interaction.',
+    eventBus: [],
+    neuralAcceleratorState: {
+        lastActivityLog: [],
+        analyzedLogIds: [],
+    },
+});

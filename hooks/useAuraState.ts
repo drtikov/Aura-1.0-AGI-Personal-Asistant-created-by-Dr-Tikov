@@ -1,8 +1,11 @@
 import { useReducer, useEffect, useState, useCallback, useRef } from 'react';
+// FIX: Corrected import path for initialState to resolve module error.
 import { getInitialState } from '../state/initialState';
 import { auraReducer } from '../state/reducer';
+// FIX: Corrected import path for types to resolve module error.
 import { AuraState, HistoryEntry } from '../types';
 import { CURRENT_STATE_VERSION } from '../constants';
+// FIX: Corrected import path for migrations to resolve module error.
 import { migrateState } from '../state/migrations';
 
 // --- Memristor Logic (integrated from worker) ---

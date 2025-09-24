@@ -1,8 +1,6 @@
-
-
-
-
-import { createContext, useContext } from 'react';
+// context/AuraContext.tsx
+// FIX: Added import for React to resolve 'Cannot find namespace React' error.
+import React, { createContext, useContext } from 'react';
 // FIX: Corrected import path for useAura hook.
 import { useAura } from '../hooks/useAura';
 // FIX: Corrected import path for types.
@@ -24,10 +22,10 @@ export const LocalizationContext = createContext<LocalizationContextType | null>
 
 // State contexts are split into logical slices to prevent unnecessary re-renders.
 // Core state is expanded to include the new awareness modules and evolution engines.
-export const CoreStateContext = createContext<Pick<AuraState, 'internalState' | 'internalStateHistory' | 'rieState' | 'userModel' | 'coreIdentity' | 'selfAwarenessState' | 'atmanProjector' | 'worldModelState' | 'curiosityState' | 'knownUnknowns' | 'theme' | 'language' | 'limitations' | 'causalSelfModel' | 'phenomenologicalEngine' | 'situationalAwareness' | 'symbioticState' | 'developmentalHistory' | 'telosEngine' | 'boundaryDetectionEngine' | 'aspirationalEngine' | 'noosphereInterface' | 'dialecticEngine' | 'cognitiveLightCone' | 'humorAndIronyState' | 'personalityState' | 'gankyilInsights' | 'noeticEngramState' | 'genialityEngineState' | 'noeticMultiverse' | 'selfAdaptationState' | 'psychedelicIntegrationState' | 'affectiveModulatorState' | 'psionicDesynchronizationState' | 'satoriState'> | null>(null);
+export const CoreStateContext = createContext<Pick<AuraState, 'internalState' | 'internalStateHistory' | 'rieState' | 'userModel' | 'coreIdentity' | 'selfAwarenessState' | 'atmanProjector' | 'worldModelState' | 'curiosityState' | 'knownUnknowns' | 'theme' | 'language' | 'limitations' | 'causalSelfModel' | 'phenomenologicalEngine' | 'situationalAwareness' | 'symbioticState' | 'developmentalHistory' | 'telosEngine' | 'boundaryDetectionEngine' | 'aspirationalEngine' | 'noosphereInterface' | 'dialecticEngine' | 'cognitiveLightCone' | 'humorAndIronyState' | 'personalityState' | 'gankyilInsights' | 'noeticEngramState' | 'genialityEngineState' | 'noeticMultiverse' | 'selfAdaptationState' | 'psychedelicIntegrationState' | 'affectiveModulatorState' | 'psionicDesynchronizationState' | 'satoriState' | 'sensoryIntegration' | 'narrativeSummary' | 'doxasticEngineState' | 'qualiaSignalProcessorState'> | null>(null);
 export const MemoryStateContext = createContext<Pick<AuraState, 'knowledgeGraph' | 'workingMemory' | 'memoryNexus' | 'episodicMemoryState' | 'memoryConsolidationState'> | null>(null);
 // FIX: Added 'selfProgrammingState' to the context type to make it available to consumers.
-export const ArchitectureStateContext = createContext<Pick<AuraState, 'cognitiveArchitecture' | 'architecturalProposals' | 'systemSnapshots' | 'modificationLog' | 'cognitiveForgeState' | 'architecturalSelfModel' | 'heuristicsForge' | 'somaticCrucible' | 'eidolonEngine' | 'codeEvolutionProposals' | 'architecturalCrucibleState' | 'synapticMatrix' | 'ricciFlowManifoldState' | 'causalInferenceProposals' | 'selfProgrammingState'> | null>(null);
+export const ArchitectureStateContext = createContext<Pick<AuraState, 'cognitiveArchitecture' | 'architecturalProposals' | 'systemSnapshots' | 'modificationLog' | 'cognitiveForgeState' | 'architecturalSelfModel' | 'heuristicsForge' | 'somaticCrucible' | 'eidolonEngine' | 'codeEvolutionProposals' | 'architecturalCrucibleState' | 'synapticMatrix' | 'ricciFlowManifoldState' | 'causalInferenceProposals' | 'selfProgrammingState' | 'neuralAcceleratorState'> | null>(null);
 export const PlanningStateContext = createContext<Pick<AuraState, 'goalTree' | 'activeStrategicGoalId' | 'disciplineState'> | null>(null);
 export const EngineStateContext = createContext<Pick<AuraState, 'proactiveEngineState' | 'ethicalGovernorState' | 'intuitionEngineState' | 'intuitiveLeaps' | 'ingenuityState'> | null>(null);
 export const LogsStateContext = createContext<Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 'cognitiveModeLog' | 'cognitiveGainLog' | 'cognitiveRegulationLog'> | null>(null);
