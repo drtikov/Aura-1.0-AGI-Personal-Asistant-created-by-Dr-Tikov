@@ -15,7 +15,12 @@ import { ImageEditingModal } from '../components/ImageEditingModal';
 import { VideoGenerationModal } from '../components/VideoGenerationModal';
 import { AdvancedControlsModal } from '../components/AdvancedControlsModal';
 import { MusicGenerationModal } from '../components/MusicGenerationModal';
-import { useAuraDispatch } from './AuraContext';
+import { CoCreatedWorkflowModal } from '../components/CoCreatedWorkflowModal';
+import { SkillGenesisModal } from '../components/SkillGenesisModal';
+import { AbstractConceptModal } from '../components/AbstractConceptModal';
+import { TelosModal } from '../components/TelosModal';
+import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal';
+import { useAuraDispatch, useCoreState } from './AuraContext';
 import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types';
 
 type ModalType = 
@@ -32,7 +37,12 @@ type ModalType =
     | 'imageEditing'
     | 'videoGeneration'
     | 'advancedControls'
-    | 'musicGeneration';
+    | 'musicGeneration'
+    | 'coCreatedWorkflow'
+    | 'skillGenesis'
+    | 'abstractConcept'
+    | 'telos'
+    | 'psychePrimitives';
 
 interface ModalContextType {
     open: <T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => void;
@@ -41,14 +51,18 @@ interface ModalContextType {
 
 const ModalContext = createContext<ModalContextType | undefined>(undefined);
 
-// FIX: Made children prop optional to resolve "Property 'children' is missing" error.
 export const ModalProvider = ({ children }: { children?: ReactNode }) => {
     const [modal, setModal] = useState<{ type: ModalType; payload: any } | null>(null);
     const { 
         approveProposal, rejectProposal, handleWhatIf, 
-        handleSearch, handleSetStrategicGoal, state, 
-        processingState, handleMultiverseBranch, handleBrainstorm
+        handleSearch, handleSetStrategicGoal, 
+        processingState, handleMultiverseBranch, handleBrainstorm,
+        handleSetTelos
     } = useAuraDispatch();
+    
+    // FIX: Use the specific useCoreState hook to get only the necessary state slices.
+    // This resolves the error where the larger 'state' object from useAuraDispatch was undefined.
+    const { internalState, telosEngine } = useCoreState();
 
     const open = useCallback(<T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => {
         setModal({ type: modalType, payload });
@@ -105,7 +119,7 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
             <ForecastModal
                 isOpen={modal?.type === 'forecast'}
                 onClose={close}
-                state={state.internalState}
+                state={internalState}
             />
             <CognitiveGainDetailModal
                 log={modal?.type === 'cognitiveGainDetail' ? modal.payload.log : null}
@@ -143,6 +157,28 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
             />
             <MusicGenerationModal
                 isOpen={modal?.type === 'musicGeneration'}
+                onClose={close}
+            />
+            <CoCreatedWorkflowModal
+                isOpen={modal?.type === 'coCreatedWorkflow'}
+                onClose={close}
+            />
+            <SkillGenesisModal
+                isOpen={modal?.type === 'skillGenesis'}
+                onClose={close}
+            />
+            <AbstractConceptModal
+                isOpen={modal?.type === 'abstractConcept'}
+                onClose={close}
+            />
+            <TelosModal
+                isOpen={modal?.type === 'telos'}
+                onClose={close}
+                onSetTelos={handleSetTelos}
+                currentTelos={telosEngine.telos}
+            />
+            <PsychePrimitivesModal
+                isOpen={modal?.type === 'psychePrimitives'}
                 onClose={close}
             />
         </ModalContext.Provider>

@@ -59,20 +59,7 @@ export const ArchitecturalCruciblePanel = React.memo(() => {
             </div>
 
             <div className="panel-subsection-title">{t('geniality_proposals_title')}</div>
-            <div className="proposals-list">
-                 {state.improvementProposals.length === 0 ? (
-                    <div className="kg-placeholder">{t('geniality_noProposals')}</div>
-                ) : (
-                    state.improvementProposals.map(proposal => (
-                        <div key={proposal.id} className={`geniality-proposal-item status-${proposal.status}`}>
-                            <div className="geniality-proposal-header">
-                                <h5 className="geniality-proposal-title">{proposal.title}</h5>
-                                <span className={`arch-status status-${proposal.status}`}>{proposal.status}</span>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
+            <div className="kg-placeholder">{t('archCrucible_proposalsMoved')}</div>
         </div>
     );
 });

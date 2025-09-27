@@ -4,6 +4,7 @@ import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
 import { ArchitecturalChangeProposal } from '../types';
 import { Modal } from './Modal';
+// FIX: Corrected casing in import path from 'auraContext' to 'AuraContext' to resolve module resolution errors.
 import { useLocalization } from '../context/AuraContext';
 
 export const ProposalReviewModal = ({ proposal, onApprove, onReject, onClose }: { proposal: ArchitecturalChangeProposal | null, onApprove: (proposal: ArchitecturalChangeProposal) => void, onReject: (id: string) => void, onClose: () => void }) => {

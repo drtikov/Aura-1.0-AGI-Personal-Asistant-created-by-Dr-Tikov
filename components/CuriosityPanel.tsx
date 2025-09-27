@@ -19,6 +19,18 @@ export const CuriosityPanel = React.memo(() => {
                 </div>
             </div>
             
+            <div className="state-item">
+                <label>{t('curiosityPanel_motivationDrive')}</label>
+                <div className="state-bar-container">
+                    <div className="state-bar" style={{ width: `${state.motivationDrive * 100}%`, backgroundColor: 'var(--guna-dharma)' }}></div>
+                </div>
+            </div>
+
+            <div className="awareness-item">
+                <label>{t('curiosityPanel_activeGoal')}</label>
+                <strong title={state.activeCuriosityGoalId || ''}>{state.activeCuriosityGoalId ? `...${state.activeCuriosityGoalId.slice(-8)}` : t('curiosityPanel_noActiveGoal')}</strong>
+            </div>
+
             <div className="panel-subsection-title">{t('curiosityPanel_activeInquiry')}</div>
             {state.activeInquiry ? (
                 <div className="active-inquiry-item">

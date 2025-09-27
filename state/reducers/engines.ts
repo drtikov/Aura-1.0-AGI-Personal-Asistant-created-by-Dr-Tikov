@@ -1,12 +1,17 @@
 import { AuraState, Action } from '../../types';
 
 export const enginesReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    switch (action.type) {
+    if (action.type !== 'SYSCALL') {
+        return {};
+    }
+    const { call, args } = action.payload;
+
+    switch (call) {
         case 'UPDATE_SUGGESTION_STATUS': {
             return {
                 proactiveEngineState: {
                     ...state.proactiveEngineState,
-                    generatedSuggestions: state.proactiveEngineState.generatedSuggestions.map(s => s.id === action.payload.id ? { ...s, status: action.payload.status } : s),
+                    generatedSuggestions: state.proactiveEngineState.generatedSuggestions.map(s => s.id === args.id ? { ...s, status: args.status } : s),
                 }
             };
         }
@@ -15,7 +20,7 @@ export const enginesReducer = (state: AuraState, action: Action): Partial<AuraSt
             return {
                 proactiveEngineState: {
                     ...state.proactiveEngineState,
-                    cachedResponsePlan: action.payload,
+                    cachedResponsePlan: args,
                 }
             };
 
@@ -24,6 +29,17 @@ export const enginesReducer = (state: AuraState, action: Action): Partial<AuraSt
                 proactiveEngineState: {
                     ...state.proactiveEngineState,
                     cachedResponsePlan: null,
+                }
+            };
+
+        case 'ETHICAL_GOVERNOR/ADD_PRINCIPLE':
+            if (state.ethicalGovernorState.principles.includes(args)) {
+                return {}; // Avoid duplicates
+            }
+            return {
+                ethicalGovernorState: {
+                    ...state.ethicalGovernorState,
+                    principles: [...state.ethicalGovernorState.principles, args]
                 }
             };
 

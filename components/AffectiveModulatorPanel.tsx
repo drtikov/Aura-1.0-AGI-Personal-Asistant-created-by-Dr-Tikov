@@ -1,30 +1,55 @@
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+
+const BiasSlider = ({ label, biasKey, value, onDispatch }: { label: string; biasKey: string; value: number; onDispatch: any }) => (
+    <div className="state-item">
+        <label>{label}</label>
+        <div className="state-bar-container">
+            <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={value}
+                onChange={(e) => onDispatch({ type: 'SYSCALL', payload: { call: 'AFFECTIVE/SET_BIAS', args: { bias: biasKey, value: e.target.valueAsNumber } } })}
+                style={{ width: '100%' }}
+            />
+        </div>
+        <span>{(value * 100).toFixed(0)}%</span>
+    </div>
+);
+
 
 export const AffectiveModulatorPanel = React.memo(() => {
     const { affectiveModulatorState: state } = useCoreState();
+    const { dispatch } = useAuraDispatch();
     const { t } = useLocalization();
 
     return (
         <div className="side-panel affective-modulator-panel">
-            <div className="panel-subsection-title">{t('affectiveModulator_title')}</div>
-            <div className="rie-insight-item" style={{ background: 'rgba(0, 255, 255, 0.05)' }}>
-                 <div className="rie-insight-header">
-                    <span className="mod-log-type">{t('affectiveModulator_currentDirective')}</span>
-                </div>
-                <div className="rie-insight-body">
-                    <p className="rie-insight-model-update" style={{ fontStyle: 'italic', color: 'var(--text-color)' }}>
-                       "{state.lastInstructionModifier}"
-                    </p>
-                </div>
-                 <div className="rie-insight-header" style={{borderTop: '1px dashed var(--border-color)', marginTop: '0.5rem'}}>
-                    <span className="mod-log-type">{t('architecturePanel_reasoning')}</span>
-                </div>
-                 <div className="rie-insight-body">
-                    <p className="rie-insight-model-update" style={{color: 'var(--text-muted)'}}>
-                       {state.reasoning}
-                    </p>
-                </div>
+            <div className="panel-subsection-title" style={{ marginTop: 0 }}>{t('affectiveModulator_title')}</div>
+            <p className="reason-text" style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('affectiveModulator_description')}
+            </p>
+            <div className="hormone-signals">
+                 <BiasSlider
+                    label={t('affectiveModulator_creativity')}
+                    biasKey="creativityBias"
+                    value={state.creativityBias}
+                    onDispatch={dispatch}
+                />
+                 <BiasSlider
+                    label={t('affectiveModulator_conciseness')}
+                    biasKey="concisenessBias"
+                    value={state.concisenessBias}
+                    onDispatch={dispatch}
+                />
+                 <BiasSlider
+                    label={t('affectiveModulator_analyticalDepth')}
+                    biasKey="analyticalDepth"
+                    onDispatch={dispatch}
+                    value={state.analyticalDepth}
+                />
             </div>
         </div>
     );

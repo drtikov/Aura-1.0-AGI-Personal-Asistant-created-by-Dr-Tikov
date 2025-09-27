@@ -18,7 +18,7 @@ export const KnowledgeGraphPanel = React.memo(({ onDispatch }: { onDispatch: Rea
                             <span className="kg-subject">{fact.subject}</span>
                             <span className="kg-predicate">{fact.predicate}</span>
                             <span className="kg-object">{fact.object}</span>
-                            <button className="kg-delete-button" onClick={() => onDispatch({ type: 'DELETE_FACT', payload: fact.id })} title={t('knowledgeGraph_deleteFact')}>&times;</button>
+                            <button className="kg-delete-button" onClick={() => onDispatch({ type: 'SYSCALL', payload: { call: 'DELETE_FACT', args: fact.id } })} title={t('knowledgeGraph_deleteFact')}>&times;</button>
                         </div>
                     ))
                 )}

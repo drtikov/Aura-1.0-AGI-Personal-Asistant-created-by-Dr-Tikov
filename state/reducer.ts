@@ -1,21 +1,24 @@
-// FIX: Corrected import path for types to resolve module error.
+// state/reducer.ts
 import { AuraState, Action } from '../types';
-// FIX: Corrected import path for initialState to resolve module error.
 import { getInitialState } from './initialState';
-// FIX: Corrected import path for architecture reducer to resolve module error.
 import { architectureReducer } from './reducers/architecture';
-// FIX: Corrected import path for core reducer to resolve module error.
 import { coreReducer } from './reducers/core';
-// FIX: Corrected import path for engines reducer to resolve module error.
 import { enginesReducer } from './reducers/engines';
-// FIX: Corrected import path for logs reducer to resolve module error.
 import { logsReducer } from './reducers/logs';
-// FIX: Corrected import path for memory reducer to resolve module error.
 import { memoryReducer } from './reducers/memory';
-// FIX: Corrected import path for planning reducer to resolve module error.
 import { planningReducer } from './reducers/planning';
-// FIX: Corrected import path for system reducer to resolve module error.
 import { systemReducer } from './reducers/system';
+import { neuroCortexReducer } from './reducers/neuroCortex';
+import { granularCortexReducer } from './reducers/granularCortex';
+import { koniocortexReducer } from './reducers/koniocortex';
+import { premotorPlannerReducer } from './reducers/premotor';
+import { basalGangliaReducer } from './reducers/basalGanglia';
+import { cerebellumReducer } from './reducers/cerebellum';
+import { psycheReducer } from './reducers/psyche';
+import { motorCortexReducer } from './reducers/motorCortex';
+import { praxisResonatorReducer } from './reducers/praxisResonator';
+import { cognitiveForgeReducer } from './reducers/cognitiveForge';
+import { pluginReducer } from './reducers/pluginReducer';
 
 /**
  * The root reducer for the Aura application.
@@ -60,6 +63,17 @@ export const auraReducer = (state: AuraState, action: Action): AuraState => {
                 ...memoryReducer(state, action),
                 ...planningReducer(state, action),
                 ...systemReducer(state, action),
+                ...neuroCortexReducer(state, action),
+                ...granularCortexReducer(state, action),
+                ...koniocortexReducer(state, action),
+                ...premotorPlannerReducer(state, action),
+                ...basalGangliaReducer(state, action),
+                ...cerebellumReducer(state, action),
+                ...psycheReducer(state, action),
+                ...motorCortexReducer(state, action),
+                ...praxisResonatorReducer(state, action),
+                ...cognitiveForgeReducer(state, action),
+                ...pluginReducer(state, action),
             };
             return updatedState;
     }

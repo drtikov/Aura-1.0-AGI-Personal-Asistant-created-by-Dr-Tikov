@@ -1,10 +1,15 @@
+
+
 import React from 'react';
-import { useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+// FIX: Added useSystemState to the import to resolve the current error.
+import { useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useSystemState, useAuraDispatch, useLocalization, usePlanningState } from '../context/AuraContext';
 import { Accordion } from './Accordion';
 import { mainControlDeckLayout, advancedControlsLayout, PanelConfig } from './controlDeckConfig';
 import { useModal } from '../context/ModalContext';
 // FIX: Corrected import path alias for translations to resolve module error.
 import { translations } from '../localization';
+import { NarrativeSummaryPanel } from './NarrativeSummaryPanel';
+import { ManualControlPanel } from './ManualControlPanel';
 
 // --- New Component Definition ---
 const LocalizationPanel = () => {
@@ -12,7 +17,7 @@ const LocalizationPanel = () => {
     const { t } = useLocalization();
 
     const handleLanguageChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        dispatch({ type: 'SET_LANGUAGE', payload: e.target.value });
+        dispatch({ type: 'SYSCALL', payload: { call: 'SET_LANGUAGE', args: e.target.value } });
     };
 
     return (
@@ -74,6 +79,8 @@ export const ControlDeckComponent = () => {
     const memoryState = useMemoryState();
     const coreState = useCoreState();
     const engineState = useEngineState();
+    const planningState = usePlanningState();
+    const systemState = useSystemState();
     const handlers = useAuraDispatch();
     const { t } = useLocalization();
     const modal = useModal();
@@ -84,12 +91,17 @@ export const ControlDeckComponent = () => {
         memory: memoryState,
         core: coreState,
         engine: engineState,
+        planning: planningState,
+        // FIX: Added the 'system' property to the stateSlices object to provide data for panels like ResourceMonitorPanel.
+        system: systemState,
     };
 
     return (
         <div className="control-deck-container">
             <div className="control-deck-content">
                 <LocalizationPanel />
+                <NarrativeSummaryPanel />
+                <ManualControlPanel />
                 {mainControlDeckLayout.map(panel => renderPanel(panel, stateSlices, handlers, t))}
 
                 <div className="panel-group-title" style={{ marginTop: '1.5rem' }}>{t('title_advancedModules')}</div>

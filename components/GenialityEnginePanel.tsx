@@ -39,7 +39,7 @@ const RadialBar = ({ percentage, color, label, size = 40, stroke = 4 }: { percen
 export const GenialityEnginePanel = React.memo(() => {
     const { genialityEngineState: state } = useCoreState();
     const { t } = useLocalization();
-    const { genialityIndex, componentScores, improvementProposals } = state;
+    const { genialityIndex, componentScores } = state;
 
     return (
         <div className="side-panel geniality-panel">
@@ -79,32 +79,7 @@ export const GenialityEnginePanel = React.memo(() => {
             </div>
             
             <div className="panel-subsection-title">{t('geniality_proposals_title')}</div>
-            <div className="geniality-proposals-list">
-                {improvementProposals.length === 0 ? (
-                    <div className="kg-placeholder">{t('geniality_noProposals')}</div>
-                ) : (
-                    improvementProposals.map(proposal => (
-                        <div key={proposal.id} className={`geniality-proposal-item status-${proposal.status}`}>
-                            <div className="geniality-proposal-header">
-                                <h5 className="geniality-proposal-title">{proposal.title}</h5>
-                                <div className="geniality-proposal-impact" title={`${t('geniality_projected_impact')}: +${(proposal.projectedImpact * 100).toFixed(0)}%`}>
-                                    <span className="impact-arrow">▲</span>
-                                    <span>{(proposal.projectedImpact * 100).toFixed(0)}%</span>
-                                </div>
-                            </div>
-                            <p className="geniality-proposal-reasoning">
-                                <strong>{t('architecturePanel_reasoning')}:</strong> <em>{proposal.reasoning}</em>
-                            </p>
-                             <p className="geniality-proposal-action">
-                                <strong>{t('proposalReview_action')}:</strong> {proposal.action}
-                            </p>
-                             <div className="proposal-actions-footer">
-                                <span className={`arch-status status-${proposal.status}`}>{proposal.status}</span>
-                            </div>
-                        </div>
-                    ))
-                )}
-            </div>
+            <div className="kg-placeholder">{t('geniality_proposalsMoved')}</div>
         </div>
     );
 });

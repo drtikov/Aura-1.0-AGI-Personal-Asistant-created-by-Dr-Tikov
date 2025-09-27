@@ -1,6 +1,5 @@
 import React from 'react';
 import { useArchitectureState, useLocalization } from '../context/AuraContext';
-// FIX: Corrected import path for types to resolve module error.
 import { CognitiveModule, SynthesizedSkill, Coprocessor, CoprocessorArchitecture } from '../types';
 
 export const CognitiveArchitecturePanel = React.memo(() => {

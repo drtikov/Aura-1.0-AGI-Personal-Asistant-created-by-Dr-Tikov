@@ -12,9 +12,9 @@ export const WorkingMemoryPanel = React.memo(({ onDispatch }: { onDispatch: Reac
         <div className="working-memory-panel">
             <div className="working-memory-header">
                 <h4>{t('workingMemoryTitle')}</h4>
-                {memory.length > 0 && <button className="clear-wm-button" onClick={() => onDispatch({ type: 'CLEAR_WORKING_MEMORY' })}>{t('workingMemoryClear')}</button>}
+                {memory.length > 0 && <button className="clear-wm-button" onClick={() => onDispatch({ type: 'SYSCALL', payload: { call: 'CLEAR_WORKING_MEMORY', args: {} } })}>{t('workingMemoryClear')}</button>}
             </div>
-            <ul> {memory.map((item, index) => ( <li key={index}> <span>{item.substring(0, 100)}{item.length > 100 ? '...' : ''}</span> <button onClick={() => onDispatch({ type: 'REMOVE_FROM_WORKING_MEMORY', payload: item })} title={t('workingMemoryRemove')}>&times;</button> </li> ))} </ul>
+            <ul> {memory.map((item, index) => ( <li key={index}> <span>{item.substring(0, 100)}{item.length > 100 ? '...' : ''}</span> <button onClick={() => onDispatch({ type: 'SYSCALL', payload: { call: 'REMOVE_FROM_WORKING_MEMORY', args: item } })} title={t('workingMemoryRemove')}>&times;</button> </li> ))} </ul>
         </div>
     );
 });

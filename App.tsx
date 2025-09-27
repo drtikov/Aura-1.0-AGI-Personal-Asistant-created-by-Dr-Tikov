@@ -1,7 +1,12 @@
+
+
 import React, { useMemo, ReactNode } from 'react';
-// FIX: Corrected import path for useAura hook.
 import { useAura } from './hooks';
-import { ToastContainer, LeftColumnComponent, ControlDeckComponent, Header } from './components';
+import { ToastContainer, LeftColumnComponent, Header } from './components';
+// FIX: Corrected import casing to resolve module casing conflict.
+// The compiler error indicates a conflict between 'ControlDeckComponent' and 'controlDeckComponent'.
+// The import path must match the filename's casing exactly.
+import { ControlDeckComponent } from './components/ControlDeckComponent';
 import { 
     AuraDispatchContext, 
     CoreStateContext,
@@ -35,7 +40,6 @@ const MainLayout = () => {
 // This component is responsible for setting up all the granular state context providers.
 // It subscribes to the main state from AuraDispatchContext and splits it into slices.
 // This prevents components from re-rendering due to changes in unrelated state slices.
-// FIX: Made children prop optional to resolve "Property 'children' is missing" error.
 const StateProviders = ({ children }: { children?: ReactNode }) => {
     const { state } = useAuraDispatch();
 
@@ -79,6 +83,7 @@ const StateProviders = ({ children }: { children?: ReactNode }) => {
         qualiaSignalProcessorState: state.qualiaSignalProcessorState,
         sensoryIntegration: state.sensoryIntegration,
         narrativeSummary: state.narrativeSummary,
+        socialCognitionState: state.socialCognitionState,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -89,7 +94,8 @@ const StateProviders = ({ children }: { children?: ReactNode }) => {
         state.gankyilInsights, state.noeticEngramState, state.genialityEngineState, state.noeticMultiverse,
         state.selfAdaptationState, state.psychedelicIntegrationState,
         state.affectiveModulatorState, state.psionicDesynchronizationState, state.satoriState,
-        state.doxasticEngineState, state.qualiaSignalProcessorState, state.sensoryIntegration, state.narrativeSummary
+        state.doxasticEngineState, state.qualiaSignalProcessorState, state.sensoryIntegration, state.narrativeSummary,
+        state.socialCognitionState,
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -102,8 +108,6 @@ const StateProviders = ({ children }: { children?: ReactNode }) => {
 
     const architectureStateValue = useMemo(() => ({
         cognitiveArchitecture: state.cognitiveArchitecture, 
-        architecturalProposals: state.architecturalProposals, 
-        codeEvolutionProposals: state.codeEvolutionProposals,
         systemSnapshots: state.systemSnapshots, 
         modificationLog: state.modificationLog, 
         cognitiveForgeState: state.cognitiveForgeState,
@@ -114,24 +118,43 @@ const StateProviders = ({ children }: { children?: ReactNode }) => {
         architecturalCrucibleState: state.architecturalCrucibleState,
         synapticMatrix: state.synapticMatrix,
         ricciFlowManifoldState: state.ricciFlowManifoldState,
-        // FIX: Added missing 'selfProgrammingState' property to the object.
         selfProgrammingState: state.selfProgrammingState,
-        causalInferenceProposals: state.causalInferenceProposals,
         neuralAcceleratorState: state.neuralAcceleratorState,
+        neuroCortexState: state.neuroCortexState,
+        granularCortexState: state.granularCortexState,
+        koniocortexSentinelState: state.koniocortexSentinelState,
+        cognitiveTriageState: state.cognitiveTriageState,
+        psycheState: state.psycheState,
+        motorCortexState: state.motorCortexState,
+        praxisResonatorState: state.praxisResonatorState,
+        ontogeneticArchitectState: state.ontogeneticArchitectState,
+        embodiedCognitionState: state.embodiedCognitionState,
     }), [
-        state.cognitiveArchitecture, state.architecturalProposals, state.codeEvolutionProposals,
-        state.systemSnapshots, state.modificationLog, state.cognitiveForgeState, 
+        state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState, 
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
         state.architecturalCrucibleState, state.synapticMatrix, state.ricciFlowManifoldState,
         state.selfProgrammingState,
-        state.causalInferenceProposals, state.neuralAcceleratorState
+        state.neuralAcceleratorState, state.neuroCortexState,
+        state.granularCortexState, state.koniocortexSentinelState, state.cognitiveTriageState,
+        state.psycheState, state.motorCortexState, state.praxisResonatorState,
+        state.ontogeneticArchitectState, state.embodiedCognitionState,
     ]);
 
     const planningStateValue = useMemo(() => ({
-        goalTree: state.goalTree, 
-        activeStrategicGoalId: state.activeStrategicGoalId, 
-        disciplineState: state.disciplineState 
-    }), [state.goalTree, state.activeStrategicGoalId, state.disciplineState]);
+        goalTree: state.goalTree,
+        activeStrategicGoalId: state.activeStrategicGoalId,
+        disciplineState: state.disciplineState,
+        premotorPlannerState: state.premotorPlannerState,
+        basalGangliaState: state.basalGangliaState,
+        cerebellumState: state.cerebellumState,
+    }), [
+        state.goalTree,
+        state.activeStrategicGoalId,
+        state.disciplineState,
+        state.premotorPlannerState,
+        state.basalGangliaState,
+        state.cerebellumState
+    ]);
 
     const engineStateValue = useMemo(() => ({
         proactiveEngineState: state.proactiveEngineState, 
@@ -159,8 +182,9 @@ const StateProviders = ({ children }: { children?: ReactNode }) => {
     const systemStateValue = useMemo(() => ({
         resourceMonitor: state.resourceMonitor, 
         metacognitiveNexus: state.metacognitiveNexus, 
-        metacognitiveCausalModel: state.metacognitiveCausalModel 
-    }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel]);
+        metacognitiveCausalModel: state.metacognitiveCausalModel,
+        pluginState: state.pluginState
+    }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState]);
 
 
     return (
@@ -183,7 +207,7 @@ const StateProviders = ({ children }: { children?: ReactNode }) => {
 };
 
 // The root component of the application.
-// It initializes the main `useAura` hook and sets up the top-level providers.
+// It initializes the main \`useAura\` hook and sets up the top-level providers.
 // The provider order is critical: AuraDispatchContext must wrap ModalProvider.
 export const App = () => {
     const auraInterface = useAura();

@@ -1,7 +1,9 @@
+
 // components/AdvancedControlsModal.tsx
 import React from 'react';
 import { Modal } from './Modal';
-import { useLocalization, useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useAuraDispatch } from '../context/AuraContext';
+// FIX: Added useSystemState to the import to resolve the current error.
+import { useLocalization, useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useSystemState, useAuraDispatch, usePlanningState } from '../context/AuraContext';
 import { advancedControlsLayout, PanelConfig } from './controlDeckConfig';
 import { Accordion } from './Accordion';
 
@@ -49,6 +51,8 @@ export const AdvancedControlsModal = ({ isOpen, onClose }: { isOpen: boolean; on
     const memoryState = useMemoryState();
     const coreState = useCoreState();
     const engineState = useEngineState();
+    const planningState = usePlanningState();
+    const systemState = useSystemState();
     const handlers = useAuraDispatch();
 
     const stateSlices = {
@@ -57,6 +61,9 @@ export const AdvancedControlsModal = ({ isOpen, onClose }: { isOpen: boolean; on
         memory: memoryState,
         core: coreState,
         engine: engineState,
+        planning: planningState,
+        // FIX: Added the 'system' property to the stateSlices object, providing data for panels like MetacognitiveNexusPanel.
+        system: systemState,
     };
 
     return (

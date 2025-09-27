@@ -1,6 +1,5 @@
 import React from 'react';
 import { useMemoryState, useLocalization } from '../context/AuraContext';
-// FIX: Corrected import path for types to resolve module error.
 import { Episode } from '../types';
 
 export const EpisodicMemoryPanel = React.memo(() => {

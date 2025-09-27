@@ -1,9 +1,14 @@
+
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useModal } from '../context/ModalContext';
 
 export const SymbiosisPanel = React.memo(() => {
     const { symbioticState: state } = useCoreState();
     const { t } = useLocalization();
+    const modal = useModal();
+    const { dispatch } = useAuraDispatch();
+
 
     return (
         <div className="side-panel symbiosis-panel">
@@ -57,12 +62,37 @@ export const SymbiosisPanel = React.memo(() => {
                     <div key={index} className="prediction-item" style={{ borderLeftColor: 'var(--guna-dharma)' }}>
                         <div className="prediction-header">
                             <span>{t('symbiosis_goalHypothesis')}</span>
-                            <span>{t('causalSelfModel_confidence')}: {(goal.confidence * 100).toFixed(0)}%</span>
+                            <span>{`${t('causalSelfModel_confidence')}: ${(goal.confidence * 100).toFixed(0)}%`}</span>
                         </div>
                         <p className="prediction-content">{goal.goal}</p>
                     </div>
                 ))
             )}
+
+            <div className="panel-subsection-title">{t('symbiosis_coCreatedWorkflows')}</div>
+            {state.coCreatedWorkflows.length === 0 ? (
+                <div className="kg-placeholder">{t('symbiosis_noWorkflows')}</div>
+            ) : (
+                state.coCreatedWorkflows.map(workflow => (
+                     <details key={workflow.id} className="workflow-details">
+                        <summary className="workflow-summary">
+                            <span>{workflow.name}</span>
+                        </summary>
+                        <div className="workflow-content">
+                            <p className="workflow-description">{workflow.description}</p>
+                            <p className="workflow-trigger"><strong>Trigger:</strong> {workflow.trigger}</p>
+                            <ol className="workflow-steps-list">
+                                {workflow.steps.map((step, i) => <li key={i}>{step}</li>)}
+                            </ol>
+                        </div>
+                     </details>
+                ))
+            )}
+            <div className="button-grid" style={{marginTop: '1rem'}}>
+                <button className="control-button" onClick={() => modal.open('coCreatedWorkflow', {})}>
+                    {t('symbiosis_createWorkflow')}
+                </button>
+            </div>
         </div>
     );
 });

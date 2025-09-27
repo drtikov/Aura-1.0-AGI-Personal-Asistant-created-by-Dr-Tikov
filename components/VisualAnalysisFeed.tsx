@@ -1,4 +1,5 @@
 import React from 'react';
+// FIX: Corrected casing in import path from 'auraContext' to 'AuraContext' to resolve module resolution errors.
 import { useLocalization } from '../context/AuraContext';
 
 interface VisualAnalysisFeedProps {

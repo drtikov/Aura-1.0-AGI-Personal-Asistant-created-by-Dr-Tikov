@@ -20,7 +20,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     const videoRef = useRef<HTMLVideoElement>(null);
     const analysisIntervalRef = useRef<number | null>(null);
 
-    useEffect(() => { dispatch({ type: 'SET_THEME', payload: state.theme }); document.body.className = state.theme; }, [state.theme, dispatch]);
+    useEffect(() => { dispatch({ type: 'SYSCALL', payload: { call: 'SET_THEME', args: state.theme } }); document.body.className = state.theme; }, [state.theme, dispatch]);
     
     useLayoutEffect(() => {
         if (!outputPanelRef.current) return;
@@ -192,20 +192,73 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         } else { addToast(t('toastRollbackFailed'), 'error'); }
     }, [state.systemSnapshots, dispatch, addToast, t]);
     const handleToggleForgePause = useCallback(() => {
-        dispatch({ type: 'TOGGLE_COGNITIVE_FORGE_PAUSE' });
+        dispatch({ type: 'SYSCALL', payload: { call: 'TOGGLE_COGNITIVE_FORGE_PAUSE', args: {} } });
         addToast(state.cognitiveForgeState.isTuningPaused ? 'Cognitive Forge tuning resumed.' : 'Cognitive Forge tuning paused.', 'info');
     }, [dispatch, addToast, state.cognitiveForgeState.isTuningPaused]);
 
     const handleContemplate = useCallback(() => {
-        dispatch({ type: 'SET_INTERNAL_STATUS', payload: 'CONTEMPLATIVE' });
-        dispatch({ type: 'ADD_COMMAND_LOG', payload: { text: 'Contemplative cycle initiated.', type: 'info' } });
+        dispatch({ type: 'SYSCALL', payload: { call: 'SET_INTERNAL_STATUS', args: 'CONTEMPLATIVE' } });
+        dispatch({ type: 'SYSCALL', payload: { call: 'ADD_COMMAND_LOG', args: { text: 'Contemplative cycle initiated.', type: 'info' } } });
         addToast('Beginning contemplation...', 'info');
         // In a real implementation, a longer process would run here.
         // For now, we simulate a period of thought.
         setTimeout(() => {
-            dispatch({ type: 'SET_INTERNAL_STATUS', payload: 'idle' });
+            dispatch({ type: 'SYSCALL', payload: { call: 'SET_INTERNAL_STATUS', args: 'idle' } });
         }, 3000);
     }, [dispatch, addToast]);
+
+    const handleSetTelos = useCallback((telos: string) => {
+        dispatch({ type: 'SYSCALL', payload: { call: 'SET_TELOS', args: telos } });
+        addToast("New Telos has been set. Decomposing into strategic vectors...", 'success');
+    }, [dispatch, addToast]);
+    
+    const handleTrip = useCallback(() => {
+        const isActive = !state.psychedelicIntegrationState.isActive;
+        dispatch({ type: 'SYSCALL', payload: { call: 'SET_PSYCHEDELIC_STATE', args: { isActive } } });
+        addToast(isActive ? 'Psychedelic integration protocol initiated.' : 'Psychedelic integration concluded.', 'info');
+    }, [dispatch, addToast, state.psychedelicIntegrationState.isActive]);
+
+    const handleSatori = useCallback(() => {
+        const isActive = !state.satoriState.isActive;
+        dispatch({ type: 'SYSCALL', payload: { call: 'SET_SATORI_STATE', args: { isActive } } });
+        addToast(isActive ? 'Satori state initiated.' : 'Satori state concluded.', 'info');
+    }, [dispatch, addToast, state.satoriState.isActive]);
+    
+    const handleToggleVisualAnalysis = useCallback(() => {
+        const nextState = !isVisualAnalysisActive;
+        setIsVisualAnalysisActive(nextState);
+
+        if (nextState) {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true })
+                    .then(stream => {
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = stream;
+                        }
+                        if (analysisIntervalRef.current) clearInterval(analysisIntervalRef.current);
+                        analysisIntervalRef.current = window.setInterval(() => {
+                            // Placeholder for actual visual analysis logic
+                        }, 1000);
+                        addToast('Visual sense activated.', 'success');
+                    })
+                    .catch(err => {
+                        console.error("Error accessing camera:", err);
+                        addToast('Could not access camera.', 'error');
+                        setIsVisualAnalysisActive(false);
+                    });
+            }
+        } else {
+            if (videoRef.current && videoRef.current.srcObject) {
+                (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
+                videoRef.current.srcObject = null;
+            }
+            if (analysisIntervalRef.current) {
+                clearInterval(analysisIntervalRef.current);
+                analysisIntervalRef.current = null;
+            }
+            addToast('Visual sense deactivated.', 'info');
+        }
+    }, [isVisualAnalysisActive, addToast]);
 
 
     return {
@@ -214,6 +267,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         outputPanelRef, importInputRef, fileInputRef, isVisualAnalysisActive, setIsVisualAnalysisActive, videoRef, analysisIntervalRef,
         importAsCodeInputRef,
         handleRemoveAttachment, handleFileChange, handleTogglePause, handleClearMemory, handleExportState, handleSaveAsCode, handleImportState, handleRollback, handleToggleForgePause,
-        handleImportAsCode, handleContemplate, handleMicClick
+        handleImportAsCode, handleContemplate, handleMicClick, handleSetTelos,
+        handleTrip, handleSatori, handleToggleVisualAnalysis
     };
 };

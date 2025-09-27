@@ -5,6 +5,7 @@ import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis';
 import { useCoreState, useLocalization } from '../context/AuraContext';
+import { SystemVitals } from './SystemVitals';
 
 export const CoreMonitor = React.memo(() => {
     const { internalState, rieState, userModel, internalStateHistory = [] } = useCoreState();
@@ -44,6 +45,7 @@ export const CoreMonitor = React.memo(() => {
     return (
         <div className="core-monitor-container">
             <div className="monitor-header"> <h2>RIGPA MONITOR // PRIMORDIAL AWARENESS</h2> <div className={`status-indicator status-${internalState.status}`}>{t(getStatusKey(internalState.status))}</div> </div>
+            <SystemVitals />
             <div className={`guna-display ${currentGuna.className}`}>
                 <h3 data-text={currentGuna.name}>{currentGuna.name}</h3>
                 <p>{currentGuna.description}</p>

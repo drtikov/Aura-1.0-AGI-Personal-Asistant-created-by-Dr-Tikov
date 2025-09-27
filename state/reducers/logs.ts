@@ -1,50 +1,65 @@
-import { AuraState, Action } from '../../types';
+import { AuraState, Action, EventBusMessage } from '../../types';
 
 export const logsReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    switch (action.type) {
-        case 'ADD_HISTORY_ENTRY':
-            if (action.payload.from === 'system' && state.history.some(h => h.text === action.payload.text)) {
+    if (action.type !== 'SYSCALL') {
+        return {};
+    }
+    const { call, args } = action.payload;
+
+    switch (call) {
+        case 'ADD_HISTORY_ENTRY': {
+            if (args.from === 'system' && state.history.some(h => h.text === args.text)) {
                 return {};
             }
-            return { history: [...state.history, { ...action.payload, id: action.payload.id || self.crypto.randomUUID() }] };
+             const newEvent: EventBusMessage = {
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                type: 'SYSCALL:ADD_HISTORY_ENTRY',
+                payload: args, // The history entry being added
+            };
+            return { 
+                history: [...state.history, { ...args, id: args.id || self.crypto.randomUUID() }],
+                eventBus: [newEvent, ...state.eventBus].slice(0, 50)
+            };
+        }
         
         case 'APPEND_TO_HISTORY_ENTRY':
             return {
                 history: state.history.map(entry =>
-                    entry.id === action.payload.id ? { ...entry, text: entry.text + action.payload.textChunk } : entry
+                    entry.id === args.id ? { ...entry, text: entry.text + args.textChunk } : entry
                 ),
             };
 
         case 'FINALIZE_HISTORY_ENTRY':
             return {
                 history: state.history.map(entry =>
-                    entry.id === action.payload.id ? { ...entry, ...action.payload.finalState, streaming: false } : entry
+                    entry.id === args.id ? { ...entry, ...args.finalState, streaming: false } : entry
                 ),
             };
             
         case 'ADD_PERFORMANCE_LOG':
-            return { performanceLogs: [...state.performanceLogs, action.payload] };
+            return { performanceLogs: [args, ...state.performanceLogs].slice(0, 100) };
 
         case 'ADD_COMMAND_LOG':
-            const newLog = { ...action.payload, id: self.crypto.randomUUID(), timestamp: Date.now() };
+            const newLog = { ...args, id: self.crypto.randomUUID(), timestamp: Date.now() };
             return { commandLog: [newLog, ...state.commandLog].slice(0, 50) };
 
         case 'UPDATE_HISTORY_FEEDBACK':
             return {
                 history: state.history.map(entry =>
-                    entry.id === action.payload.id ? { ...entry, feedback: action.payload.feedback } : entry
+                    entry.id === args.id ? { ...entry, feedback: args.feedback } : entry
                 ),
             };
             
         case 'LOG_COGNITIVE_REGULATION':
             return {
-                cognitiveRegulationLog: [action.payload, ...state.cognitiveRegulationLog].slice(0, 50)
+                cognitiveRegulationLog: [args, ...state.cognitiveRegulationLog].slice(0, 50)
             };
         
         case 'UPDATE_REGULATION_LOG_OUTCOME':
             return {
                 cognitiveRegulationLog: state.cognitiveRegulationLog.map(log =>
-                    log.id === action.payload.regulationLogId ? { ...log, outcomeLogId: action.payload.outcomeLogId } : log
+                    log.id === args.regulationLogId ? { ...log, outcomeLogId: args.outcomeLogId } : log
                 )
             };
         
@@ -53,7 +68,7 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
                 ...state,
                 cognitiveForgeState: {
                     ...state.cognitiveForgeState,
-                    simulationLog: [action.payload, ...state.cognitiveForgeState.simulationLog].slice(0, 50),
+                    simulationLog: [args, ...state.cognitiveForgeState.simulationLog].slice(0, 50),
                 }
             };
             
@@ -61,15 +76,25 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             return {
                 phenomenologicalEngine: {
                     ...state.phenomenologicalEngine,
-                    qualiaLog: [action.payload, ...state.phenomenologicalEngine.qualiaLog].slice(0, 50),
+                    qualiaLog: [args, ...state.phenomenologicalEngine.qualiaLog].slice(0, 50),
                 }
             };
 
         case 'MARK_LOG_CAUSAL_ANALYSIS':
             return {
                 performanceLogs: state.performanceLogs.map(log =>
-                    log.id === action.payload ? { ...log, causalAnalysisTimestamp: Date.now() } : log
+                    log.id === args ? { ...log, causalAnalysisTimestamp: Date.now() } : log
                 )
+            };
+        
+        case 'ADD_EVENT_BUS_MESSAGE':
+            return {
+                eventBus: [args, ...state.eventBus].slice(0, 50)
+            };
+
+        case 'LOG_SUBSUMPTION_EVENT':
+            return {
+                subsumptionLog: [args, ...state.subsumptionLog].slice(0, 50)
             };
 
         default:

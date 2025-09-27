@@ -1,9 +1,7 @@
 
 
 import { useMemo } from 'react';
-// FIX: Corrected import path for types to resolve module error.
 import { InternalState } from '../types';
-// FIX: GunaState is now exported from types.ts to avoid circular dependencies.
 import { GunaState } from '../types';
 
 export const useGunaAnalysis = (internalState: InternalState, t: (key: string, options?: any) => string) => {

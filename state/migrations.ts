@@ -1,6 +1,10 @@
 
+
+// FIX: Corrected import path for types to resolve module error.
 import { AuraState, AgentProfile, InternalState } from '../types';
+// FIX: Corrected import path for initialState to resolve module error.
 import { getInitialState } from './initialState';
+// FIX: Corrected import path for constants to resolve module error.
 import { CURRENT_STATE_VERSION } from '../constants';
 
 // Define interfaces for past versions to ensure type safety during migration.

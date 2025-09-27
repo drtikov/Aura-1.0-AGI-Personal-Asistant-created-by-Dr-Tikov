@@ -528,6 +528,91 @@ body {
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
 }
 
+/* --- VFS Explorer Panel --- */
+.vfs-explorer-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 400px; /* Ensure it has some height in the modal */
+  background: rgba(0,0,0,0.3);
+  border: 1px solid var(--border-color);
+  font-family: var(--font-body);
+}
+.vfs-path-bar {
+  padding: 0.5rem 0.75rem;
+  background: rgba(0,0,0,0.4);
+  color: var(--primary-color);
+  border-bottom: 1px solid var(--border-color);
+  font-size: 0.9rem;
+}
+.vfs-path-bar span {
+  color: var(--accent-color);
+  margin-right: 0.5rem;
+}
+.vfs-main-area {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  flex-grow: 1;
+  overflow: hidden;
+}
+.vfs-file-list {
+  padding: 0.5rem;
+  border-right: 1px solid var(--border-color);
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+.vfs-file-list::-webkit-scrollbar { width: 4px; }
+.vfs-file-list::-webkit-scrollbar-thumb { background-color: var(--primary-color); }
+
+.vfs-node {
+  cursor: pointer;
+  padding: 0.2rem 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.8rem;
+  transition: background-color 0.2s ease;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.vfs-node:hover {
+  background-color: var(--primary-color);
+  color: var(--background);
+}
+.vfs-node:hover .vfs-node-type {
+  color: var(--background) !important;
+}
+.vfs-node-type.type-d {
+  color: var(--primary-color);
+  font-weight: bold;
+}
+.vfs-node-type.type-f {
+  color: var(--text-muted);
+}
+.vfs-content-viewer {
+  padding: 0.75rem;
+  overflow: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-color) transparent;
+}
+.vfs-content-viewer pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-size: 0.8rem;
+  color: var(--text-color);
+}
+.vfs-content-viewer .kg-placeholder {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
 /* --- OPTIMIZATION: Grouped selectors for common structural styles --- */
 .ui-2 .left-column, .ui-2 .control-deck-container,
 .ui-3 .left-column, .ui-3 .control-deck-container,
@@ -651,7 +736,7 @@ body {
 
 .history-entry { display: flex; flex-direction: column; max-width: 90%; position: relative; }
 .history-entry.from-user { align-self: flex-end; }
-.history-entry.from-bot, .history-entry.from-system { align-self: flex-start; }
+.history-entry.from-bot, .history-entry.from-system, .history-entry.from-tool { align-self: flex-start; }
 .history-entry .entry-content { padding: 1rem; border: 1px solid var(--border-color); position: relative; }
 .ui-1 .history-entry .entry-content { background-color: rgba(0,0,0,0.2); }
 .ui-1 .history-entry.from-user .entry-content { background-color: rgba(0, 255, 255, 0.05); clip-path: polygon(0 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%); }
@@ -665,7 +750,25 @@ body {
   border-image-source: var(--chroma-gradient, linear-gradient(to bottom, rgba(255, 0, 255, 0.2), rgba(255, 0, 255, 0.2)));
 }
 
-.ui-1 .history-entry.from-bot .entry-content {
+.history-entry.from-tool .entry-content {
+  background-color: rgba(255, 255, 0, 0.05);
+  border-left: 4px solid var(--accent-color);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+.history-entry.from-tool .tool-name {
+  font-weight: bold;
+  color: var(--accent-color);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+.history-entry.from-tool pre {
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+.ui-1 .history-entry.from-bot .entry-content, .ui-1 .history-entry.from-tool .entry-content {
   clip-path: polygon(0 0, 100% 0, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
 
@@ -826,18 +929,100 @@ body {
     color: var(--success-color);
     font-weight: bold;
 }
+.rie-insight-item .rie-insight-header strong.simulation_failed,
+.rie-insight-item .rie-insight-header strong.rejected {
+    color: var(--failure-color);
+    text-transform: capitalize;
+}
+
+.rie-insight-item .rie-insight-header strong.debugging,
+.rie-insight-item .rie-insight-header strong.simulating,
+.rie-insight-item .rie-insight-header strong.linting {
+    color: var(--warning-color);
+    animation: pulse-yellow 2s infinite;
+    text-transform: capitalize;
+}
+.rie-insight-item .rie-insight-header strong {
+    text-transform: capitalize;
+}
+
+/* --- ADD THESE NEW STYLES for Workflow Details --- */
+.workflow-details {
+    border: 1px solid var(--border-color);
+    margin-bottom: 0.5rem;
+    background: rgba(0,0,0,0.1);
+}
+.ui-1 .workflow-details {
+    clip-path: polygon(0 5px, 5px 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.workflow-summary {
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    font-weight: bold;
+    background: rgba(0, 255, 255, 0.05);
+    transition: background-color 0.2s ease;
+    list-style: none; /* Hide default marker */
+}
+.workflow-summary::-webkit-details-marker {
+    display: none; /* Hide default marker for Chrome */
+}
+.workflow-summary:hover {
+    background: rgba(0, 255, 255, 0.1);
+}
+.workflow-details[open] > .workflow-summary {
+    background: rgba(0, 255, 255, 0.15);
+    color: var(--primary-color);
+}
+
+.workflow-content {
+    padding: 0.75rem;
+    font-size: 0.85rem;
+    border-top: 1px solid var(--border-color);
+}
+.workflow-description {
+    font-style: italic;
+    color: var(--text-muted);
+    margin-bottom: 0.5rem;
+}
+.workflow-trigger {
+    margin-bottom: 0.5rem;
+}
+.workflow-steps-list {
+    padding-left: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+/* --- End new styles --- */
+
+.failure-reason-display {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: rgba(244, 67, 54, 0.1);
+    border-left: 3px solid var(--failure-color);
+    font-size: 0.8rem;
+}
+.failure-reason-display strong {
+    color: var(--failure-color);
+}
+.failure-reason-display p {
+    font-style: italic;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
 
 
 /* Specific footer for proposals/engrams */
 .proposal-actions-footer {
     margin-top: 1rem;
     display: flex;
+    gap: 0.5rem;
     justify-content: flex-end;
 }
 .proposal-actions-footer .control-button {
-    width: 100%;
+    flex-grow: 1;
 }
-
 
 .input-area { padding: 1rem; border-top: 1px solid var(--border-color); flex-shrink: 0; position: relative; }
 .input-area-content { display: flex; align-items: stretch; gap: 0.5rem; background-color: rgba(0,0,0,0.3); border: 1px solid var(--border-color); padding: 0.5rem; }
@@ -981,6 +1166,10 @@ body {
 .state-bar.clarity-bar { background-color: var(--guna-teeta); }
 .state-bar.plasticity-bar { background-color: var(--mode-creativity); }
 .state-bar.efficiency-bar { background-color: var(--state-mastery); }
+.state-bar.cpu-bar { background-color: var(--resource-cpu); }
+.state-bar.memory-bar { background-color: var(--resource-memory); }
+.state-bar.io-bar { background-color: var(--resource-io); }
+.state-bar.stability-bar { background-color: var(--resource-stability); }
 
 .temporal-focus-container {
   border-top: 1px solid var(--border-color);
@@ -1294,6 +1483,72 @@ body {
     justify-content: space-between;
     font-size: 0.7rem;
     color: var(--text-muted);
+}
+
+/* Neuro-Cortex Panel */
+.state-item.neuro-cortex-item.highlighted {
+  background-color: rgba(255, 255, 0, 0.15);
+  border-left: 2px solid var(--accent-color);
+  padding-left: 5px;
+  margin-left: -7px;
+}
+.state-item.neuro-cortex-item {
+  transition: all 0.2s ease-in-out;
+  margin-left: -2px;
+  padding-left: 0;
+  border-left: 2px solid transparent;
+}
+.layers-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    margin-top: 1rem;
+}
+.layer-item {
+    padding: 0.25rem;
+    border-left: 2px solid var(--border-color);
+    padding-left: 0.5rem;
+}
+.layer-item strong {
+    color: var(--text-color);
+    margin-right: 0.5rem;
+}
+
+/* Abstract Concept & Skill Genesis Modals */
+.column-checkbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    background: rgba(0,0,0,0.2);
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+.checkbox-label input {
+    margin-right: 0.75rem;
+    width: 16px;
+    height: 16px;
+    accent-color: var(--primary-color);
+}
+.curriculum-textarea {
+    width: 100%;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+    padding: 0.75rem;
+    font-family: var(--font-body);
+    color: var(--text-color);
+    font-size: 0.9rem;
+    resize: vertical;
+    margin-top: 0.5rem;
 }
 
 
@@ -1781,6 +2036,11 @@ body {
 .modal-content h3 { font-family: var(--font-heading); color: var(--primary-color); letter-spacing: 1px; margin-bottom: 1rem; }
 .modal-close { position: absolute; top: 1rem; right: 1rem; background: none; border: none; color: var(--primary-color); font-size: 1.5rem; cursor: pointer; }
 .modal-body { margin-top: 1rem; }
+.modal-body .top-actions {
+    margin-bottom: 1rem;
+    display: flex;
+    justify-content: flex-end;
+}
 .modal-footer { display: flex; gap: 1rem; margin-top: 1.5rem; justify-content: flex-end; }
 .proposal-approve-button, .proposal-reject-button { font-family: var(--font-body); padding: 0.7rem 1.2rem; border: 1px solid; cursor: pointer; font-size: 0.9rem; text-transform: uppercase; }
 .proposal-approve-button { background: var(--success-color); border-color: var(--success-color); color: #fff; }
@@ -1812,6 +2072,34 @@ body {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.modal-content.psyche-primitives-modal {
+    max-width: 90vw;
+    width: 1200px;
+    height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.modal-content.psyche-primitives-modal .modal-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 1rem; /* For scrollbar */
+}
+.modal-content.psyche-primitives-modal .modal-body .code-snippet-container {
+    max-height: 400px;
+}
+
+.primitives-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1rem;
+}
+
+.proposal-type-badge.psyche {
+    background-color: var(--guna-dharma);
+    color: var(--background);
 }
 
 
@@ -1874,6 +2162,20 @@ body {
   margin-bottom: 0.5rem;
   text-transform: uppercase;
   display: block;
+}
+
+/* Standalone Panel (for non-accordion panels like SystemVitals) */
+.standalone-panel {
+  padding: 0.8rem;
+  border: 1px solid var(--border-color);
+  background: rgba(0, 255, 255, 0.05);
+}
+.ui-1 .standalone-panel {
+  clip-path: polygon(0 5px, 5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%);
+}
+.ui-2 .standalone-panel, .ui-3 .standalone-panel, .ui-6 .standalone-panel, .ui-7 .standalone-panel, .ui-8 .standalone-panel, .ui-11 .standalone-panel {
+    background: rgba(0,0,0,0.03);
+    border-radius: 4px;
 }
 
 
@@ -2385,155 +2687,53 @@ input[type=range]:disabled::-moz-range-thumb {
     font-size: 1rem;
     margin-top: 1.25rem;
     margin-bottom: 0.5rem;
+}
+
+/* --- Plugin Manager Panel --- */
+.plugin-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 0.5rem;
-    text-transform: uppercase;
 }
-
-.movement-buttons {
-    grid-template-columns: repeat(3, 1fr);
+.plugin-item:last-child {
+    border-bottom: none;
 }
-
-.slider-label-group {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-}
-
-.slider-label-group span {
-    font-size: 0.8rem;
-    color: var(--text-muted);
-    flex-shrink: 0;
-}
-
-.seed-input-group {
-    display: flex;
-    gap: 0.5rem;
-}
-.seed-input-group input {
+.plugin-info {
     flex-grow: 1;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid var(--border-color);
-    padding: 0.75rem;
-    font-family: var(--font-body);
-    color: var(--text-color);
-    font-size: 0.9rem;
+    margin-right: 1rem;
 }
-.seed-input-group button {
-    flex-shrink: 0;
-    width: 48px;
-    background: transparent;
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    cursor: pointer;
+.plugin-name {
+    font-weight: bold;
+    color: var(--text-color);
     display: flex;
     align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
+    gap: 0.5rem;
+    margin-bottom: 0.25rem;
 }
-.seed-input-group button:hover:not(:disabled) {
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-}
-.toggle-switch-label {
+.plugin-name .plugin-type-badge {
+    font-size: 0.6rem;
     font-family: var(--font-body);
-    font-size: 0.9rem;
-    color: var(--text-muted);
-    cursor: pointer;
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
 }
-.control-group-description {
+.plugin-name .type-TOOL {
+    background-color: var(--primary-color);
+    color: var(--background);
+}
+.plugin-name .type-COPROCESSOR {
+    background-color: var(--secondary-color);
+    color: var(--background);
+}
+.plugin-name .type-KNOWLEDGE {
+    background-color: var(--guna-dharma);
+    color: var(--background);
+}
+
+.plugin-description {
     font-size: 0.8rem;
     color: var(--text-muted);
-    margin-bottom: 0.25rem;
-    font-style: italic;
-    line-height: 1.4;
-}
-
-/* --- Music Generation Modal --- */
-.sonic-forge-layout {
-    display: grid;
-    grid-template-columns: 420px 1fr;
-    gap: 1.5rem;
-    min-height: 80vh; /* A bit smaller than image gen */
-}
-
-.sonic-forge-controls {
-    display: flex;
-    flex-direction: column;
-    gap: 1.25rem;
-}
-
-.sonic-forge-controls textarea {
-    min-height: 150px;
-    resize: vertical;
-}
-
-.sonic-forge-controls input[type="text"] {
-    width: 100%;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid var(--border-color);
-    padding: 0.75rem;
-    font-family: var(--font-body);
-    color: var(--text-color);
-    font-size: 0.9rem;
-}
-
-
-.sonic-forge-preview {
-    display: flex;
-    flex-direction: column;
-    background: rgba(0,0,0,0.2);
-    border: 1px dashed var(--border-color);
-    height: 100%;
-    position: relative;
-    padding: 1rem;
-    overflow: hidden;
-}
-
-.generated-music-output {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    overflow-y: auto;
-    background: rgba(0,0,0,0.3);
-    border: 1px solid var(--border-color);
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) transparent;
-}
-
-.generated-music-output pre {
-    padding: 1rem;
-    white-space: pre-wrap;
-    word-break: break-all;
-    height: 100%;
-}
-.generated-music-output code {
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-}
-
-.generated-music-output .image-item-actions {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    display: flex;
-    gap: 0.5rem;
-}
-.generated-music-output .image-item-actions button {
-    background: rgba(255,255,255,0.1);
-    border: 1px solid var(--border-color);
-    color: var(--text-muted);
-    cursor: pointer;
-    width: 30px;
-    height: 30px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.2s ease;
-    border-radius: 4px;
-}
-
-.generated-music-output .image-item-actions button:hover {
-    background: var(--primary-color);
-    color: var(--background);
 }

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
+// FIX: Corrected casing in import path from 'auraContext' to 'AuraContext' to resolve module resolution errors.
 import { useLocalization } from '../context/AuraContext';
 
 export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }: { isOpen: boolean; onSetGoal: (goal: string) => void; onClose: () => void; isProcessing: boolean; }) => {
@@ -15,6 +16,7 @@ export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }:
     const handleSetGoalClick = () => {
         if (goal.trim()) {
             onSetGoal(goal.trim());
+            onClose(); // Close the modal immediately after submission
         }
     };
 
@@ -44,7 +46,6 @@ export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }:
                     disabled={isProcessing}
                 />
             </div>
-            {isProcessing && <div className="processing-indicator"> {t('strategicGoal_decomposing')} <div className="spinner"></div> </div>}
         </Modal>
     );
 };

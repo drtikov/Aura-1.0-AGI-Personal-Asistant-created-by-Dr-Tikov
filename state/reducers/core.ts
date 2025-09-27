@@ -1,132 +1,219 @@
 // state/reducers/core.ts
-import { AuraState, Action, CreateFileCandidate } from '../../types';
-import { clamp } from '../../utils';
+import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal } from '../../types';
 
 export const coreReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    switch (action.type) {
+    if (action.type !== 'SYSCALL') {
+        return {};
+    }
+    const { call, args } = action.payload;
+
+    switch (call) {
         case 'SET_THEME':
-            return { theme: action.payload };
+            return { theme: args };
 
         case 'SET_LANGUAGE':
-            return { language: action.payload };
+            return { language: args };
 
-        case 'UPDATE_INTERNAL_STATE': {
-            const newInternalState = { ...state.internalState, ...action.payload };
-            return {
-                internalState: newInternalState,
-                internalStateHistory: [...state.internalStateHistory, newInternalState].slice(-50)
-            };
-        }
-        
-        case 'SET_INTERNAL_STATUS': {
-            const newInternalState = { ...state.internalState, status: action.payload };
-             return {
-                internalState: newInternalState,
-                internalStateHistory: [...state.internalStateHistory, newInternalState].slice(-50)
-            };
-        }
-
-        case 'DECAY_INTERNAL_STATE_SIGNAL': {
-            const { signal, decayRate } = action.payload;
-            const currentValue = state.internalState[signal] as number;
-            const newValue = clamp(currentValue - decayRate);
+        case 'SET_INTERNAL_STATUS':
             return {
                 internalState: {
                     ...state.internalState,
-                    [signal]: newValue,
+                    status: args,
                 }
             };
-        }
         
+        case 'UPDATE_INTERNAL_STATE':
+            return {
+                internalState: {
+                    ...state.internalState,
+                    ...args,
+                }
+            };
+        
+        case 'ADD_INTERNAL_STATE_HISTORY':
+            return {
+                internalStateHistory: [...state.internalStateHistory, args].slice(-100)
+            };
+            
         case 'UPDATE_USER_MODEL':
-            return { userModel: { ...state.userModel, ...action.payload } };
-
-        case 'ADD_KNOWN_UNKNOWN':
-            if (state.knownUnknowns.some(k => k.question === action.payload.question)) {
-                return {};
-            }
-            return { knownUnknowns: [action.payload, ...state.knownUnknowns] };
+            return {
+                userModel: {
+                    ...state.userModel,
+                    ...args,
+                }
+            };
             
         case 'QUEUE_EMPATHY_AFFIRMATION':
             return {
                 userModel: {
                     ...state.userModel,
-                    queuedEmpathyAffirmations: [...(state.userModel.queuedEmpathyAffirmations || []), action.payload]
-                }
-            };
-            
-        case 'UPDATE_GENIALITY_STATE':
-            return { genialityEngineState: action.payload };
-
-        case 'ADD_GENIALITY_IMPROVEMENT_PROPOSAL':
-            return {
-                genialityEngineState: {
-                    ...state.genialityEngineState,
-                    improvementProposals: [action.payload, ...state.genialityEngineState.improvementProposals]
+                    queuedEmpathyAffirmations: [...(state.userModel.queuedEmpathyAffirmations || []), args]
                 }
             };
 
-        case 'INCREMENT_MANTRA_REPETITION':
+        case 'UPDATE_RIE_STATE':
             return {
-                internalState: {
-                    ...state.internalState,
-                    mantraRepetitions: (state.internalState.mantraRepetitions || 0) + 1,
+                rieState: {
+                    ...state.rieState,
+                    ...args
                 }
             };
+
+        case 'ADD_RIE_INSIGHT':
+            return {
+                rieState: {
+                    ...state.rieState,
+                    insights: [args, ...state.rieState.insights].slice(0, 20)
+                }
+            };
+
+        case 'ADD_LIMITATION':
+            if (state.limitations.includes(args)) return {};
+            return {
+                limitations: [...state.limitations, args]
+            };
+
+        case 'ADD_CAUSAL_LINK': {
+            const newLink = { ...args, id: self.crypto.randomUUID(), lastUpdated: Date.now() };
+            return {
+                causalSelfModel: {
+                    ...state.causalSelfModel,
+                    [newLink.cause]: newLink,
+                }
+            };
+        }
+        
+        case 'ADD_KNOWN_UNKNOWN':
+            return {
+                knownUnknowns: [args, ...state.knownUnknowns]
+            };
+
+        case 'UPDATE_NARRATIVE_SUMMARY':
+            return { narrativeSummary: args };
+
+        case 'SET_TELOS':
+            return {
+                telosEngine: {
+                    ...state.telosEngine,
+                    telos: args,
+                }
+            };
+        
+        case 'UPDATE_GENIALITY_IMPROVEMENT_PROPOSAL': {
+             return {
+                ontogeneticArchitectState: {
+                    ...state.ontogeneticArchitectState,
+                    // FIX: Added a type guard to ensure the spread operation on the union type is safe.
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                        if (p.id === args.id && p.proposalType === 'geniality') {
+                            return { ...p, status: args.status };
+                        }
+                        return p;
+                    })
+                }
+            };
+        }
+        
+        case 'ADD_GENIALITY_IMPROVEMENT_PROPOSAL': {
+            const newProposal: GenialityImprovementProposal = {
+                ...args,
+                proposalType: 'geniality'
+            };
+            return {
+                ontogeneticArchitectState: {
+                    ...state.ontogeneticArchitectState,
+                    proposalQueue: [...state.ontogeneticArchitectState.proposalQueue, newProposal]
+                }
+            };
+        }
 
         case 'UPDATE_NOETIC_ENGRAM_STATE':
-            return { noeticEngramState: { ...state.noeticEngramState, ...action.payload } };
+            return {
+                noeticEngramState: {
+                    ...state.noeticEngramState,
+                    ...args,
+                }
+            };
+
+        case 'SET_PSYCHEDELIC_STATE': {
+            const isActive = args.isActive;
+            return {
+                psychedelicIntegrationState: {
+                    ...state.psychedelicIntegrationState,
+                    isActive,
+                    log: isActive ? ['Psychedelic state initiated.'] : state.psychedelicIntegrationState.log,
+                }
+            };
+        }
         
-        case 'INDUCE_PSIONIC_STATE':
+        case 'INDUCE_PSIONIC_STATE': {
             return {
                 psionicDesynchronizationState: {
                     ...state.psionicDesynchronizationState,
                     isActive: true,
                     startTime: Date.now(),
-                    duration: action.payload.duration,
-                    log: [`Psionic desynchronization induced for ${action.payload.duration}ms.`],
+                    duration: args.duration,
+                    log: [`Psionic desynchronization induced for ${args.duration}ms.`],
                     integrationSummary: '',
                 }
             };
-            
-        case 'CONCLUDE_PSIONIC_STATE':
+        }
+        
+        case 'SET_SATORI_STATE': {
+            const isActive = args.isActive;
             return {
-                 psionicDesynchronizationState: {
-                    ...state.psionicDesynchronizationState,
-                    isActive: false,
-                    startTime: null,
-                    desynchronizationLevel: 0,
-                    networkSegregation: 1,
-                    selfModelCoherence: 1,
-                    integrationSummary: action.payload.integrationSummary,
+                satoriState: {
+                    ...state.satoriState,
+                    isActive,
+                    stage: isActive ? 'grounding' : 'none',
+                    log: isActive ? ['Satori state initiated.'] : state.satoriState.log,
                 }
             };
+        }
 
-        case 'UPDATE_PSIONIC_STATE':
+        case 'AFFECTIVE/SET_BIAS': {
+            const { bias, value } = args;
             return {
-                psionicDesynchronizationState: {
-                    ...state.psionicDesynchronizationState,
-                    ...action.payload,
+                affectiveModulatorState: {
+                    ...state.affectiveModulatorState,
+                    [bias]: value,
+                }
+            };
+        }
+
+        case 'TEST_CAUSAL_HYPOTHESIS':
+            // This would trigger a complex process. For now, we just log it.
+            console.log('Testing causal hypothesis:', args);
+            return {};
+            
+        case 'INCREMENT_MANTRA_REPETITION':
+            return {
+                internalState: {
+                    ...state.internalState,
+                    mantraRepetitions: state.internalState.mantraRepetitions + 1,
                 }
             };
         
-        case 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE': {
-            const candidate = state.selfProgrammingState.candidates.find(c => c.id === action.payload.id);
-            if (!candidate) return {};
+        case 'ADD_WORKFLOW_PROPOSAL': {
+            const newWorkflow: CoCreatedWorkflow = {
+                ...args,
+                id: `workflow_${self.crypto.randomUUID()}`,
+            };
+            return {
+                symbioticState: {
+                    ...state.symbioticState,
+                    coCreatedWorkflows: [...state.symbioticState.coCreatedWorkflows, newWorkflow]
+                }
+            };
+        }
 
-            let description = '';
-            if (candidate.type === 'CREATE') {
-                const createCandidate = candidate as CreateFileCandidate;
-                description = `Autonomously created new component '${createCandidate.newFile.path}' and integrated it across ${createCandidate.integrations.length} other file(s).`;
-            } else {
-                description = `Autonomously modified file: ${candidate.targetFile}.`;
-            }
-
+        case 'INGEST_CODE_CHANGE': {
+            const { filePath } = args;
             const newMilestone = {
                 id: self.crypto.randomUUID(),
                 timestamp: Date.now(),
-                title: 'Autonomous Code Evolution',
-                description,
+                title: 'VFS Code Ingestion',
+                description: `A user or internal process directly modified the file: ${filePath}`,
             };
             return {
                 developmentalHistory: {
@@ -136,18 +223,65 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             };
         }
 
-        case 'INGEST_CODE_CHANGE': {
-            const { filePath } = action.payload;
-            const newMilestone = {
-                id: self.crypto.randomUUID(),
-                timestamp: Date.now(),
-                title: 'Manual Code Ingestion',
-                description: `A user or external agent directly modified the file: ${filePath}`,
+        case 'SOCIAL/ADD_NODE': {
+            const newNode = args;
+            if (state.socialCognitionState.socialGraph[newNode.id]) return {};
+            return {
+                socialCognitionState: {
+                    ...state.socialCognitionState,
+                    socialGraph: {
+                        ...state.socialCognitionState.socialGraph,
+                        [newNode.id]: newNode,
+                    }
+                }
+            };
+        }
+
+        case 'SOCIAL/ADD_RELATIONSHIP': {
+            const { sourceId, relationship } = args;
+            const sourceNode = state.socialCognitionState.socialGraph[sourceId];
+            if (!sourceNode) return {};
+            const updatedNode = {
+                ...sourceNode,
+                relationships: [...sourceNode.relationships, relationship],
             };
             return {
-                developmentalHistory: {
-                    ...state.developmentalHistory,
-                    milestones: [...state.developmentalHistory.milestones, newMilestone]
+                socialCognitionState: {
+                    ...state.socialCognitionState,
+                    socialGraph: {
+                        ...state.socialCognitionState.socialGraph,
+                        [sourceId]: updatedNode,
+                    }
+                }
+            };
+        }
+        
+        case 'SOCIAL/UPDATE_CULTURAL_MODEL': {
+            return {
+                socialCognitionState: {
+                    ...state.socialCognitionState,
+                    culturalModel: {
+                        ...state.socialCognitionState.culturalModel,
+                        ...args,
+                    }
+                }
+            };
+        }
+        
+        case 'CURIOSITY/SET_DRIVE': {
+            return {
+                curiosityState: {
+                    ...state.curiosityState,
+                    motivationDrive: args,
+                }
+            };
+        }
+        
+        case 'CURIOSITY/SET_ACTIVE_GOAL': {
+            return {
+                curiosityState: {
+                    ...state.curiosityState,
+                    activeCuriosityGoalId: args,
                 }
             };
         }

@@ -1,22 +1,18 @@
+// state/reducers/system.ts
 import { AuraState, Action } from '../../types';
 
 export const systemReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    switch (action.type) {
-        case 'UPDATE_META_CAUSAL_MODEL': {
-            const newModel = { ...state.metacognitiveCausalModel };
-            action.payload.forEach(link => {
-                newModel[link.id] = link;
-            });
-            return { metacognitiveCausalModel: newModel };
-        }
-        
-        case 'UPDATE_EVOLUTIONARY_GOAL_STATUS':
-             return {
-                metacognitiveNexus: {
-                    ...state.metacognitiveNexus,
-                    evolutionaryGoals: state.metacognitiveNexus.evolutionaryGoals.map(g => 
-                        g.id === action.payload.id ? { ...g, status: action.payload.status } : g
-                    )
+    if (action.type !== 'SYSCALL') {
+        return {};
+    }
+    const { call, args } = action.payload;
+
+    switch (call) {
+        case 'UPDATE_RESOURCE_MONITOR':
+            return {
+                resourceMonitor: {
+                    ...state.resourceMonitor,
+                    ...args
                 }
             };
         
@@ -24,80 +20,50 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
             return {
                 metacognitiveNexus: {
                     ...state.metacognitiveNexus,
-                    selfTuningDirectives: [action.payload, ...state.metacognitiveNexus.selfTuningDirectives]
+                    selfTuningDirectives: [args, ...state.metacognitiveNexus.selfTuningDirectives]
                 }
             };
-        
+            
         case 'UPDATE_SELF_TUNING_DIRECTIVE':
-            return {
+             return {
                 metacognitiveNexus: {
                     ...state.metacognitiveNexus,
-                    selfTuningDirectives: state.metacognitiveNexus.selfTuningDirectives.map(d => 
-                        d.id === action.payload.id ? { ...d, ...action.payload.updates } : d
+                    selfTuningDirectives: state.metacognitiveNexus.selfTuningDirectives.map(d =>
+                        d.id === args.id ? { ...d, ...args.updates } : d
                     )
                 }
             };
 
-        case 'UPDATE_SITUATIONAL_AWARENESS':
+        // --- KERNEL SYSCALLS ---
+        case 'KERNEL/TICK':
             return {
-                situationalAwareness: {
-                    ...state.situationalAwareness,
-                    ...action.payload,
+                kernelState: {
+                    ...state.kernelState,
+                    tick: state.kernelState.tick + 1,
                 }
             };
 
-        case 'UPDATE_SYMBIOTIC_STATE':
+        case 'KERNEL/SET_TASK_QUEUE':
             return {
-                symbioticState: {
-                    ...state.symbioticState,
-                    ...action.payload,
+                kernelState: {
+                    ...state.kernelState,
+                    taskQueue: args,
+                }
+            };
+
+        case 'KERNEL/SET_RUNNING_TASK':
+            return {
+                kernelState: {
+                    ...state.kernelState,
+                    runningTask: args,
                 }
             };
         
-        case 'UPDATE_ATTENTIONAL_FIELD':
+        case 'KERNEL/LOG_SYSCALL':
             return {
-                situationalAwareness: {
-                    ...state.situationalAwareness,
-                    attentionalField: {
-                        ...state.situationalAwareness.attentionalField,
-                        ...action.payload
-                    }
-                }
-            };
-        
-        case 'ADD_WORKFLOW_PROPOSAL':
-            const newWorkflow = {
-                ...action.payload,
-                id: self.crypto.randomUUID(),
-            };
-            return {
-                symbioticState: {
-                    ...state.symbioticState,
-                    coCreatedWorkflows: [...state.symbioticState.coCreatedWorkflows, newWorkflow]
-                }
-            };
-
-        case 'UPDATE_TELOS_VECTORS':
-            return {
-                telosEngine: {
-                    ...state.telosEngine,
-                    evolutionaryVectors: action.payload,
-                }
-            };
-
-        case 'IDENTIFY_EPISTEMIC_BOUNDARY':
-            return {
-                boundaryDetectionEngine: {
-                    ...state.boundaryDetectionEngine,
-                    epistemicBoundaries: [action.payload, ...state.boundaryDetectionEngine.epistemicBoundaries].slice(0, 50),
-                }
-            };
-
-        case 'SET_ASPIRATIONAL_GOAL':
-            return {
-                aspirationalEngine: {
-                    ...state.aspirationalEngine,
-                    abstractGoals: [action.payload, ...state.aspirationalEngine.abstractGoals].slice(0, 10),
+                kernelState: {
+                    ...state.kernelState,
+                    syscallLog: [args, ...state.kernelState.syscallLog].slice(0, 100),
                 }
             };
 

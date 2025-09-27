@@ -1,91 +1,84 @@
-import { AuraState, Action, KnowledgeFact } from '../../types';
+// state/reducers/memory.ts
+import { AuraState, Action } from '../../types';
 
 export const memoryReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    switch (action.type) {
+    if (action.type !== 'SYSCALL') {
+        return {};
+    }
+    const { call, args } = action.payload;
+
+    switch (call) {
         case 'ADD_FACT': {
-            const factExists = state.knowledgeGraph.some(f => 
-                f.subject === action.payload.subject && 
-                f.predicate === action.payload.predicate &&
-                f.object === action.payload.object
-            );
-            if (factExists) return {};
-            const newFact: KnowledgeFact = {
-                ...action.payload,
-                id: self.crypto.randomUUID(),
-                confidence: 0.85, // Default confidence for single adds
-                source: 'direct_add'
-            };
+            const newFact = { ...args, id: self.crypto.randomUUID() };
             return { knowledgeGraph: [...state.knowledgeGraph, newFact] };
         }
-        
         case 'ADD_FACTS_BATCH': {
-            const newFacts = action.payload
-                .filter(newFact => !state.knowledgeGraph.some(
-                    existingFact => 
-                        existingFact.subject.toLowerCase() === newFact.subject.toLowerCase() && 
-                        existingFact.predicate.toLowerCase() === newFact.predicate.toLowerCase() &&
-                        existingFact.object.toLowerCase() === newFact.object.toLowerCase()
-                ))
-                .map(fact => ({
-                    ...fact,
-                    id: self.crypto.randomUUID(),
-                    source: 'ingestion'
-                }));
-            
-            if (newFacts.length === 0) return {};
-
+            const newFacts = args.map((fact: any) => ({
+                ...fact,
+                id: self.crypto.randomUUID(),
+                source: 'llm_extraction'
+            }));
             return { knowledgeGraph: [...state.knowledgeGraph, ...newFacts] };
         }
-
         case 'DELETE_FACT':
-            return { knowledgeGraph: state.knowledgeGraph.filter(fact => fact.id !== action.payload) };
-
+            return {
+                knowledgeGraph: state.knowledgeGraph.filter(fact => fact.id !== args),
+            };
+        case 'ADD_TO_WORKING_MEMORY':
+            return {
+                workingMemory: [...state.workingMemory, args].slice(-10),
+            };
+        case 'REMOVE_FROM_WORKING_MEMORY':
+            return {
+                workingMemory: state.workingMemory.filter(item => item !== args),
+            };
         case 'CLEAR_WORKING_MEMORY':
             return { workingMemory: [] };
 
-        case 'REMOVE_FROM_WORKING_MEMORY':
-            return { workingMemory: state.workingMemory.filter(item => item !== action.payload) };
-            
-        case 'UPDATE_FACT':
-            return {
-                knowledgeGraph: state.knowledgeGraph.map(fact =>
-                    fact.id === action.payload.id ? { ...fact, ...action.payload.updates } : fact
-                )
-            };
-
         case 'ADD_EPISODE':
             return {
-                ...state,
                 episodicMemoryState: {
                     ...state.episodicMemoryState,
-                    // Add new episode and keep the last 100 most salient ones.
-                    episodes: [...state.episodicMemoryState.episodes, action.payload]
-                        .sort((a, b) => b.salience - a.salience)
-                        .slice(0, 100),
+                    episodes: [...state.episodicMemoryState.episodes, args].slice(-50) // Keep last 50 episodes
                 }
             };
         
-        case 'UPDATE_EPISODE': {
-            const { id, updates } = action.payload;
-            return {
-                episodicMemoryState: {
-                    ...state.episodicMemoryState,
-                    episodes: state.episodicMemoryState.episodes.map(e => 
-                        e.id === id ? { ...e, ...updates } : e
-                    )
-                }
-            };
+        case 'MEMORY/STRENGTHEN_HYPHA_CONNECTION': {
+            const { source, target } = args;
+            const existingConnection = state.memoryNexus.hyphaeConnections.find(
+                h => (h.source === source && h.target === target) || (h.source === target && h.target === source)
+            );
+
+            if (existingConnection) {
+                const newWeight = existingConnection.weight * 0.9 + 0.1; // Reinforce existing path
+                return {
+                    memoryNexus: {
+                        ...state.memoryNexus,
+                        hyphaeConnections: state.memoryNexus.hyphaeConnections.map(h =>
+                            h.id === existingConnection.id ? { ...h, weight: Math.min(1, newWeight) } : h
+                        ),
+                    }
+                };
+            } else {
+                const newConnection = {
+                    id: `${source}-${target}-${self.crypto.randomUUID()}`,
+                    source,
+                    target,
+                    weight: 0.1, // Initial connection strength
+                };
+                return {
+                    memoryNexus: {
+                        ...state.memoryNexus,
+                        hyphaeConnections: [...state.memoryNexus.hyphaeConnections, newConnection],
+                    }
+                };
+            }
         }
 
-        case 'UPDATE_CONSOLIDATION_STATUS':
-            return {
-                ...state,
-                memoryConsolidationState: {
-                    ...state.memoryConsolidationState,
-                    status: action.payload,
-                    ...(action.payload === 'idle' && { lastConsolidation: Date.now() }),
-                }
-            };
+        case 'MEMORY/ADD_CRYSTALLIZED_FACT': {
+            const newFact = { ...args, id: self.crypto.randomUUID(), source: 'emergent_synthesis' };
+            return { knowledgeGraph: [...state.knowledgeGraph, newFact] };
+        }
 
         default:
             return {};
