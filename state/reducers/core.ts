@@ -88,6 +88,14 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 knownUnknowns: [args, ...state.knownUnknowns]
             };
 
+        case 'UPDATE_KNOWN_UNKNOWN': {
+            return {
+                knownUnknowns: state.knownUnknowns.map(ku => 
+                    ku.id === args.id ? { ...ku, ...args.updates } : ku
+                )
+            };
+        }
+
         case 'UPDATE_NARRATIVE_SUMMARY':
             return { narrativeSummary: args };
 
@@ -98,15 +106,29 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                     telos: args,
                 }
             };
+
+        case 'TELOS/DECOMPOSE_AND_SET_TREE': {
+            const { tree, rootId, vectors } = args;
+            return {
+                goalTree: tree,
+                activeStrategicGoalId: rootId,
+                telosEngine: {
+                    ...state.telosEngine,
+                    evolutionaryVectors: vectors,
+                    lastDecomposition: Date.now(),
+                }
+            };
+        }
         
         case 'UPDATE_GENIALITY_IMPROVEMENT_PROPOSAL': {
              return {
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    // FIX: Added a type guard to ensure the spread operation on the union type is safe.
+                    // FIX: Added a type guard and explicit typing to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === args.id && p.proposalType === 'geniality') {
-                            return { ...p, status: args.status };
+                            const updated: GenialityImprovementProposal = { ...p, status: args.status };
+                            return updated;
                         }
                         return p;
                     })
@@ -136,12 +158,14 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             };
 
         case 'SET_PSYCHEDELIC_STATE': {
-            const isActive = args.isActive;
+            const { isActive, mode } = args;
+            const logEntry = isActive ? `Psychedelic state initiated with mode: ${mode}.` : 'Psychedelic state terminated.';
             return {
                 psychedelicIntegrationState: {
                     ...state.psychedelicIntegrationState,
                     isActive,
-                    log: isActive ? ['Psychedelic state initiated.'] : state.psychedelicIntegrationState.log,
+                    mode,
+                    log: [...state.psychedelicIntegrationState.log, logEntry].slice(-20),
                 }
             };
         }
@@ -181,11 +205,6 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             };
         }
 
-        case 'TEST_CAUSAL_HYPOTHESIS':
-            // This would trigger a complex process. For now, we just log it.
-            console.log('Testing causal hypothesis:', args);
-            return {};
-            
         case 'INCREMENT_MANTRA_REPETITION':
             return {
                 internalState: {
@@ -219,6 +238,15 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 developmentalHistory: {
                     ...state.developmentalHistory,
                     milestones: [...state.developmentalHistory.milestones, newMilestone]
+                }
+            };
+        }
+        
+        case 'UPDATE_PERSONALITY_STATE': {
+            return {
+                personalityState: {
+                    ...state.personalityState,
+                    ...args,
                 }
             };
         }

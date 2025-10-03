@@ -1,18 +1,21 @@
 import React from 'react';
 import { useSystemState, useLocalization } from '../context/AuraContext';
-import { SelfTuningDirective } from '../types';
+import { SelfTuningDirective, DiagnosticFinding } from '../types';
 
-const getStatusColor = (status: SelfTuningDirective['status']) => {
+const getStatusColor = (status: SelfTuningDirective['status'] | DiagnosticFinding['status']) => {
     switch(status) {
-        case 'completed': return 'var(--success-color)';
+        case 'completed':
+        case 'processed':
+            return 'var(--success-color)';
         case 'failed':
         case 'rejected':
             return 'var(--failure-color)';
         case 'simulating':
-        case 'pending_arbitration':
         case 'plan_generated':
+        case 'investigating':
             return 'var(--warning-color)';
         case 'proposed':
+        case 'unprocessed':
         default:
             return 'var(--text-muted)';
     }
@@ -37,6 +40,21 @@ export const MetacognitiveNexusPanel = React.memo(() => {
                         </div>
                     ))
                 )}
+
+                <div className="panel-subsection-title">{t('metaNexus_diagnosticLog')}</div>
+                {(!state || !state.diagnosticLog || state.diagnosticLog.length === 0) ? (
+                    <div className="kg-placeholder">{t('metaNexus_noFindings')}</div>
+                ) : (
+                    state.diagnosticLog.map(finding => (
+                         <div key={finding.id} className="gde-status" style={{ borderLeftColor: getStatusColor(finding.status)}}>
+                             <p title={finding.finding}>
+                                <strong>[{finding.severity.toUpperCase()}]</strong> {finding.finding.substring(0, 60)}{finding.finding.length > 60 ? '...' : ''}
+                             </p>
+                            <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(finding.status), fontWeight: 'bold' }}>{finding.status}</span></small>
+                         </div>
+                    ))
+                )}
+
                 <div className="panel-subsection-title">{t('metaNexus_selfTuningDirectives')}</div>
                  {(!state || !state.selfTuningDirectives || state.selfTuningDirectives.length === 0) ? (
                     <div className="kg-placeholder">{t('metaNexus_noDirectives')}</div>

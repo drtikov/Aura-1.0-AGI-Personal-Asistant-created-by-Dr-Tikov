@@ -25,7 +25,7 @@ export const UnifiedMemoryPanel = () => {
                 <MemoryCrystallizationViewer />
             </Accordion>
             <Accordion title={t('title_knowledgeGraph')} defaultOpen={false}>
-                <KnowledgeGraphPanel onDispatch={dispatch} />
+                <KnowledgeGraphPanel />
             </Accordion>
         </Accordion>
     );

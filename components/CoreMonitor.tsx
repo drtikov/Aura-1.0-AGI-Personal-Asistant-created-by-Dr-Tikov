@@ -4,12 +4,15 @@ import { GunaState } from '../types';
 import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization, useArchitectureState } from '../context/AuraContext';
 import { SystemVitals } from './SystemVitals';
 
 export const CoreMonitor = React.memo(() => {
     const { internalState, rieState, userModel, internalStateHistory = [] } = useCoreState();
+    const { modificationLog } = useArchitectureState();
     const { t } = useLocalization();
+
+    const autonomousEvolutions = modificationLog.filter(log => log.isAutonomous).length;
 
     const gunaInfo = { 
         [GunaState.SATTVA]: { name: "Sattva", description: t('gunaSattvaDesc'), className: "sattva" }, 
@@ -62,6 +65,7 @@ export const CoreMonitor = React.memo(() => {
                 <div className="metric-item"> <span className="metric-label">{t('metricEthicalAlign')}</span> <span className="metric-value">{(internalState.harmonyScore * 100).toFixed(0)}%</span> </div> 
                 <div className="metric-item"> <span className="metric-label">{t('metricUserTrust')}</span> <span className="metric-value">{(userModel.trustLevel * 100).toFixed(0)}%</span> </div> 
                 <div className="metric-item"> <span className="metric-label">{t('metricSelfModel')}</span> <span className="metric-value">{(rieState.clarityScore * 100).toFixed(0)}%</span> </div> 
+                <div className="metric-item"> <span className="metric-label">{t('metricSelfEvolutions')}</span> <span className="metric-value">{autonomousEvolutions}</span> </div> 
             </div>
             <div className="hormone-signals"> 
                 <div className="hormone-item"> <label>{t('hormoneNovelty')}</label> <div className="state-bar-container"><div className="state-bar novelty-bar" style={{width: `${internalState.noveltySignal * 100}%`}}></div></div> </div> 

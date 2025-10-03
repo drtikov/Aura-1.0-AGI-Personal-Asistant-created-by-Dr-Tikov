@@ -1,12 +1,12 @@
 // state/reducer.ts
 import { AuraState, Action } from '../types';
 import { getInitialState } from './initialState';
-import { architectureReducer } from './reducers/architecture';
 import { coreReducer } from './reducers/core';
+import { memoryReducer } from './reducers/memory';
+import { architectureReducer } from './reducers/architecture';
+import { planningReducer } from './reducers/planning';
 import { enginesReducer } from './reducers/engines';
 import { logsReducer } from './reducers/logs';
-import { memoryReducer } from './reducers/memory';
-import { planningReducer } from './reducers/planning';
 import { systemReducer } from './reducers/system';
 import { neuroCortexReducer } from './reducers/neuroCortex';
 import { granularCortexReducer } from './reducers/granularCortex';
@@ -19,62 +19,73 @@ import { motorCortexReducer } from './reducers/motorCortex';
 import { praxisResonatorReducer } from './reducers/praxisResonator';
 import { cognitiveForgeReducer } from './reducers/cognitiveForge';
 import { pluginReducer } from './reducers/pluginReducer';
+import { socialCognitionReducer } from './reducers/socialCognition';
+import { sandboxReducer } from './reducers/sandbox';
+import { doxasticReducer } from './reducers/doxastic';
+import { metaphorReducer } from './reducers/metaphor';
+import { hovaReducer } from './reducers/hova';
+import { documentForgeReducer } from './reducers/documentForge';
+import { internalScientistReducer } from './reducers/internalScientist';
+import { metisSandboxReducer } from './reducers/metisSandbox';
 
-/**
- * The root reducer for the Aura application.
- * It handles global actions that affect the entire state object, such as resetting or importing.
- * For all other actions, it delegates to domain-specific sub-reducers and merges their results.
- */
+const reducers = [
+    coreReducer,
+    memoryReducer,
+    architectureReducer,
+    planningReducer,
+    enginesReducer,
+    logsReducer,
+    systemReducer,
+    neuroCortexReducer,
+    granularCortexReducer,
+    koniocortexReducer,
+    premotorPlannerReducer,
+    basalGangliaReducer,
+    cerebellumReducer,
+    psycheReducer,
+    motorCortexReducer,
+    praxisResonatorReducer,
+    cognitiveForgeReducer,
+    pluginReducer,
+    socialCognitionReducer,
+    sandboxReducer,
+    doxasticReducer,
+    metaphorReducer,
+    hovaReducer,
+    documentForgeReducer,
+    internalScientistReducer,
+    metisSandboxReducer,
+];
+
 export const auraReducer = (state: AuraState, action: Action): AuraState => {
-    switch (action.type) {
-        // Handle global actions that replace the whole state
-        case 'RESET_STATE':
-            return {
-                ...getInitialState(),
-                history: [{ id: self.crypto.randomUUID(), from: 'system', text: 'SYSTEM: AGI has been reset to its initial state.' }]
-            };
-        
-        case 'ROLLBACK_STATE':
-            return {
-                ...action.payload,
-                history: [...action.payload.history, { id: self.crypto.randomUUID(), from: 'system', text: 'SYSTEM: State successfully rolled back.' }]
-            };
-
-        case 'IMPORT_STATE':
-            return {
-                ...action.payload,
-                history: [...action.payload.history, { id: self.crypto.randomUUID(), from: 'system', text: 'SYSTEM: State successfully imported from file.' }]
-            };
-
-        case 'RESTORE_STATE_FROM_MEMRISTOR':
-            return {
-                ...action.payload,
-                history: [...action.payload.history, { id: self.crypto.randomUUID(), from: 'system', text: 'SYSTEM: State restored from Memristor.' }]
-            };
-
-        // For all other actions, delegate to sub-reducers and merge their partial state updates.
-        default:
-            const updatedState: AuraState = {
-                ...state,
-                ...architectureReducer(state, action),
-                ...coreReducer(state, action),
-                ...enginesReducer(state, action),
-                ...logsReducer(state, action),
-                ...memoryReducer(state, action),
-                ...planningReducer(state, action),
-                ...systemReducer(state, action),
-                ...neuroCortexReducer(state, action),
-                ...granularCortexReducer(state, action),
-                ...koniocortexReducer(state, action),
-                ...premotorPlannerReducer(state, action),
-                ...basalGangliaReducer(state, action),
-                ...cerebellumReducer(state, action),
-                ...psycheReducer(state, action),
-                ...motorCortexReducer(state, action),
-                ...praxisResonatorReducer(state, action),
-                ...cognitiveForgeReducer(state, action),
-                ...pluginReducer(state, action),
-            };
-            return updatedState;
+    if (action.type === 'RESET_STATE') {
+        return getInitialState();
     }
+    if (action.type === 'IMPORT_STATE' || action.type === 'RESTORE_STATE_FROM_MEMRISTOR') {
+        return action.payload;
+    }
+
+    // Intercept syscalls to add to the event bus before they are processed
+    if (action.type === 'SYSCALL') {
+        const { wisdomSignal, happinessSignal, loveSignal, gunaState } = state.internalState;
+        const event: any = {
+            id: self.crypto.randomUUID(),
+            timestamp: Date.now(),
+            type: action.payload.call,
+            payload: action.payload.args,
+            qualiaVector: { wisdom: wisdomSignal, happiness: happinessSignal, love: loveSignal, gunaState },
+        };
+        // This is a direct mutation for performance, but it's contained. A better way would be a separate reducer.
+        state.eventBus = [event, ...state.eventBus].slice(0, 50);
+    }
+
+    const changes = reducers.reduce((acc, reducer) => {
+        return { ...acc, ...reducer(state, action) };
+    }, {});
+
+    if (Object.keys(changes).length > 0) {
+        return { ...state, ...changes };
+    }
+
+    return state;
 };

@@ -52,6 +52,16 @@ export const Header = () => {
                     </svg>
                     <span>{t('header_sonicForge')}</span>
                 </button>
+                <button 
+                    className="image-generator-button"
+                    onClick={() => modal.open('pluginManager', {})}
+                    title={t('tip_pluginManager')}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M20.5 11H19V7c0-1.1-.9-2-2-2h-4V3.5A1.5 1.5 0 0 0 11.5 2h-1A1.5 1.5 0 0 0 9 3.5V5H5c-1.1 0-2 .9-2 2v4H1.5A1.5 1.5 0 0 0 0 12.5v1A1.5 1.5 0 0 0 1.5 15H3v4c0 1.1.9 2 2 2h4v1.5a1.5 1.5 0 0 0 1.5 1.5h1a1.5 1.5 0 0 0 1.5-1.5V21h4c1.1 0 2-.9 2-2v-4h1.5a1.5 1.5 0 0 0 1.5-1.5v-1A1.5 1.5 0 0 0 20.5 11z" />
+                    </svg>
+                    <span>{t('header_pluginManager')}</span>
+                </button>
             </div>
         </header>
     );

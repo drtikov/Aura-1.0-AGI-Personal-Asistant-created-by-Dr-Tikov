@@ -1,5 +1,4 @@
 
-
 import React from 'react';
 import { SynthesizedSkill, SimulationLogEntry, SynthesisCandidate } from '../types';
 import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
@@ -7,7 +6,7 @@ import { useArchitectureState, useLocalization, useAuraDispatch } from '../conte
 export const CognitiveForgePanel = React.memo(() => {
     const { cognitiveForgeState: state } = useArchitectureState();
     const { t } = useLocalization();
-    const { dispatch } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
     
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -19,13 +18,11 @@ export const CognitiveForgePanel = React.memo(() => {
     };
 
     const handleTogglePause = () => {
-        // FIX: Corrected dispatch call to use the SYSCALL format.
-        dispatch({ type: 'SYSCALL', payload: { call: 'TOGGLE_COGNITIVE_FORGE_PAUSE', args: {} } });
+        syscall('TOGGLE_COGNITIVE_FORGE_PAUSE', {});
     };
 
     const handleUpdateCandidateStatus = (id: string, status: 'approved' | 'rejected') => {
-        // FIX: Corrected dispatch call to use the SYSCALL format.
-        dispatch({ type: 'SYSCALL', payload: { call: 'COGNITIVE_FORGE/UPDATE_SYNTHESIS_STATUS', args: { id, status } } });
+        syscall('COGNITIVE_FORGE/UPDATE_SYNTHESIS_STATUS', { id, status });
     };
 
     return (

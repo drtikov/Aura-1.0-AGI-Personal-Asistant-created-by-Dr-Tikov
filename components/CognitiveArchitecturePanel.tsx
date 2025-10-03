@@ -108,7 +108,8 @@ export const CognitiveArchitecturePanel = React.memo(() => {
         <div className="side-panel">
             <div className="cognitive-arch-content">
                 <div className="arch-module arch-summary"> <span className="arch-module-name">{t('cogArchPanel_complexityScore')}</span> <span className="arch-module-version">{architecture.modelComplexityScore.toFixed(3)}</span> </div>
-                {Object.entries(moduleGroups).map(([groupName, modules]) => ( <div key={groupName} className="arch-group"> <div className="arch-group-header">{t(`cogArchPanel_group${groupName.replace(/ /g, '')}`)}</div> {modules.map(skill => architecture.components[skill] && renderModule(skill, architecture.components[skill]))} </div> ))}
+                {/* FIX: Corrected regex to handle both spaces and hyphens in group names, ensuring valid translation keys are generated. */}
+                {Object.entries(moduleGroups).map(([groupName, modules]) => ( <div key={groupName} className="arch-group"> <div className="arch-group-header">{t(`cogArchPanel_group${groupName.replace(/ |-/g, '')}`)}</div> {modules.map(skill => architecture.components[skill] && renderModule(skill, architecture.components[skill]))} </div> ))}
                 
                 {Object.entries(coprocessorGroups).map(([groupId, processors]) => (
                     processors.length > 0 && (

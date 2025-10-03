@@ -5,7 +5,7 @@ import { CognitivePrimitive } from '../types';
 
 export const MotorCortexPanel = () => {
     const { motorCortexState } = useArchitectureState();
-    const { handleGenerateCognitiveSequence, dispatch } = useAuraDispatch();
+    const { handleGenerateCognitiveSequence, syscall } = useAuraDispatch();
     const { t } = useLocalization();
 
     const [directive, setDirective] = useState('');
@@ -67,7 +67,7 @@ export const MotorCortexPanel = () => {
             )}
             {(status === 'completed' || status === 'failed') && (
                 <div className="button-grid" style={{marginTop: '1rem'}}>
-                    <button className="control-button" onClick={() => dispatch({ type: 'MOTOR_CORTEX/CLEAR_SEQUENCE' })}>
+                    <button className="control-button" onClick={() => syscall('MOTOR_CORTEX/CLEAR_SEQUENCE', {})}>
                         {t('motorCortex_clear_button')}
                     </button>
                 </div>

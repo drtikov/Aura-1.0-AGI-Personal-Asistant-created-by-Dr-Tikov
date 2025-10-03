@@ -1,5 +1,5 @@
 // state/reducers/cognitiveForge.ts
-import { AuraState, Action, SynthesisCandidate } from '../../types';
+import { AuraState, Action, SynthesisCandidate, SynthesizedSkill } from '../../types';
 
 export const cognitiveForgeReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -38,6 +38,19 @@ export const cognitiveForgeReducer = (state: AuraState, action: Action): Partial
                     synthesisCandidates: state.cognitiveForgeState.synthesisCandidates.map(c =>
                         c.id === args.id ? { ...c, status: args.status } : c
                     )
+                }
+            };
+        }
+        
+        case 'ADD_SYNTHESIZED_SKILL': {
+            const newSkill: SynthesizedSkill = {
+                ...args,
+                policyWeight: 1.0, // Initialize with a neutral weight
+            };
+            return {
+                cognitiveForgeState: {
+                    ...state.cognitiveForgeState,
+                    synthesizedSkills: [...state.cognitiveForgeState.synthesizedSkills, newSkill]
                 }
             };
         }

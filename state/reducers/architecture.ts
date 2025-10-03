@@ -1,5 +1,6 @@
 // state/reducers/architecture.ts
-import { AuraState, Action, ModificationLogEntry, ArchitecturalChangeProposal, CodeEvolutionProposal, CausalInferenceProposal, CreateFileCandidate, ModifyFileCandidate, SelfProgrammingCandidate, ArchitecturalImprovementProposal, UnifiedProposal, DesignHeuristic } from '../../types';
+import { AuraState, Action, ModificationLogEntry, ArchitecturalChangeProposal, CodeEvolutionProposal, CausalInferenceProposal, CreateFileCandidate, ModifyFileCandidate, SelfProgrammingCandidate, ArchitecturalImprovementProposal, UnifiedProposal, DesignHeuristic, SynapticNode, CorticalColumn, SynapticLink, POLCommandSynthesisProposal } from '../../types';
+import { clamp } from '../../utils';
 
 export const architectureReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -8,6 +9,54 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'HEURISTICS_FORGE/ADD_AXIOM': {
+            const newAxiom = {
+                ...args,
+                id: `axiom_${self.crypto.randomUUID()}`,
+                timestamp: Date.now(),
+            };
+            return {
+                heuristicsForge: {
+                    ...state.heuristicsForge,
+                    axioms: [newAxiom, ...state.heuristicsForge.axioms],
+                }
+            };
+        }
+        
+        case 'COGNITIVE_ARCHITECT/FORM_CLUSTER': {
+            const { requiredPlugins, nonEssentialPlugins } = args;
+            const newRegistry = state.pluginState.registry.map(plugin => {
+                if (plugin.type === 'COPROCESSOR' || plugin.type === 'TOOL') {
+                    if (requiredPlugins.has(plugin.id)) {
+                        return { ...plugin, status: 'enabled' as const };
+                    }
+                    if (nonEssentialPlugins.includes(plugin.id)) {
+                        return { ...plugin, status: 'disabled' as const };
+                    }
+                }
+                return plugin; // Keep default status for others
+            });
+
+            return {
+                pluginState: { registry: newRegistry },
+                cognitiveOSState: {
+                    ...state.cognitiveOSState,
+                    isDynamicClusterActive: true,
+                    status: 'translating_cgl',
+                }
+            };
+        }
+        
+        case 'COGNITIVE_ARCHITECT/SKIP_CLUSTER': {
+            return {
+                cognitiveOSState: {
+                    ...state.cognitiveOSState,
+                    isDynamicClusterActive: false,
+                    status: 'translating_cgl',
+                }
+            };
+        }
+
         case 'HEURISTICS_FORGE/ADD_HEURISTIC': {
             const newHeuristic = args as Omit<DesignHeuristic, 'id'>;
 
@@ -22,6 +71,7 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
             const heuristicWithId: DesignHeuristic = {
                 ...newHeuristic,
                 id: `heuristic_${self.crypto.randomUUID()}`,
+                policyWeight: 1.0,
             };
 
             return {
@@ -83,9 +133,11 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
                     // FIX: Added a type guard to ensure the spread operation on the union type is safe.
+                    // FIX: Added a type guard to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === proposal.id && p.proposalType === 'architecture') {
-                            return { ...p, status: 'approved' };
+                            const updated: ArchitecturalChangeProposal = { ...p, status: 'approved' };
+                            return updated;
                         }
                         return p;
                     }),
@@ -156,7 +208,8 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                     // FIX: Added a type guard to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === args.id && p.proposalType === 'crucible') {
-                            return { ...p, status: args.status };
+                            const updated: ArchitecturalImprovementProposal = { ...p, status: args.status };
+                            return updated;
                         }
                         return p;
                     })
@@ -169,7 +222,7 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
         case 'SYNAPTIC_MATRIX/MARK_LINK_CRYSTALLIZED': {
             const linkKey = args;
             const link = state.synapticMatrix.links[linkKey];
-            if (!link) return {};
+            if (!link || link.crystallized) return {};
 
             const updatedLink = { ...link, crystallized: true };
             return {
@@ -177,8 +230,43 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                     ...state.synapticMatrix,
                     links: {
                         ...state.synapticMatrix.links,
-                        [linkKey]: updatedLink
+                        [linkKey]: updatedLink,
                     }
+                }
+            };
+        }
+
+        case 'SYNAPTIC_MATRIX/REINFORCE_LINK': {
+            const { skillAId, skillBId } = args;
+            if (!skillAId || !skillBId || skillAId === skillBId) return {};
+
+            const linkKey = [skillAId, skillBId].sort().join('-');
+            const existingLink = state.synapticMatrix.links[linkKey];
+            
+            const LEARNING_RATE = 0.05;
+
+            const updatedLink: SynapticLink = existingLink 
+                ? {
+                    ...existingLink,
+                    weight: clamp(existingLink.weight + LEARNING_RATE),
+                    confidence: clamp(existingLink.confidence + LEARNING_RATE / 2),
+                    observations: existingLink.observations + 1,
+                }
+                : {
+                    weight: LEARNING_RATE,
+                    causality: 0, // Direction is unknown from simple co-activation
+                    confidence: LEARNING_RATE / 2,
+                    observations: 1,
+                };
+
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    links: {
+                        ...state.synapticMatrix.links,
+                        [linkKey]: updatedLink,
+                    },
+                    synapseCount: existingLink ? state.synapticMatrix.synapseCount : state.synapticMatrix.synapseCount + 1,
                 }
             };
         }
@@ -196,9 +284,14 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
             return {
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p =>
-                        p.id === args.id ? { ...p, status: 'rejected' } : p
-                    )
+                    // FIX: Added a type guard to prevent unsafe spreading of a discriminated union.
+                    // This ensures TypeScript can correctly infer the type of the returned object.
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                        if (p.id === args.id && (p.proposalType === 'self_programming_create' || p.proposalType === 'self_programming_modify')) {
+                            return { ...p, status: 'rejected' };
+                        }
+                        return p;
+                    })
                 }
             };
         }
@@ -256,7 +349,8 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                     // FIX: Added a type guard to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === args.id && p.proposalType === 'causal_inference') {
-                            return { ...p, status: args.status };
+                            const updated: CausalInferenceProposal = { ...p, status: args.status };
+                            return updated;
                         }
                         return p;
                     })
@@ -282,10 +376,13 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 },
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    // FIX: Added a type guard to ensure the spread operation on the union type is safe.
+                    // FIX: Replaced a confusing switch statement with a clearer type-guarded conditional to resolve a TypeScript error.
+                    // This ensures that only proposals of the correct type are modified, satisfying the compiler's checks for discriminated unions.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === proposal.id && p.proposalType === 'causal_inference') {
-                            return { ...p, status: 'implemented' };
+                            // FIX: Explicitly creating a typed variable before returning it helps the compiler correctly infer the type of the array.
+                            const updated: CausalInferenceProposal = { ...p, status: 'implemented' };
+                            return updated;
                         }
                         return p;
                     }),
@@ -389,6 +486,91 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 embodiedCognitionState: {
                     ...state.embodiedCognitionState,
                     simulationLog: [newLog, ...state.embodiedCognitionState.simulationLog].slice(0, 20),
+                }
+            };
+        }
+
+        case 'APPLY_REINFORCEMENT_LEARNING': {
+            const { targetId, targetType, reward } = args; // reward is -1 to 1
+            const LEARNING_RATE = 0.1;
+
+            if (targetType === 'synthesizedSkill') {
+                return {
+                    cognitiveForgeState: {
+                        ...state.cognitiveForgeState,
+                        synthesizedSkills: state.cognitiveForgeState.synthesizedSkills.map(skill => {
+                            if (skill.id === targetId) {
+                                const newWeight = clamp(skill.policyWeight + (reward * LEARNING_RATE), 0.1, 3.0);
+                                return { ...skill, policyWeight: newWeight };
+                            }
+                            return skill;
+                        })
+                    }
+                };
+            }
+
+            if (targetType === 'designHeuristic') {
+                return {
+                    heuristicsForge: {
+                        ...state.heuristicsForge,
+                        designHeuristics: state.heuristicsForge.designHeuristics.map(h => {
+                             if (h.id === targetId) {
+                                const newWeight = clamp(h.policyWeight + (reward * LEARNING_RATE), 0.1, 3.0);
+                                return { ...h, policyWeight: newWeight };
+                            }
+                            return h;
+                        })
+                    }
+                };
+            }
+
+            return {};
+        }
+        
+        case 'CREATE_CORTICAL_COLUMN': {
+            const newColumn = args as CorticalColumn;
+            const newNode: SynapticNode = {
+                id: newColumn.id,
+                type: 'skill',
+                activation: 0.1,
+            };
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    nodes: {
+                        ...state.synapticMatrix.nodes,
+                        [newNode.id]: newNode,
+                    }
+                }
+            };
+        }
+        
+        case 'IMPLEMENT_POL_SYNTHESIS_PROPOSAL': {
+            const proposal = args as POLCommandSynthesisProposal;
+            if (!proposal || proposal.status === 'implemented') return {};
+            
+            const newCommandName = proposal.newCommandName.toUpperCase().replace(/\s+/g, '_');
+
+            return {
+                cognitiveArchitecture: {
+                    ...state.cognitiveArchitecture,
+                    synthesizedPOLCommands: {
+                        ...state.cognitiveArchitecture.synthesizedPOLCommands,
+                        [newCommandName]: {
+                            sequence: proposal.replacesSequence,
+                        }
+                    }
+                },
+                ontogeneticArchitectState: {
+                    ...state.ontogeneticArchitectState,
+                    // FIX: Added a type guard to prevent unsafe spreading of a discriminated union.
+                    // This ensures TypeScript can correctly infer the type of the returned object.
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                        if (p.id === proposal.id && p.proposalType === 'pol_command_synthesis') {
+                            return { ...p, status: 'implemented' };
+                        }
+                        return p;
+                    })
                 }
             };
         }

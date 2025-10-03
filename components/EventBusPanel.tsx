@@ -1,6 +1,19 @@
+// components/EventBusPanel.tsx
 import React from 'react';
 import { useAuraDispatch, useLocalization, useArchitectureState } from '../context/AuraContext';
-import { CoprocessorArchitecture } from '../types';
+import { CoprocessorArchitecture, EventBusMessage, GunaState } from '../types';
+
+const getGunaColor = (guna: GunaState | undefined) => {
+    switch(guna) {
+        case GunaState.SATTVA: return 'var(--guna-sattva)';
+        case GunaState.RAJAS: return 'var(--guna-rajas)';
+        case GunaState.TAMAS: return 'var(--guna-tamas)';
+        case GunaState.DHARMA: return 'var(--guna-dharma)';
+        // FIX: Corrected enum access for key with hyphen.
+        case GunaState['GUNA-TEETA']: return 'var(--guna-teeta)';
+        default: return 'var(--border-color)';
+    }
+}
 
 export const EventBusPanel = () => {
     const { state } = useAuraDispatch();
@@ -29,8 +42,19 @@ export const EventBusPanel = () => {
                 <div className="command-log-list">
                     {state.eventBus.map(entry => (
                         <div key={entry.id} className="command-log-item log-type-info">
-                            <span className="log-icon" title={entry.type}>!</span>
-                            <span className="log-text" title={JSON.stringify(entry.payload, null, 2)}>{entry.type}</span>
+                            <span className="log-icon">
+                                <span 
+                                    className="qualia-dot"
+                                    style={{ backgroundColor: getGunaColor(entry.qualiaVector?.gunaState) }}
+                                    title={`Qualia Snapshot: ${entry.qualiaVector?.gunaState}`}
+                                />
+                            </span>
+                            <span 
+                                className="log-text" 
+                                title={JSON.stringify({ payload: entry.payload, qualia: entry.qualiaVector }, null, 2)}
+                            >
+                                {entry.type}
+                            </span>
                             <span className="log-time">{timeAgo(entry.timestamp)}</span>
                         </div>
                     ))}

@@ -1,3 +1,4 @@
+// state/reducers/logs.ts
 import { AuraState, Action, EventBusMessage } from '../../types';
 
 export const logsReducer = (state: AuraState, action: Action): Partial<AuraState> => {
@@ -11,15 +12,9 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             if (args.from === 'system' && state.history.some(h => h.text === args.text)) {
                 return {};
             }
-             const newEvent: EventBusMessage = {
-                id: self.crypto.randomUUID(),
-                timestamp: Date.now(),
-                type: 'SYSCALL:ADD_HISTORY_ENTRY',
-                payload: args, // The history entry being added
-            };
+            // FIX: Removed manual event bus message creation. This is handled by the root reducer's interceptor, which correctly adds the 'qualiaVector'.
             return { 
                 history: [...state.history, { ...args, id: args.id || self.crypto.randomUUID() }],
-                eventBus: [newEvent, ...state.eventBus].slice(0, 50)
             };
         }
         
@@ -95,6 +90,32 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
         case 'LOG_SUBSUMPTION_EVENT':
             return {
                 subsumptionLog: [args, ...state.subsumptionLog].slice(0, 50)
+            };
+        
+        case 'LOG/MARK_METAPHOR_PROCESSED':
+             return {
+                performanceLogs: state.performanceLogs.map(log =>
+                    log.id === args.logId ? { ...log, metaphorProcessed: true, sourceDomain: args.domain } : log
+                )
+            };
+
+        case 'LOG/MARK_REINFORCEMENT_PROCESSED':
+            return {
+                performanceLogs: state.performanceLogs.map(log =>
+                    log.id === args ? { ...log, reinforcementProcessed: true } : log
+                )
+            };
+        
+        case 'LOG/MARK_BRIDGE_PROCESSED':
+            return {
+                performanceLogs: state.performanceLogs.map(log =>
+                    log.id === args ? { ...log, bridgeProcessed: true } : log
+                )
+            };
+            
+        case 'LOG/ADD_POL_EXECUTION':
+            return {
+                polExecutionLog: [args, ...state.polExecutionLog].slice(0, 200)
             };
 
         default:

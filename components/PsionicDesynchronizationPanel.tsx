@@ -1,9 +1,10 @@
+
 import React, { useState, useEffect } from 'react';
 import { useCoreState, useAuraDispatch } from '../context/AuraContext';
 
 export const PsionicDesynchronizationPanel = React.memo(() => {
     const { psionicDesynchronizationState: state } = useCoreState();
-    const { dispatch } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
 
     const [durationInput, setDurationInput] = useState(state.duration);
     const [timeRemaining, setTimeRemaining] = useState(0);
@@ -26,7 +27,7 @@ export const PsionicDesynchronizationPanel = React.memo(() => {
     }, [isActive, startTime, duration]);
 
     const handleInduce = () => {
-        dispatch({ type: 'INDUCE_PSIONIC_STATE', payload: { duration: durationInput } });
+        syscall('INDUCE_PSIONIC_STATE', { duration: durationInput });
     };
 
     // Inactive State View

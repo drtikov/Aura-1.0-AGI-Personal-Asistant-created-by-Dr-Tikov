@@ -3,7 +3,7 @@ import { useAuraDispatch, useLocalization, useArchitectureState } from '../conte
 import { CoprocessorArchitecture } from '../types';
 
 export const CoprocessorArchitectureSwitcher = () => {
-    const { dispatch } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
     const { cognitiveArchitecture } = useArchitectureState();
     const { t } = useLocalization();
     
@@ -12,12 +12,12 @@ export const CoprocessorArchitectureSwitcher = () => {
     const autoReason = cognitiveArchitecture.lastAutoSwitchReason;
 
     const handleArchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        dispatch({ type: 'SET_COPROCESSOR_ARCHITECTURE', payload: e.target.value as CoprocessorArchitecture });
+        syscall('SET_COPROCESSOR_ARCHITECTURE', e.target.value as CoprocessorArchitecture);
     };
     
     const handleModeToggle = () => {
         const newMode = isAutomatic ? 'manual' : 'automatic';
-        dispatch({ type: 'SET_COPROCESSOR_ARCHITECTURE_MODE', payload: newMode });
+        syscall('SET_COPROCESSOR_ARCHITECTURE_MODE', newMode);
     };
 
     const architectures: { id: CoprocessorArchitecture, labelKey: string }[] = [

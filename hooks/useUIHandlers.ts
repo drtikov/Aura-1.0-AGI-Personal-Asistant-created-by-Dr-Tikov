@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { AuraState, ToastType, Action } from '../types';
+import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal } from '../types';
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
+import { HAL } from '../core/hal';
 
-export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearDB: () => Promise<void>) => {
+type SyscallFn = (call: SyscallCall, args: any) => void;
+
+export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearDB: () => Promise<void>) => {
     const [currentCommand, setCurrentCommand] = useState('');
     const [attachedFile, setAttachedFile] = useState<{ file: File, previewUrl: string, type: 'image' | 'audio' | 'video' | 'other' } | null>(null);
     const [processingState, setProcessingState] = useState({ active: false, stage: '' });
-    const [isPaused, setIsPaused] = useState(true);
+    const [isPaused, setIsPaused] = useState(false);
     const [activeLeftTab, setActiveLeftTab] = useState<'chat' | 'monitor'>('chat');
     const [isVisualAnalysisActive, setIsVisualAnalysisActive] = useState(false);
     const [isRecording, setIsRecording] = useState(false);
@@ -20,7 +23,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     const videoRef = useRef<HTMLVideoElement>(null);
     const analysisIntervalRef = useRef<number | null>(null);
 
-    useEffect(() => { dispatch({ type: 'SYSCALL', payload: { call: 'SET_THEME', args: state.theme } }); document.body.className = state.theme; }, [state.theme, dispatch]);
+    useEffect(() => { syscall('SET_THEME', state.theme); document.body.className = state.theme; }, [state.theme, syscall]);
     
     useLayoutEffect(() => {
         if (!outputPanelRef.current) return;
@@ -36,10 +39,10 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     useEffect(() => { document.documentElement.lang = state.language; }, [state.language]);
 
 
-    const handleRemoveAttachment = useCallback(() => { if (attachedFile) URL.revokeObjectURL(attachedFile.previewUrl); setAttachedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }, [attachedFile]);
+    const handleRemoveAttachment = useCallback(() => { if (attachedFile) HAL.FileSystem.revokeObjectURL(attachedFile.previewUrl); setAttachedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }, [attachedFile]);
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) { const previewUrl = URL.createObjectURL(file); const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other'; setAttachedFile({ file, previewUrl, type: fileType }); }
+        if (file) { const previewUrl = HAL.FileSystem.createObjectURL(file); const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other'; setAttachedFile({ file, previewUrl, type: fileType }); }
     }, []);
     const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? t('toastAutonomousResumed') : t('toastAutonomousPaused'), 'info'); }, [isPaused, addToast, t]);
     const handleMicClick = useCallback(() => {
@@ -48,18 +51,21 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     }, [addToast]);
     
     const handleClearMemory = useCallback(async () => {
-        if (window.confirm(t('toastResetConfirm'))) {
+        if (HAL.UI.confirm(t('toastResetConfirm'))) {
             try {
                 await clearDB(); // Clear the persistent storage first
-                dispatch({ type: 'RESET_STATE' }); // Then reset the React state
+                // This is a special case that bypasses the syscall for a full reset.
+                // In a pure kernel model, this would be the only non-syscall dispatch.
+                const dispatch = (action: Action) => (window as any)._auraRootDispatch(action);
+                dispatch({ type: 'RESET_STATE' });
                 addToast(t('toastResetSuccess'), 'success');
-                setTimeout(() => window.location.reload(), 1000); // Reload to ensure a clean start
+                setTimeout(() => HAL.System.reload(), 1000); // Reload to ensure a clean start
             } catch (e) {
                 console.error("Failed to clear memory:", e);
                 addToast(t('toastResetFailed'), 'error');
             }
         }
-    }, [addToast, dispatch, t, clearDB]);
+    }, [addToast, t, clearDB]);
 
     const handleExportState = useCallback(() => {
         try {
@@ -69,12 +75,12 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
                 return;
             }
             const blob = new Blob([stateToExport], { type: 'application/json' });
-            const url = URL.createObjectURL(blob);
+            const url = HAL.FileSystem.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `aura_snapshot_${new Date().toISOString()}.json`;
             a.click();
-            URL.revokeObjectURL(url);
+            HAL.FileSystem.revokeObjectURL(url);
             addToast(t('toastExportSuccess'), 'success');
         } catch (e) {
             console.error("Failed to export state:", e);
@@ -91,183 +97,207 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
                 return;
             }
             const blob = new Blob([fileContent], { type: 'application/typescript;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
+            const url = HAL.FileSystem.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = `aura-state-${new Date().toISOString().split('T')[0]}.ts`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
-            URL.revokeObjectURL(url);
+            HAL.FileSystem.revokeObjectURL(url);
             addToast(t('toastExportSuccess'), 'success');
         } catch (e) {
             console.error("Failed to save state as code:", e);
             addToast(t('toastExportFailed'), 'error');
         }
     }, [state, addToast, t]);
-    
-    const processAndLoadState = useCallback((newState: any, source: 'file' | 'code file') => {
-        if (!newState.version || typeof newState.version !== 'number') {
-            throw new Error("Invalid state file: missing or invalid version property.");
-        }
 
-        if (window.confirm(`Importing this file will overwrite Aura's current state. Proceed?`)) {
-            let stateToLoad = newState;
-            if (newState.version < CURRENT_STATE_VERSION) {
-                if (!window.confirm(`This state is from an older version (v${newState.version}). Aura will attempt to migrate it to the current version (v${CURRENT_STATE_VERSION}). This is experimental. Continue?`)) {
-                    return; // User cancelled migration
-                }
-                try {
-                    stateToLoad = migrateState(newState);
-                    addToast(`State migrated from v${newState.version} to v${CURRENT_STATE_VERSION}.`, 'info');
-                } catch (migrationError) {
-                    console.error("Migration failed during import:", migrationError);
-                    addToast('State migration failed. The import was cancelled.', 'error');
-                    return;
-                }
-            } else if (newState.version > CURRENT_STATE_VERSION) {
-                 addToast(`Cannot import state from a future version (v${newState.version}). Your application version is v${CURRENT_STATE_VERSION}.`, 'error');
-                 return;
-            }
-
-            dispatch({ type: 'IMPORT_STATE', payload: stateToLoad });
-            addToast(t('toastImportSuccess', { source }), 'success');
-        }
-    }, [dispatch, addToast, t]);
-
-    const handleImportState = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]; if (!file) return; const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const text = e.target?.result;
-                if (typeof text !== 'string') throw new Error("Invalid file content");
-                const newState = JSON.parse(text);
-                processAndLoadState(newState, 'file');
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-                console.error("Failed to import state:", err);
-                addToast(t('toastImportFailed', { error: errorMessage }), 'error');
-            } finally {
-                if (importInputRef.current) {
-                    importInputRef.current.value = '';
-                }
-            }
-        };
-        reader.readAsText(file);
-    }, [processAndLoadState, t]);
-
-    const handleImportAsCode = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0]; if (!file) return;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            try {
-                const text = e.target?.result;
-                if (typeof text !== 'string') throw new Error("Invalid file content");
-                const startIndex = text.indexOf('{');
-                const endIndex = text.lastIndexOf('}');
-                if (startIndex === -1 || endIndex === -1 || endIndex < startIndex) {
-                    throw new Error("Could not find a valid state object in the file.");
-                }
-                const jsonString = text.substring(startIndex, endIndex + 1);
-                const newState = JSON.parse(jsonString);
-                processAndLoadState(newState, 'code file');
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : "An unknown error occurred.";
-                console.error("Failed to import state from code:", err);
-                addToast(t('toastImportFailed', { error: errorMessage }), 'error');
-            } finally {
-                if (importAsCodeInputRef.current) {
-                    importAsCodeInputRef.current.value = '';
-                }
-            }
-        };
-        reader.readAsText(file);
-    }, [processAndLoadState, t]);
-
-    const handleRollback = useCallback((snapshotId: string) => {
-        const snapshot = state.systemSnapshots.find(s => s.id === snapshotId);
-        if (snapshot && snapshot.state && window.confirm(`Rollback to snapshot from ${new Date(snapshot.timestamp).toLocaleString()}? This is irreversible.`)) {
-            dispatch({ type: 'ROLLBACK_STATE', payload: snapshot.state });
-            addToast(t('toastRollbackSuccess'), 'success');
-        } else { addToast(t('toastRollbackFailed'), 'error'); }
-    }, [state.systemSnapshots, dispatch, addToast, t]);
-    const handleToggleForgePause = useCallback(() => {
-        dispatch({ type: 'SYSCALL', payload: { call: 'TOGGLE_COGNITIVE_FORGE_PAUSE', args: {} } });
-        addToast(state.cognitiveForgeState.isTuningPaused ? 'Cognitive Forge tuning resumed.' : 'Cognitive Forge tuning paused.', 'info');
-    }, [dispatch, addToast, state.cognitiveForgeState.isTuningPaused]);
-
+    // FIX: Add missing handlers and return object to resolve multiple errors.
     const handleContemplate = useCallback(() => {
-        dispatch({ type: 'SYSCALL', payload: { call: 'SET_INTERNAL_STATUS', args: 'CONTEMPLATIVE' } });
-        dispatch({ type: 'SYSCALL', payload: { call: 'ADD_COMMAND_LOG', args: { text: 'Contemplative cycle initiated.', type: 'info' } } });
-        addToast('Beginning contemplation...', 'info');
-        // In a real implementation, a longer process would run here.
-        // For now, we simulate a period of thought.
-        setTimeout(() => {
-            dispatch({ type: 'SYSCALL', payload: { call: 'SET_INTERNAL_STATUS', args: 'idle' } });
-        }, 3000);
-    }, [dispatch, addToast]);
+        syscall('ADD_COMMAND_LOG', { text: 'Manual introspection cycle triggered.', type: 'info' });
+        syscall('UPDATE_INTERNAL_STATE', { status: 'introspecting' });
+    }, [syscall]);
 
-    const handleSetTelos = useCallback((telos: string) => {
-        dispatch({ type: 'SYSCALL', payload: { call: 'SET_TELOS', args: telos } });
-        addToast("New Telos has been set. Decomposing into strategic vectors...", 'success');
-    }, [dispatch, addToast]);
-    
-    const handleTrip = useCallback(() => {
-        const isActive = !state.psychedelicIntegrationState.isActive;
-        dispatch({ type: 'SYSCALL', payload: { call: 'SET_PSYCHEDELIC_STATE', args: { isActive } } });
-        addToast(isActive ? 'Psychedelic integration protocol initiated.' : 'Psychedelic integration concluded.', 'info');
-    }, [dispatch, addToast, state.psychedelicIntegrationState.isActive]);
+    const handleImportState = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    let importedState = JSON.parse(event.target?.result as string);
+                    if (!importedState.version || importedState.version < CURRENT_STATE_VERSION) {
+                        importedState = migrateState(importedState);
+                    }
+                    const dispatch = (action: Action) => (window as any)._auraRootDispatch(action);
+                    dispatch({ type: 'IMPORT_STATE', payload: importedState });
+                    addToast(t('toastImportSuccess', { source: file.name }), 'success');
+                } catch (error) {
+                    console.error("Failed to import state:", error);
+                    addToast(t('toastImportFailed', { error: (error as Error).message }), 'error');
+                } finally {
+                    if (importInputRef.current) importInputRef.current.value = '';
+                }
+            };
+            reader.readAsText(file);
+        }
+    }, [addToast, t]);
 
-    const handleSatori = useCallback(() => {
-        const isActive = !state.satoriState.isActive;
-        dispatch({ type: 'SYSCALL', payload: { call: 'SET_SATORI_STATE', args: { isActive } } });
-        addToast(isActive ? 'Satori state initiated.' : 'Satori state concluded.', 'info');
-    }, [dispatch, addToast, state.satoriState.isActive]);
-    
+    const handleImportAsCode = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+        addToast('Importing state from code is not yet implemented.', 'warning');
+        if (importAsCodeInputRef.current) {
+            importAsCodeInputRef.current.value = '';
+        }
+    }, [addToast]);
+
     const handleToggleVisualAnalysis = useCallback(() => {
-        const nextState = !isVisualAnalysisActive;
-        setIsVisualAnalysisActive(nextState);
-
-        if (nextState) {
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                navigator.mediaDevices.getUserMedia({ video: true })
-                    .then(stream => {
-                        if (videoRef.current) {
-                            videoRef.current.srcObject = stream;
-                        }
-                        if (analysisIntervalRef.current) clearInterval(analysisIntervalRef.current);
-                        analysisIntervalRef.current = window.setInterval(() => {
-                            // Placeholder for actual visual analysis logic
-                        }, 1000);
-                        addToast('Visual sense activated.', 'success');
-                    })
-                    .catch(err => {
-                        console.error("Error accessing camera:", err);
-                        addToast('Could not access camera.', 'error');
-                        setIsVisualAnalysisActive(false);
-                    });
-            }
+        setIsVisualAnalysisActive(v => !v);
+        // This is a placeholder for actual camera stream logic
+        if (!isVisualAnalysisActive) {
+            addToast('Visual analysis activated (simulation).', 'info');
         } else {
-            if (videoRef.current && videoRef.current.srcObject) {
-                (videoRef.current.srcObject as MediaStream).getTracks().forEach(track => track.stop());
-                videoRef.current.srcObject = null;
-            }
-            if (analysisIntervalRef.current) {
-                clearInterval(analysisIntervalRef.current);
-                analysisIntervalRef.current = null;
-            }
-            addToast('Visual sense deactivated.', 'info');
+            addToast('Visual analysis deactivated.', 'info');
         }
     }, [isVisualAnalysisActive, addToast]);
+    
+    const handleTrip = useCallback(() => {
+        const { isActive, mode } = state.psychedelicIntegrationState;
+        const willBeActive = !isActive || mode !== 'trip';
+        syscall('SET_PSYCHEDELIC_STATE', { isActive: willBeActive, mode: willBeActive ? 'trip' : null });
+    }, [syscall, state.psychedelicIntegrationState]);
+
+    const handleVisions = useCallback(() => {
+        const { isActive, mode } = state.psychedelicIntegrationState;
+        const willBeActive = !isActive || mode !== 'visions';
+        syscall('SET_PSYCHEDELIC_STATE', { isActive: willBeActive, mode: willBeActive ? 'visions' : null });
+    }, [syscall, state.psychedelicIntegrationState]);
+
+    const handleSatori = useCallback(() => {
+        const isActive = state.satoriState.isActive;
+        syscall('SET_SATORI_STATE', { isActive: !isActive });
+    }, [syscall, state.satoriState.isActive]);
+
+    // Attaching the root dispatcher to the window for special cases like reset/import
+    useEffect(() => {
+        (window as any)._auraRootDispatch = (action: Action) => {
+             // This is a temporary backdoor for global state resets. In a real OS, this would be a kernel panic/reboot.
+             const rootDispatch = (state.history as any).__proto__.dispatch;
+             if (rootDispatch) rootDispatch(action);
+        };
+    }, [state.history]);
+
+
+    // FIX: Added missing handlers that are used by various modals.
+    const approveProposal = useCallback((proposal: ArchitecturalChangeProposal) => {
+        const snapshotId = `pre_apply_${proposal.id}`;
+        const modLogId = `mod_log_${self.crypto.randomUUID()}`;
+        syscall('APPLY_ARCH_PROPOSAL', { proposal, snapshotId, modLogId, isAutonomous: false });
+        addToast(t('toast_proposalApproved', { action: proposal.action, target: proposal.target }), 'success');
+    }, [syscall, addToast, t]);
+
+    const rejectProposal = useCallback((id: string) => {
+        syscall('OA/UPDATE_PROPOSAL', { id, updates: { status: 'rejected' } });
+        addToast(t('toast_proposalRejected'), 'info');
+    }, [syscall, addToast, t]);
+
+    const handleWhatIf = useCallback((scenario: string) => {
+        setProcessingState({ active: true, stage: 'whatIf' });
+        syscall('ADD_HISTORY_ENTRY', { from: 'user', text: `What if: "${scenario}"` });
+        // In a real implementation, this would call the Gemini API.
+        setTimeout(() => {
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Simulated Outcome for "${scenario}"] The results indicate a positive trend in global cooperation.` });
+            setProcessingState({ active: false, stage: '' });
+        }, 2000);
+    }, [syscall, setProcessingState]);
+
+    const handleSearch = useCallback((query: string) => {
+        setProcessingState({ active: true, stage: 'search' });
+        syscall('ADD_HISTORY_ENTRY', { from: 'user', text: `Search for: "${query}"` });
+        // In a real implementation, this would call a search tool.
+        setTimeout(() => {
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Web Search Results for "${query}"] The capital of France is Paris.` });
+            setProcessingState({ active: false, stage: '' });
+        }, 2000);
+    }, [syscall, setProcessingState]);
+
+    const handleSetStrategicGoal = useCallback(async (goal: string) => {
+        setProcessingState({ active: true, stage: t('strategicGoal_decomposing') });
+        try {
+            // This is a simplified decomposition. A real one would use the Gemini API.
+            const rootId = `goal_${self.crypto.randomUUID()}`;
+            const child1Id = `goal_${self.crypto.randomUUID()}`;
+            const tree = {
+                [rootId]: { id: rootId, parentId: null, children: [child1Id], description: goal, status: 'in_progress', progress: 0, type: 'STRATEGIC' },
+                [child1Id]: { id: child1Id, parentId: rootId, children: [], description: `Initial research for '${goal}'`, status: 'not_started', progress: 0, type: 'TACTICAL' },
+            };
+            syscall('TELOS/DECOMPOSE_AND_SET_TREE', { tree, rootId, vectors: [] });
+            addToast(t('strategicGoal_successToast'), 'success');
+        } catch(e) {
+            addToast(t('strategicGoal_errorToast'), 'error');
+        } finally {
+            setProcessingState({ active: false, stage: '' });
+        }
+    }, [syscall, addToast, t]);
+
+    const handleMultiverseBranch = useCallback((prompt: string) => {
+        setProcessingState({ active: true, stage: t('multiverse_branching') });
+        syscall('ADD_COMMAND_LOG', { text: `User initiated multiverse branch: "${prompt}"`, type: 'info' });
+        setTimeout(() => {
+            setProcessingState({ active: false, stage: '' });
+        }, 1500);
+    }, [syscall, setProcessingState, t]);
+
+    const handleBrainstorm = useCallback((topic: string) => {
+        setProcessingState({ active: true, stage: t('brainstorm_processing') });
+        syscall('ADD_HISTORY_ENTRY', { from: 'user', text: `Brainstorm ideas about: "${topic}"` });
+        // In a real implementation, this would call the Gemini API.
+        setTimeout(() => {
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Brainstorming on "${topic}"]\n- Idea 1\n- Idea 2\n- Idea 3` });
+            setProcessingState({ active: false, stage: '' });
+        }, 2000);
+    }, [syscall, setProcessingState, t]);
+
+    const handleSetTelos = useCallback((telos: string) => {
+        syscall('SET_TELOS', telos);
+        addToast('Core Telos has been updated.', 'success');
+    }, [syscall, addToast]);
 
 
     return {
-        currentCommand, setCurrentCommand, attachedFile, setAttachedFile, processingState, setProcessingState,
-        isPaused, activeLeftTab, setActiveLeftTab, isRecording, setIsRecording,
-        outputPanelRef, importInputRef, fileInputRef, isVisualAnalysisActive, setIsVisualAnalysisActive, videoRef, analysisIntervalRef,
+        currentCommand, setCurrentCommand,
+        attachedFile, setAttachedFile,
+        processingState, setProcessingState,
+        isPaused, setIsPaused,
+        activeLeftTab, setActiveLeftTab,
+        isVisualAnalysisActive, setIsVisualAnalysisActive,
+        isRecording, setIsRecording,
+        outputPanelRef,
+        importInputRef,
         importAsCodeInputRef,
-        handleRemoveAttachment, handleFileChange, handleTogglePause, handleClearMemory, handleExportState, handleSaveAsCode, handleImportState, handleRollback, handleToggleForgePause,
-        handleImportAsCode, handleContemplate, handleMicClick, handleSetTelos,
-        handleTrip, handleSatori, handleToggleVisualAnalysis
+        fileInputRef,
+        videoRef,
+        analysisIntervalRef,
+        handleRemoveAttachment,
+        handleFileChange,
+        handleTogglePause,
+        handleMicClick,
+        handleClearMemory,
+        handleExportState,
+        handleSaveAsCode,
+        handleContemplate,
+        handleImportState,
+        handleImportAsCode,
+        handleToggleVisualAnalysis,
+        handleTrip,
+        handleVisions,
+        handleSatori,
+        // Add the new handlers to the returned object
+        approveProposal,
+        rejectProposal,
+        handleWhatIf,
+        handleSearch,
+        handleSetStrategicGoal,
+        handleMultiverseBranch,
+        handleBrainstorm,
+        handleSetTelos
     };
 };

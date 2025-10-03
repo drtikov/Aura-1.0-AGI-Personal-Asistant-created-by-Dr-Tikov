@@ -22,6 +22,7 @@ import { TelosModal } from '../components/TelosModal';
 import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal';
 import { useAuraDispatch, useCoreState } from './AuraContext';
 import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types';
+import { PluginManagerModal } from '../components/PluginManagerModal';
 
 type ModalType = 
     | 'causalChain' 
@@ -42,7 +43,8 @@ type ModalType =
     | 'skillGenesis'
     | 'abstractConcept'
     | 'telos'
-    | 'psychePrimitives';
+    | 'psychePrimitives'
+    | 'pluginManager';
 
 interface ModalContextType {
     open: <T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => void;
@@ -54,6 +56,7 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 export const ModalProvider = ({ children }: { children?: ReactNode }) => {
     const [modal, setModal] = useState<{ type: ModalType; payload: any } | null>(null);
     const { 
+        // FIX: Replaced non-existent handlers with the correct ones from useAura.
         approveProposal, rejectProposal, handleWhatIf, 
         handleSearch, handleSetStrategicGoal, 
         processingState, handleMultiverseBranch, handleBrainstorm,
@@ -179,6 +182,10 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
             />
             <PsychePrimitivesModal
                 isOpen={modal?.type === 'psychePrimitives'}
+                onClose={close}
+            />
+            <PluginManagerModal
+                isOpen={modal?.type === 'pluginManager'}
                 onClose={close}
             />
         </ModalContext.Provider>

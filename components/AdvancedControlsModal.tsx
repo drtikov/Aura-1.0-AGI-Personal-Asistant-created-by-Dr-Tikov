@@ -1,9 +1,9 @@
-
 // components/AdvancedControlsModal.tsx
 import React from 'react';
 import { Modal } from './Modal';
 // FIX: Added useSystemState to the import to resolve the current error.
 import { useLocalization, useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useSystemState, useAuraDispatch, usePlanningState } from '../context/AuraContext';
+// FIX: Corrected import path and added missing exports to the config file to resolve module errors.
 import { advancedControlsLayout, PanelConfig } from './controlDeckConfig';
 import { Accordion } from './Accordion';
 

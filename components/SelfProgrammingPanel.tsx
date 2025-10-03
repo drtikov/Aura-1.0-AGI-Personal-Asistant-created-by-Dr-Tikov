@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import { useArchitectureState, useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext';
 // FIX: Added EvolutionaryVector to imports for explicit typing.
 import { SelfProgrammingCandidate, CreateFileCandidate, ModifyFileCandidate, EvolutionaryVector } from '../types';
+import { HAL } from '../core/hal';
 
 // Note: JSZip must be loaded from a CDN in index.html for this to work.
 declare const JSZip: any;
@@ -27,7 +28,7 @@ const VFSExporter = () => {
             const blob = await zip.generateAsync({ type: 'blob' });
             
             const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
+            link.href = HAL.FileSystem.createObjectURL(blob);
             
             // Improved filename with timestamp
             const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
@@ -36,7 +37,7 @@ const VFSExporter = () => {
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
-            URL.revokeObjectURL(link.href);
+            HAL.FileSystem.revokeObjectURL(link.href);
 
             addToast(t('selfProgramming_downloadSuccess'), 'success');
         } catch (error) {
@@ -65,8 +66,8 @@ const VFSExporter = () => {
 const CodeSnippet = React.memo(({ code, title }: { code: string, title?: string }) => {
     const { addToast } = useAuraDispatch();
     const handleCopy = () => {
-        navigator.clipboard.writeText(code).then(() => {
-            addToast('Code copied to clipboard!', 'success');
+        HAL.Clipboard.writeText(code).then(() => {
+            addToast('Code snippet copied to clipboard!', 'success');
         }, () => {
             addToast('Failed to copy code.', 'error');
         });
@@ -114,7 +115,7 @@ const CandidateDetails = ({ candidate }: { candidate: SelfProgrammingCandidate }
 export const SelfProgrammingPanel = React.memo(() => {
     const { selfProgrammingState, ontogeneticArchitectState } = useArchitectureState();
     const { telosEngine } = useCoreState();
-    const { dispatch } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
     const [selectedFile, setSelectedFile] = useState<string | null>(null);
     const [selectedCandidateId, setSelectedCandidateId] = useState<string | null>(null);
@@ -137,15 +138,13 @@ export const SelfProgrammingPanel = React.memo(() => {
     };
 
     const handleImplement = (id: string) => {
-        if (window.confirm("Implement this autonomous code change? This will modify Aura's source code in the Virtual File System.")) {
-            // FIX: Corrected dispatch call to use the SYSCALL format.
-            dispatch({ type: 'SYSCALL', payload: { call: 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', args: { id } } });
+        if (HAL.UI.confirm("Implement this autonomous code change? This will modify Aura's source code in the Virtual File System.")) {
+            syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id });
         }
     };
 
     const handleReject = (id: string) => {
-        // FIX: Corrected dispatch call to use the SYSCALL format.
-        dispatch({ type: 'SYSCALL', payload: { call: 'REJECT_SELF_PROGRAMMING_CANDIDATE', args: { id } } });
+        syscall('REJECT_SELF_PROGRAMMING_CANDIDATE', { id });
     };
 
     return (

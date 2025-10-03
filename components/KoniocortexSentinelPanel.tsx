@@ -41,7 +41,8 @@ export const KoniocortexSentinelPanel = React.memo(() => {
                         <label>{t('granularCortex_modality')}</label>
                         <strong style={{textTransform: 'capitalize'}}>{lastPercept.sensoryEngram.modality}</strong>
                     </div>
-                    {lastPercept.sensoryEngram.primitives.slice(0,2).map((p, i) => (
+                    {/* FIX: Corrected property access from `primitives` to `rawPrimitives` to match the SensoryEngram type in types.ts. */}
+                    {lastPercept.sensoryEngram.rawPrimitives.slice(0,2).map((p, i) => (
                          <div className="awareness-item" key={i}>
                             <label style={{textTransform: 'capitalize'}}>{p.type.replace(/_/g, ' ')}</label>
                             <strong>{typeof p.value === 'number' ? p.value.toFixed(2) : p.value}</strong>

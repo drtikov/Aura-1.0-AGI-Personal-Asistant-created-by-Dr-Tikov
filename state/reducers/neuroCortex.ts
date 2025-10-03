@@ -1,5 +1,5 @@
 // state/reducers/neuroCortex.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action, CorticalColumn } from '../../types';
 
 export const neuroCortexReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -17,11 +17,18 @@ export const neuroCortexReducer = (state: AuraState, action: Action): Partial<Au
             };
 
         case 'CREATE_CORTICAL_COLUMN': {
-            const newColumn = {
+            // FIX: Added default genome to satisfy the CorticalColumn type.
+            const newColumn: CorticalColumn = {
                 id: args.id,
                 specialty: args.specialty,
                 activation: 0.05, // Initial low activation
                 connections: [],
+                genome: {
+                    domain: 'linguistic', // default
+                    abstractionLevel: 0.5,
+                    creativityBias: 0.5,
+                    constraintAdherence: 0.7,
+                }
             };
             return {
                 neuroCortexState: {

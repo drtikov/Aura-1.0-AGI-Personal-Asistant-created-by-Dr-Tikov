@@ -1,7 +1,5 @@
-
-
 // FIX: Corrected import path for types to resolve module error.
-import { AuraState, AgentProfile, InternalState } from '../types';
+import { AuraState, UserModel, InternalState, HistoryEntry } from '../types';
 // FIX: Corrected import path for initialState to resolve module error.
 import { getInitialState } from './initialState';
 // FIX: Corrected import path for constants to resolve module error.
@@ -15,7 +13,7 @@ interface V2InternalState extends InternalState {
 interface V2AuraState extends Omit<AuraState, 'internalState' | 'userModel'> {
     version: 2;
     internalState: V2InternalState;
-    userModel: AgentProfile; // Let's assume userModel was the same in v2
+    userModel: UserModel; // Let's assume userModel was the same in v2
 }
 
 // V3 is the new state *after* our changes.
@@ -43,6 +41,7 @@ const migrateV2toV3 = (oldState: V2AuraState): AuraState => {
         internalState: restOfInternalState, // Use the internal state without positivityScore
         userModel: {
             ...oldState.userModel,
+            // @ts-ignore
             engagementLevel: newInitialState.userModel.engagementLevel, // Add the new field with its default
         },
         history: [
@@ -50,7 +49,9 @@ const migrateV2toV3 = (oldState: V2AuraState): AuraState => {
             {
                 id: self.crypto.randomUUID(),
                 from: 'system',
-                text: 'SYSTEM: State format upgraded from v2 to v3.'
+                text: 'SYSTEM: State format upgraded from v2 to v3.',
+                // FIX: Add missing timestamp property to satisfy HistoryEntry type
+                timestamp: Date.now()
             }
         ]
     };

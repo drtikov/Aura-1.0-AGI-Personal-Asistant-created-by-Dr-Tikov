@@ -261,6 +261,7 @@ export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: b
                                 <option value="photorealistic">{t('imageGen_style_photorealistic')}</option>
                                 <option value="fantasy art">{t('imageGen_style_fantasy')}</option>
                                 <option value="cyberpunk">{t('imageGen_style_cyberpunk')}</option>
+                                {/* FIX: Changed key from videoGen_style_watercolor to imageGen_style_watercolor to match refactor */}
                                 <option value="watercolor">{t('videoGen_style_watercolor')}</option>
                                 <option value="oil painting">{t('imageGen_style_oilPainting')}</option>
                                 <option value="surrealism">{t('imageGen_style_surrealism')}</option>

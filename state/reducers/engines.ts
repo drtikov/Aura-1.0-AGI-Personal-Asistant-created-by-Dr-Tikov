@@ -43,6 +43,15 @@ export const enginesReducer = (state: AuraState, action: Action): Partial<AuraSt
                 }
             };
 
+        case 'ETHICAL_GOVERNOR/ADD_VETO_LOG': {
+            return {
+                ethicalGovernorState: {
+                    ...state.ethicalGovernorState,
+                    vetoLog: [args, ...state.ethicalGovernorState.vetoLog].slice(0, 20)
+                }
+            }
+        }
+
         default:
             return {};
     }

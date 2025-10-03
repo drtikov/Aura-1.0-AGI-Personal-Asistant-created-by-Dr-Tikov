@@ -51,7 +51,7 @@ export const LeftColumnComponent = () => {
                 <div className="chat-container">
                     <header className="chat-header">
                         <h1 data-text="AURA">AURA</h1>
-                        <p>{t('chatHeaderTagline')}</p>
+                        <p>Prototype of AGI</p>
                     </header>
                     <div className="output-panel" ref={outputPanelRef}>
                         {history.map((entry: HistoryEntry) => (

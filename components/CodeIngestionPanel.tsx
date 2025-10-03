@@ -1,8 +1,10 @@
+
 import React, { useState } from 'react';
 import { useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { HAL } from '../core/hal';
 
 export const CodeIngestionPanel = React.memo(() => {
-    const { dispatch, addToast } = useAuraDispatch();
+    const { syscall, addToast } = useAuraDispatch();
     const { t } = useLocalization();
     const [filePath, setFilePath] = useState('');
     const [code, setCode] = useState('');
@@ -13,8 +15,8 @@ export const CodeIngestionPanel = React.memo(() => {
             return;
         }
 
-        if (window.confirm(t('liveCodeIngestion_confirm_message', { filePath }))) {
-            dispatch({ type: 'INGEST_CODE_CHANGE', payload: { filePath, code } });
+        if (HAL.UI.confirm(t('liveCodeIngestion_confirm_message', { filePath }))) {
+            syscall('INGEST_CODE_CHANGE', { filePath, code });
             addToast(t('liveCodeIngestion_success_toast', { filePath }), 'success');
             setFilePath('');
             setCode('');

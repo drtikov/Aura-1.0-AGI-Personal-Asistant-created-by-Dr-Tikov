@@ -1,3 +1,5 @@
+
+
 import React from 'react';
 import { useArchitectureState, useLocalization } from '../context/AuraContext';
 import { SensoryEngram, SensoryPrimitive } from '../types';
@@ -38,7 +40,8 @@ const EngramDisplay = ({ engram, title }: { engram: SensoryEngram | null, title:
                 <span className="metric-label">{t('granularCortex_modality')}</span>
                 <span className="metric-value" style={{textTransform: 'capitalize'}}>{engram.modality}</span>
             </div>
-            {engram.primitives.map((p, i) => <PrimitiveDisplay key={i} primitive={p} />)}
+            {/* FIX: Changed `primitives` to `rawPrimitives` to match the SensoryEngram type definition. */}
+            {engram.rawPrimitives.map((p, i) => <PrimitiveDisplay key={i} primitive={p} />)}
         </>
     );
 };

@@ -1,11 +1,14 @@
+
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { Action } from '../types';
-import { useMemoryState, useLocalization } from '../context/AuraContext';
+import { SyscallCall } from '../types';
+import { useMemoryState, useLocalization, useAuraDispatch } from '../context/AuraContext';
 
-export const KnowledgeGraphPanel = React.memo(({ onDispatch }: { onDispatch: React.Dispatch<Action> }) => {
+export const KnowledgeGraphPanel = React.memo(() => {
     const { knowledgeGraph: graph } = useMemoryState();
     const { t } = useLocalization();
+    const { syscall } = useAuraDispatch();
+
     return (
         <div className="side-panel">
             <div className="kg-content">
@@ -18,7 +21,7 @@ export const KnowledgeGraphPanel = React.memo(({ onDispatch }: { onDispatch: Rea
                             <span className="kg-subject">{fact.subject}</span>
                             <span className="kg-predicate">{fact.predicate}</span>
                             <span className="kg-object">{fact.object}</span>
-                            <button className="kg-delete-button" onClick={() => onDispatch({ type: 'SYSCALL', payload: { call: 'DELETE_FACT', args: fact.id } })} title={t('knowledgeGraph_deleteFact')}>&times;</button>
+                            <button className="kg-delete-button" onClick={() => syscall('DELETE_FACT', fact.id)} title={t('knowledgeGraph_deleteFact')}>&times;</button>
                         </div>
                     ))
                 )}

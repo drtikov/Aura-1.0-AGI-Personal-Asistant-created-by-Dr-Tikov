@@ -1,7 +1,8 @@
+
 import React from 'react';
 import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
 
-const BiasSlider = ({ label, biasKey, value, onDispatch }: { label: string; biasKey: string; value: number; onDispatch: any }) => (
+const BiasSlider = ({ label, biasKey, value, syscall }: { label: string; biasKey: string; value: number; syscall: any }) => (
     <div className="state-item">
         <label>{label}</label>
         <div className="state-bar-container">
@@ -11,7 +12,7 @@ const BiasSlider = ({ label, biasKey, value, onDispatch }: { label: string; bias
                 max="1"
                 step="0.05"
                 value={value}
-                onChange={(e) => onDispatch({ type: 'SYSCALL', payload: { call: 'AFFECTIVE/SET_BIAS', args: { bias: biasKey, value: e.target.valueAsNumber } } })}
+                onChange={(e) => syscall('AFFECTIVE/SET_BIAS', { bias: biasKey, value: e.target.valueAsNumber })}
                 style={{ width: '100%' }}
             />
         </div>
@@ -22,7 +23,7 @@ const BiasSlider = ({ label, biasKey, value, onDispatch }: { label: string; bias
 
 export const AffectiveModulatorPanel = React.memo(() => {
     const { affectiveModulatorState: state } = useCoreState();
-    const { dispatch } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
 
     return (
@@ -36,18 +37,18 @@ export const AffectiveModulatorPanel = React.memo(() => {
                     label={t('affectiveModulator_creativity')}
                     biasKey="creativityBias"
                     value={state.creativityBias}
-                    onDispatch={dispatch}
+                    syscall={syscall}
                 />
                  <BiasSlider
                     label={t('affectiveModulator_conciseness')}
                     biasKey="concisenessBias"
                     value={state.concisenessBias}
-                    onDispatch={dispatch}
+                    syscall={syscall}
                 />
                  <BiasSlider
                     label={t('affectiveModulator_analyticalDepth')}
                     biasKey="analyticalDepth"
-                    onDispatch={dispatch}
+                    syscall={syscall}
                     value={state.analyticalDepth}
                 />
             </div>

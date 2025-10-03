@@ -7,15 +7,18 @@ const calculatePredictionError = (actual: SensoryEngram, predicted: SensoryEngra
     if (!predicted || predicted.modality !== actual.modality) {
         return {
             magnitude: 1.0, // Maximum error if no prediction or wrong modality
-            mismatchedPrimitives: actual.primitives.map(p => ({ predicted: null, actual: p })),
+            // FIX: Corrected property from `primitives` to `rawPrimitives`.
+            mismatchedPrimitives: actual.rawPrimitives.map(p => ({ predicted: null, actual: p })),
         };
     }
 
     let totalError = 0;
     const mismatchedPrimitives: { predicted: SensoryPrimitive | null, actual: SensoryPrimitive | null }[] = [];
-    const predictedPrimitives = new Map(predicted.primitives.map(p => [p.type, p]));
+    // FIX: Added explicit type to Map constructor to resolve type inference issues.
+    const predictedPrimitives: Map<string, SensoryPrimitive> = new Map(predicted.rawPrimitives.map(p => [p.type, p]));
 
-    for (const actualPrimitive of actual.primitives) {
+    // FIX: Corrected property from `primitives` to `rawPrimitives`.
+    for (const actualPrimitive of actual.rawPrimitives) {
         const predictedPrimitive = predictedPrimitives.get(actualPrimitive.type);
         if (!predictedPrimitive) {
             totalError += 1; // Primitive was present but not predicted
@@ -37,10 +40,12 @@ const calculatePredictionError = (actual: SensoryEngram, predicted: SensoryEngra
 
     // Add error for primitives that were predicted but not present
     totalError += predictedPrimitives.size;
-    predictedPrimitives.forEach(p => mismatchedPrimitives.push({ predicted: p, actual: null }));
+    // FIX: Added explicit type to `p` in forEach to resolve `unknown` type error.
+    predictedPrimitives.forEach((p: SensoryPrimitive) => mismatchedPrimitives.push({ predicted: p, actual: null }));
 
 
-    const maxPossibleError = actual.primitives.length + predicted.primitives.length;
+    // FIX: Corrected property from `primitives` to `rawPrimitives`.
+    const maxPossibleError = actual.rawPrimitives.length + predicted.rawPrimitives.length;
     const magnitude = maxPossibleError > 0 ? Math.min(1, totalError / maxPossibleError) : 0;
 
     return { magnitude, mismatchedPrimitives };

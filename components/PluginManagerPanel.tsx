@@ -5,7 +5,7 @@ import { Plugin } from '../types';
 
 export const PluginManagerPanel = React.memo(() => {
     const { pluginState } = useSystemState();
-    const { dispatch, addToast } = useAuraDispatch();
+    const { syscall, addToast } = useAuraDispatch();
     const { t } = useLocalization();
 
     const handleToggle = (plugin: Plugin) => {
@@ -13,23 +13,11 @@ export const PluginManagerPanel = React.memo(() => {
         
         // Handle knowledge ingestion as a side-effect in the UI handler
         if (plugin.type === 'KNOWLEDGE' && newStatus === 'enabled' && plugin.knowledge) {
-            dispatch({ 
-                type: 'SYSCALL', 
-                payload: { 
-                    call: 'ADD_FACTS_BATCH', 
-                    args: plugin.knowledge 
-                } 
-            });
+            syscall('ADD_FACTS_BATCH', plugin.knowledge);
             addToast(`Knowledge package "${plugin.name}" ingested.`, 'success');
         }
 
-        dispatch({
-            type: 'SYSCALL',
-            payload: {
-                call: 'PLUGIN/SET_STATUS',
-                args: { pluginId: plugin.id, status: newStatus }
-            }
-        });
+        syscall('PLUGIN/SET_STATUS', { pluginId: plugin.id, status: newStatus });
     };
 
     const getPluginTypeName = (type: Plugin['type']) => {
@@ -37,6 +25,11 @@ export const PluginManagerPanel = React.memo(() => {
             case 'TOOL': return 'Tool';
             case 'COPROCESSOR': return 'Coprocessor';
             case 'KNOWLEDGE': return 'Knowledge';
+            case 'PERCEPTOR': return 'Perceptor';
+            case 'MODULATOR': return 'Modulator';
+            case 'GOVERNOR': return 'Governor';
+            case 'SYNTHESIZER': return 'Synthesizer';
+            case 'ORACLE': return 'Oracle';
             default: return 'Plugin';
         }
     }
@@ -49,6 +42,11 @@ export const PluginManagerPanel = React.memo(() => {
                         <h5 className="plugin-name">
                             <span className={`plugin-type-badge type-${plugin.type}`}>{getPluginTypeName(plugin.type)}</span>
                             {t(plugin.name)}
+                            {plugin.type === 'KNOWLEDGE' && plugin.knowledge && (
+                                <span className="knowledge-data-indicator">
+                                    {t('plugin_facts_indicator', { count: plugin.knowledge.length })}
+                                </span>
+                            )}
                         </h5>
                         <p className="plugin-description">{t(plugin.description)}</p>
                     </div>

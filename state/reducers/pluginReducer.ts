@@ -19,6 +19,17 @@ export const pluginReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
         }
+        case 'PLUGIN/RESTORE_DEFAULTS': {
+            return {
+                pluginState: {
+                    ...state.pluginState,
+                    registry: state.pluginState.registry.map(p => ({
+                        ...p,
+                        status: p.defaultStatus || p.status, // Fallback to current status if default isn't set
+                    })),
+                }
+            };
+        }
         default:
             return {};
     }

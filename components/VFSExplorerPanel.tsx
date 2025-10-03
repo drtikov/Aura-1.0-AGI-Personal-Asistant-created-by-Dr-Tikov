@@ -1,4 +1,5 @@
 
+
 import React, { useState, useMemo } from 'react';
 import { useAuraDispatch, useLocalization } from '../context/AuraContext';
 import { AuraState } from '../types';
@@ -13,6 +14,7 @@ const cvfsRead = (path: string, state: AuraState): string | null => {
 
     const contentMapping: { [key: string]: (s: AuraState) => any } = {
         '/sys/persona/active': (s) => s.personalityState.dominantPersona,
+        '/sys/logs/boot.log': (s) => s.selfProgrammingState.virtualFileSystem['/system/logs/boot.log'] || 'Log not found.',
         '/mem/semantic/graph.json': (s) => JSON.stringify(s.knowledgeGraph, null, 2),
         '/mem/episodic/log': (s) => s.episodicMemoryState.episodes.map(e => `[${new Date(e.timestamp).toISOString()}] ${e.title}: ${e.summary}`).join('\n'),
         '/dev/user_in': (s) => s.history.filter(h => h.from === 'user').slice(-1)[0]?.text || '',
@@ -54,6 +56,10 @@ const cvfsLs = (path: string, state: AuraState): VFSNode[] | null => {
                 persona: {
                     type: 'd',
                     children: { 'active': { type: 'f' } }
+                },
+                logs: {
+                    type: 'd',
+                    children: { 'boot.log': { type: 'f' } }
                 }
             }
         },

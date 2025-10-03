@@ -5,8 +5,6 @@ import { useModal } from '../context/ModalContext';
 
 export const ManualControlPanel = () => {
     const { 
-        state,
-        dispatch,
         memoryStatus, 
         isPaused, 
         handleTogglePause, 
@@ -21,11 +19,13 @@ export const ManualControlPanel = () => {
         isVisualAnalysisActive, 
         handleToggleVisualAnalysis, 
         handleTrip, 
+        handleVisions,
         handleSatori, 
         handleEvolveFromInsight,
-        addToast
+        addToast,
+        dispatch
     } = useAuraDispatch();
-    const { gankyilInsights } = useCoreState();
+    const { gankyilInsights, psychedelicIntegrationState, satoriState } = useCoreState();
     const { t } = useLocalization();
     const modal = useModal();
 
@@ -69,8 +69,9 @@ export const ManualControlPanel = () => {
 
             <div className="panel-group-title">{t('title_specialModes')}</div>
             <div className="button-grid">
-                 <button className={`control-button mode-trip ${state.psychedelicIntegrationState.isActive ? 'active' : ''}`} onClick={handleTrip}>{t('btn_trip')}</button>
-                 <button className={`control-button mode-satori ${state.satoriState.isActive ? 'active' : ''}`} onClick={handleSatori} title={t('tip_satori')}>{t('btn_satori')}</button>
+                 <button className={`control-button mode-trip ${psychedelicIntegrationState.isActive && psychedelicIntegrationState.mode === 'trip' ? 'active' : ''}`} onClick={handleTrip} title={t('tip_trip')}>{t('btn_trip')}</button>
+                 <button className={`control-button mode-visions ${psychedelicIntegrationState.isActive && psychedelicIntegrationState.mode === 'visions' ? 'active' : ''}`} onClick={handleVisions} title={t('tip_visions')}>{t('btn_visions')}</button>
+                 <button className={`control-button mode-satori ${satoriState.isActive ? 'active' : ''}`} onClick={handleSatori} title={t('tip_satori')}>{t('btn_satori')}</button>
                  <button className={`control-button mode-insight ${unprocessedInsightsCount > 0 ? 'has-new-insight' : ''}`} onClick={handleEvolveFromInsight} title={t('tip_insight')} disabled={unprocessedInsightsCount === 0}>{t('btn_insight')}</button>
                  <button className="control-button mode-psi" onClick={() => modal.open('multiverseBranching', {})} title={t('tip_branch')}>{t('btn_branch')}</button>
                  <button className="control-button" onClick={() => modal.open('brainstorm', {})} title={t('tip_brainstorm')}>{t('btn_brainstorm')}</button>

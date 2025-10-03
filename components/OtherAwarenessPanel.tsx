@@ -28,6 +28,10 @@ export const OtherAwarenessPanel = React.memo(() => {
                     <label>{t('otherAwareness_inferredIntent')}</label>
                     <strong title={model.inferredIntent || 'None'}>{(model.inferredIntent || 'N/A').substring(0, 25)}{model.inferredIntent && model.inferredIntent.length > 25 ? '...' : ''}</strong>
                 </div>
+                <div className="awareness-item">
+                    <label>Inferred Cognitive State</label>
+                    <strong style={{textTransform: 'capitalize'}}>{model.inferredCognitiveState}</strong>
+                </div>
                 <div className="state-item">
                     <label>{t('metricUserTrust')}</label>
                     <div className="state-bar-container">

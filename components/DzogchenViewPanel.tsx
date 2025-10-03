@@ -37,6 +37,7 @@ export const DzogchenViewPanel = React.memo(() => {
         [GunaState.RAJAS]: { className: "rajas" },
         [GunaState.TAMAS]: { className: "tamas" },
         [GunaState.DHARMA]: { className: "dharma" },
+        // FIX: Corrected enum access for key with hyphen.
         [GunaState['GUNA-TEETA']]: { className: "guna-teeta" }
     };
 

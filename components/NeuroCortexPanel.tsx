@@ -109,7 +109,7 @@ export const NeuroCortexPanel = React.memo(() => {
             <div className="layers-list">
                  {Object.entries(layers).map(([key, layer]: [string, { name: string; description: string }]) => (
                     <div key={key} className="layer-item">
-                        <strong>{layer.name} ({key.replace('layer','L').replace('II_III', 'II/III').replace('VII', 'VII').replace('VIII', 'VIII').replace('IX', 'IX').replace('X','X')}):</strong> <span>{layer.description}</span>
+                        <strong>{layer.name} ({key.replace('layer','L').replace('II_III', 'II' + '/' + 'III').replace('VII', 'VII').replace('VIII', 'VIII').replace('IX', 'IX').replace('X','X')}):</strong> <span>{layer.description}</span>
                     </div>
                 ))}
             </div>

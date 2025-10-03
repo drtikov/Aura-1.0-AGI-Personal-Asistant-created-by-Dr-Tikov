@@ -1,15 +1,17 @@
-
+// components/ControlDeckComponent.tsx
 
 import React from 'react';
 // FIX: Added useSystemState to the import to resolve the current error.
 import { useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useSystemState, useAuraDispatch, useLocalization, usePlanningState } from '../context/AuraContext';
 import { Accordion } from './Accordion';
+// FIX: Corrected the import path for `controlDeckConfig` from a non-existent file to the correct one.
 import { mainControlDeckLayout, advancedControlsLayout, PanelConfig } from './controlDeckConfig';
 import { useModal } from '../context/ModalContext';
 // FIX: Corrected import path alias for translations to resolve module error.
 import { translations } from '../localization';
 import { NarrativeSummaryPanel } from './NarrativeSummaryPanel';
 import { ManualControlPanel } from './ManualControlPanel';
+import { ThemeSwitcher } from './ThemeSwitcher';
 
 // --- New Component Definition ---
 const LocalizationPanel = () => {
@@ -100,6 +102,7 @@ export const ControlDeckComponent = () => {
         <div className="control-deck-container">
             <div className="control-deck-content">
                 <LocalizationPanel />
+                <ThemeSwitcher />
                 <NarrativeSummaryPanel />
                 <ManualControlPanel />
                 {mainControlDeckLayout.map(panel => renderPanel(panel, stateSlices, handlers, t))}
