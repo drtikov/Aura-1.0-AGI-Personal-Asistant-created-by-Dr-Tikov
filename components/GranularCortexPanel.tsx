@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { useArchitectureState, useLocalization } from '../context/AuraContext';
 import { SensoryEngram, SensoryPrimitive } from '../types';

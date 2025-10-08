@@ -2,10 +2,12 @@ import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
 // FIX: Corrected import path for types to resolve module error.
 import { KnownUnknown } from '../types';
+import { useModal } from '../context/ModalContext';
 
 export const CuriosityPanel = React.memo(() => {
     const { curiosityState: state, knownUnknowns } = useCoreState();
     const { t } = useLocalization();
+    const modal = useModal();
     const informationGaps = state.informationGaps
         .map(id => knownUnknowns.find(ku => ku.id === id))
         .filter(Boolean) as KnownUnknown[];
@@ -51,6 +53,11 @@ export const CuriosityPanel = React.memo(() => {
                     </div>
                 ))
             )}
+            <div className="button-grid" style={{marginTop: '1rem'}}>
+                <button className="control-button" onClick={() => modal.open('poseQuestion', {})}>
+                    {t('curiosityPanel_poseQuestion')}
+                </button>
+            </div>
         </div>
     );
 });

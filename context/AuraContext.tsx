@@ -34,6 +34,7 @@ import {
     SatoriState,
     DoxasticEngineState,
     QualiaSignalProcessorState,
+    LiveSessionState,
     SensoryIntegration,
     SocialCognitionState,
     MetaphoricalMapState,
@@ -41,6 +42,8 @@ import {
     MemoryNexus,
     EpisodicMemoryState,
     MemoryConsolidationState,
+    MDNASpace,
+    ConceptConnections,
     CognitiveArchitecture,
     SystemSnapshot,
     ModificationLogEntry,
@@ -90,8 +93,16 @@ import {
     KernelState,
     IpcState,
     EventBusMessage,
-    CognitiveOSState,
-    AtmanProjector
+    AtmanProjector,
+    InternalScientistState,
+    MetisSandboxState,
+    WisdomIngestionState,
+    SpandaState,
+    TemporalEngineState,
+    AxiomaticCrucibleState,
+    PersonaState,
+    BrainstormState,
+    ChronicleState,
 } from '../types';
 
 // --- Context for the main dispatcher ---
@@ -126,12 +137,14 @@ type CoreState = Pick<AuraState,
     | 'noeticMultiverse' | 'selfAdaptationState' | 'psychedelicIntegrationState' | 'affectiveModulatorState' 
     | 'psionicDesynchronizationState' | 'satoriState' | 'doxasticEngineState' | 'qualiaSignalProcessorState' 
     | 'sensoryIntegration' | 'narrativeSummary' | 'socialCognitionState' | 'metaphoricalMapState' | 'atmanProjector'
-    | 'internalScientistState' | 'metisSandboxState'
+    | 'internalScientistState' | 'metisSandboxState' | 'spandaState' | 'personaState' | 'brainstormState'
+    // FIX: Add liveSessionState to CoreState
+    | 'liveSessionState'
 >;
 export const [CoreStateContext, useCoreState] = createStateContext<CoreState>('CoreStateContext');
 
 // Memory State
-type MemoryState = Pick<AuraState, 'knowledgeGraph' | 'workingMemory' | 'memoryNexus' | 'episodicMemoryState' | 'memoryConsolidationState'>;
+type MemoryState = Pick<AuraState, 'knowledgeGraph' | 'workingMemory' | 'memoryNexus' | 'episodicMemoryState' | 'memoryConsolidationState' | 'mdnaSpace' | 'conceptConnections' | 'chronicleState'>;
 export const [MemoryStateContext, useMemoryState] = createStateContext<MemoryState>('MemoryStateContext');
 
 // Architecture State
@@ -141,7 +154,7 @@ type ArchitectureState = Pick<AuraState,
     | 'ricciFlowManifoldState' | 'selfProgrammingState' | 'neuralAcceleratorState' | 'neuroCortexState' 
     | 'granularCortexState' | 'koniocortexSentinelState' | 'cognitiveTriageState' | 'psycheState' | 'motorCortexState' 
     | 'praxisResonatorState' | 'ontogeneticArchitectState' | 'embodiedCognitionState' | 'evolutionarySandboxState'
-    | 'hovaState' | 'documentForgeState'
+    | 'hovaState' | 'documentForgeState' | 'wisdomIngestionState' | 'axiomaticCrucibleState'
 >;
 export const [ArchitectureStateContext, useArchitectureState] = createStateContext<ArchitectureState>('ArchitectureStateContext');
 
@@ -158,7 +171,7 @@ type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 
 export const [LogsStateContext, useLogsState] = createStateContext<LogsState>('LogsStateContext');
 
 // System State
-type SystemState = Pick<AuraState, 'resourceMonitor' | 'metacognitiveNexus' | 'metacognitiveCausalModel' | 'pluginState' | 'kernelState' | 'ipcState' | 'eventBus' | 'cognitiveOSState'>;
+type SystemState = Pick<AuraState, 'resourceMonitor' | 'metacognitiveNexus' | 'metacognitiveCausalModel' | 'pluginState' | 'kernelState' | 'ipcState' | 'eventBus' | 'temporalEngineState' | 'autonomousReviewBoardState'>;
 export const [SystemStateContext, useSystemState] = createStateContext<SystemState>('SystemStateContext');
 
 // Localization Context

@@ -12,9 +12,13 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             if (args.from === 'system' && state.history.some(h => h.text === args.text)) {
                 return {};
             }
-            // FIX: Removed manual event bus message creation. This is handled by the root reducer's interceptor, which correctly adds the 'qualiaVector'.
+            const newEntry = {
+                ...args,
+                id: args.id || self.crypto.randomUUID(),
+                timestamp: Date.now(),
+            };
             return { 
-                history: [...state.history, { ...args, id: args.id || self.crypto.randomUUID() }],
+                history: [...state.history, newEntry],
             };
         }
         
@@ -42,7 +46,7 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
         case 'UPDATE_HISTORY_FEEDBACK':
             return {
                 history: state.history.map(entry =>
-                    entry.id === args.id ? { ...entry, feedback: args.feedback } : entry
+                    entry.id === args.id ? { ...entry, feedback: args.feedback, isFeedbackProcessed: false } : entry
                 ),
             };
             

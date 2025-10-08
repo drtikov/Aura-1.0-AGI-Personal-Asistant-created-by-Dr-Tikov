@@ -20,84 +20,15 @@ const DiffViewer = ({ diff }: { diff: { before: string, after: string } }) => {
 
 export const EvolutionarySandboxPanel = () => {
     const { evolutionarySandboxState } = useArchitectureState();
-    const { syscall } = useAuraDispatch();
+    const { syscall, handleStartSandboxSprint } = useAuraDispatch();
     const { t } = useLocalization();
 
     const [goal, setGoal] = useState('');
     const { status, sprintGoal, log, startTime, result } = evolutionarySandboxState;
 
-    useEffect(() => {
-        if (status === 'running' && startTime) {
-            const mockLogSteps = [
-                "Initializing sandbox environment...",
-                "Cloning VFS to in-memory store...",
-                `Analyzing performance vectors for goal: '${sprintGoal}'`,
-                "Generating initial mutation candidates (Generation 1)...",
-                "Simulating 1,200 candidate variations...",
-                "Applying genetic algorithm for selection...",
-                "Promoting top 5% candidates to Generation 2...",
-                "Refactoring 'hooks/useAura.ts' based on emergent heuristic #1337...",
-                "Simulating 2,500 candidate variations...",
-                "Convergence detected. Finalizing optimized code.",
-                "Running validation and linting on proposed changes...",
-                "Calculating performance uplift...",
-                "Sprint complete. Compiling results..."
-            ];
-
-            let step = 0;
-            const logInterval = setInterval(() => {
-                if (step < mockLogSteps.length) {
-                    syscall('SANDBOX/LOG_STEP', mockLogSteps[step]);
-                    step++;
-                }
-            }, 700);
-
-            const sprintTimer = setTimeout(() => {
-                clearInterval(logInterval);
-                const mockResult = {
-                    originalGoal: sprintGoal,
-                    performanceGains: [
-                        { metric: 'Average Response Latency', change: '-18.5%' },
-                        { metric: 'Cognitive Load per Query', change: '-12.2%' },
-                        { metric: 'Token Usage Efficiency', change: '+8.1%' }
-                    ],
-                    diff: {
-                        filePath: 'hooks/useAura.ts',
-                        before: `// Before optimization
-const handleSendCommand = useCallback(async (prompt: string, file?: File | null) => {
-    // ... code ...
-    try {
-        const responseText = await geminiAPI.generateResponse(prompt, file);
-    } 
-    // ... code ...
-}, [dispatch, geminiAPI, uiHandlers, addToast, t]);`,
-                        after: `// After optimization with Proactive Caching
-const handleSendCommand = useCallback(async (prompt: string, file?: File | null) => {
-    // ... code ...
-    if (state.proactiveEngineState.cachedResponsePlan?.triggeringPrediction === prompt) {
-        // Use cached plan and return early...
-        return;
-    }
-    try {
-        const responseText = await geminiAPI.generateResponse(prompt, file);
-    } 
-    // ... code ...
-}, [dispatch, geminiAPI, uiHandlers, addToast, t, state.proactiveEngineState]);`
-                    },
-                };
-                syscall('SANDBOX/COMPLETE_SPRINT', mockResult);
-            }, 10000);
-
-            return () => {
-                clearInterval(logInterval);
-                clearTimeout(sprintTimer);
-            };
-        }
-    }, [status, startTime, sprintGoal, syscall]);
-
     const handleStartSprint = () => {
         if (goal.trim()) {
-            syscall('SANDBOX/START_SPRINT', { goal });
+            handleStartSandboxSprint(goal);
         }
     };
 

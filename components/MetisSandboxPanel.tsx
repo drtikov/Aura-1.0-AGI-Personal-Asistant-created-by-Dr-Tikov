@@ -9,6 +9,9 @@ export const MetisSandboxPanel = () => {
 
     return (
         <div className="side-panel">
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('metis_description')}
+            </p>
             <div className="awareness-item">
                 <label>{t('cogArchPanel_status')}</label>
                 <strong className={`status-${status}`}>{status}</strong>

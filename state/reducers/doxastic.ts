@@ -8,6 +8,14 @@ export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraS
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'DOXASTIC/ADD_HYPOTHESIS':
+            return {
+                doxasticEngineState: {
+                    ...state.doxasticEngineState,
+                    hypotheses: [args, ...state.doxasticEngineState.hypotheses],
+                }
+            };
+
         case 'DOXASTIC/START_SIMULATION': {
             const logEntry = { timestamp: Date.now(), message: `Simulation started for proposal: ${args.proposalId}` };
             return {

@@ -1,74 +1,55 @@
+// components/MetacognitiveNexusPanel.tsx
 import React from 'react';
+import { MetacognitiveLink } from '../types';
 import { useSystemState, useLocalization } from '../context/AuraContext';
-import { SelfTuningDirective, DiagnosticFinding } from '../types';
 
-const getStatusColor = (status: SelfTuningDirective['status'] | DiagnosticFinding['status']) => {
-    switch(status) {
-        case 'completed':
-        case 'processed':
-            return 'var(--success-color)';
-        case 'failed':
-        case 'rejected':
-            return 'var(--failure-color)';
-        case 'simulating':
-        case 'plan_generated':
-        case 'investigating':
-            return 'var(--warning-color)';
-        case 'proposed':
-        case 'unprocessed':
-        default:
-            return 'var(--text-muted)';
-    }
+const formatKey = (key: string) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
+
+const CorrelationArrow = ({ correlation, t }: { correlation: number, t: (key: string, options?: any) => string }) => {
+    if (correlation > 0.1) return <span style={{ color: 'var(--success-color)' }}>↑ {t('metaCausal_increase')}</span>;
+    if (correlation < -0.1) return <span style={{ color: 'var(--failure-color)' }}>↓ {t('metaCausal_decrease')}</span>;
+    return <span style={{ color: 'var(--text-muted)' }}>- {t('metaCausal_noEffect')}</span>;
 };
 
 export const MetacognitiveNexusPanel = React.memo(() => {
-    const { metacognitiveNexus: state } = useSystemState();
+    const { metacognitiveCausalModel: model } = useSystemState();
     const { t } = useLocalization();
+    const links = Object.values(model).sort((a, b) => (b as MetacognitiveLink).lastUpdated - (a as MetacognitiveLink).lastUpdated);
+
     return (
         <div className="side-panel">
-            <div className="internal-state-content">
-                 <div className="panel-subsection-title">{t('metaNexus_coreProcesses')}</div>
-                 {(!state || !state.coreProcesses || state.coreProcesses.length === 0) ? (
-                    <div className="kg-placeholder">{t('placeholderNoData')}</div>
-                ) : (
-                    state.coreProcesses.map(process => (
-                        <div key={process.id} className="awareness-item">
-                            <label>{process.name}</label>
-                            <div className="state-bar-container">
-                                <div className="state-bar" style={{ width: `${process.activation * 100}%` }} title={`${t('metaNexus_activation')}: ${process.activation.toFixed(2)}`}></div>
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('metaCausal_description')}
+            </p>
+            {links.length === 0 ? (
+                <div className="kg-placeholder">{t('metaCausal_placeholder')}</div>
+            ) : (
+                links.map(link => {
+                    const typedLink = link as MetacognitiveLink;
+                    return (
+                        <div key={typedLink.id} className="causal-link source-rie" style={{ background: 'rgba(0, 255, 255, 0.05)' }}>
+                            <div className="causal-link-header">
+                                <span className="causal-cause" style={{color: 'var(--primary-color)'}}>
+                                    {t('metaCausal_when')} {formatKey(typedLink.source.key)} {t('metaCausal_is')} {typedLink.source.condition}
+                                </span>
+                                <span className="causal-confidence" title={`${t('causalSelfModel_confidence')}: ${typedLink.correlation.toFixed(2)}`}>
+                                    ({(typedLink.correlation * 100).toFixed(0)}%)
+                                </span>
+                            </div>
+                            <div className="causal-effect">
+                                <span className="causal-effect-arrow">→</span>
+                                {t('metaCausal_performanceOf')} <strong style={{color: 'var(--accent-color)'}}>{formatKey(typedLink.target.key)}</strong>'s {formatKey(typedLink.target.metric)} {t('metaCausal_showsA')}...
+                            </div>
+                            <div className="causal-effect" style={{ marginTop: '0.5rem', textAlign: 'center', fontWeight: 'bold' }}>
+                                <CorrelationArrow correlation={typedLink.correlation} t={t} />
+                            </div>
+                            <div className="causal-link-footer">
+                                {t('metaCausal_basedOn', { count: typedLink.observationCount })}
                             </div>
                         </div>
-                    ))
-                )}
-
-                <div className="panel-subsection-title">{t('metaNexus_diagnosticLog')}</div>
-                {(!state || !state.diagnosticLog || state.diagnosticLog.length === 0) ? (
-                    <div className="kg-placeholder">{t('metaNexus_noFindings')}</div>
-                ) : (
-                    state.diagnosticLog.map(finding => (
-                         <div key={finding.id} className="gde-status" style={{ borderLeftColor: getStatusColor(finding.status)}}>
-                             <p title={finding.finding}>
-                                <strong>[{finding.severity.toUpperCase()}]</strong> {finding.finding.substring(0, 60)}{finding.finding.length > 60 ? '...' : ''}
-                             </p>
-                            <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(finding.status), fontWeight: 'bold' }}>{finding.status}</span></small>
-                         </div>
-                    ))
-                )}
-
-                <div className="panel-subsection-title">{t('metaNexus_selfTuningDirectives')}</div>
-                 {(!state || !state.selfTuningDirectives || state.selfTuningDirectives.length === 0) ? (
-                    <div className="kg-placeholder">{t('metaNexus_noDirectives')}</div>
-                ) : (
-                    state.selfTuningDirectives.map(d => (
-                         <div key={d.id} className="gde-status" style={{ borderLeftColor: getStatusColor(d.status)}}>
-                             <p title={d.reasoning}>
-                                <strong>[{d.type.replace(/_/g, ' ')}]</strong> {t('metaNexus_on')} {d.targetSkill}
-                             </p>
-                            <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(d.status), fontWeight: 'bold' }}>{d.status}</span></small>
-                         </div>
-                    ))
-                )}
-            </div>
+                    )
+                })
+            )}
         </div>
     );
 });

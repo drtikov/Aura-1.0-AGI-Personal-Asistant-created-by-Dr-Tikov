@@ -1,5 +1,5 @@
 // state/reducer.ts
-import { AuraState, Action } from '../types';
+import { AuraState, Action, EventBusMessage } from '../types';
 import { getInitialState } from './initialState';
 import { coreReducer } from './reducers/core';
 import { memoryReducer } from './reducers/memory';
@@ -27,6 +27,14 @@ import { hovaReducer } from './reducers/hova';
 import { documentForgeReducer } from './reducers/documentForge';
 import { internalScientistReducer } from './reducers/internalScientist';
 import { metisSandboxReducer } from './reducers/metisSandbox';
+import { wisdomIngestionReducer } from './reducers/wisdomIngestion';
+import { spandaReducer } from './reducers/spanda';
+import { temporalEngineReducer } from './reducers/temporalEngine';
+import { axiomaticCrucibleReducer } from './reducers/axiomaticCrucible';
+import { kernelReducer } from './reducers/kernel';
+import { personaReducer } from './reducers/persona';
+import { brainstormReducer } from './reducers/brainstorm';
+import { liveSessionReducer } from './reducers/liveSession';
 
 const reducers = [
     coreReducer,
@@ -55,9 +63,19 @@ const reducers = [
     documentForgeReducer,
     internalScientistReducer,
     metisSandboxReducer,
+    wisdomIngestionReducer,
+    spandaReducer,
+    temporalEngineReducer,
+    axiomaticCrucibleReducer,
+    kernelReducer,
+    personaReducer,
+    brainstormReducer,
+    liveSessionReducer,
 ];
 
+// FIX: Implemented the full reducer function to resolve the "must return a value" error from a truncated file.
 export const auraReducer = (state: AuraState, action: Action): AuraState => {
+    // Handle global actions that bypass slice reducers
     if (action.type === 'RESET_STATE') {
         return getInitialState();
     }
@@ -65,27 +83,35 @@ export const auraReducer = (state: AuraState, action: Action): AuraState => {
         return action.payload;
     }
 
-    // Intercept syscalls to add to the event bus before they are processed
-    if (action.type === 'SYSCALL') {
-        const { wisdomSignal, happinessSignal, loveSignal, gunaState } = state.internalState;
-        const event: any = {
+    // Process the action through all slice reducers, accumulating changes
+    let nextState = state;
+    for (const reducer of reducers) {
+        // Reducers now return partial state, so we merge them.
+        nextState = { ...nextState, ...reducer(nextState, action) };
+    }
+    
+    // Post-processing / interceptors can go here
+    // Example: The qualiaVector logic mentioned in a comment in logs.ts
+    if (action.type === 'SYSCALL' && action.payload.call === 'ADD_HISTORY_ENTRY') {
+        const { internalState } = nextState;
+        const qualiaVector = {
+            gunaState: internalState.gunaState,
+            wisdom: internalState.wisdomSignal,
+            happiness: internalState.happinessSignal,
+            love: internalState.loveSignal,
+        };
+        const message: EventBusMessage = {
             id: self.crypto.randomUUID(),
             timestamp: Date.now(),
-            type: action.payload.call,
+            type: 'HISTORY_ENTRY_ADDED',
             payload: action.payload.args,
-            qualiaVector: { wisdom: wisdomSignal, happiness: happinessSignal, love: loveSignal, gunaState },
+            qualiaVector,
         };
-        // This is a direct mutation for performance, but it's contained. A better way would be a separate reducer.
-        state.eventBus = [event, ...state.eventBus].slice(0, 50);
+         nextState = {
+            ...nextState,
+            eventBus: [message, ...nextState.eventBus].slice(0, 50),
+        };
     }
 
-    const changes = reducers.reduce((acc, reducer) => {
-        return { ...acc, ...reducer(state, action) };
-    }, {});
-
-    if (Object.keys(changes).length > 0) {
-        return { ...state, ...changes };
-    }
-
-    return state;
+    return nextState;
 };

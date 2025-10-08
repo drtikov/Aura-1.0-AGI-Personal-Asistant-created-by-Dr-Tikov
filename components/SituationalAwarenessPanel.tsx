@@ -49,6 +49,20 @@ export const SituationalAwarenessPanel = React.memo(() => {
                     ))}
                 </ul>
             )}
+
+            <div className="panel-subsection-title">{t('situationalAwareness_domLog')}</div>
+            <div className="command-log-list" style={{ maxHeight: '100px', overflowY: 'auto' }}>
+                {(state.domChangeLog || []).length === 0 ? (
+                    <div className="kg-placeholder">{t('situationalAwareness_noDomChanges')}</div>
+                ) : (
+                    (state.domChangeLog || []).map(entry => (
+                        <div key={entry.timestamp} className="command-log-item log-type-info">
+                            <span className="log-icon">👀</span>
+                            <span className="log-text" title={entry.summary}>{entry.summary.substring(0, 50)}...</span>
+                        </div>
+                    ))
+                )}
+            </div>
         </div>
     );
 });

@@ -49,17 +49,6 @@ export const GankyilInsightsPanel = React.memo(() => {
 
     return (
         <div className="side-panel gankyil-insights-panel">
-            <div className="insight-evolution-actions">
-                <button 
-                    className="control-button" 
-                    onClick={handleEvolveFromInsight}
-                    disabled={unprocessedInsightsCount === 0}
-                    title={unprocessedInsightsCount > 0 ? t('gankyil_evolveTooltip') : t('gankyil_noNewInsights')}
-                >
-                    {t('gankyil_evolveButton')} ({unprocessedInsightsCount})
-                </button>
-            </div>
-
             {gankyilInsights.insights.length === 0 ? (
                 <div className="kg-placeholder">{t('gankyil_placeholder')}</div>
             ) : (

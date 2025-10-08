@@ -24,20 +24,13 @@ export const PsychePanel = () => {
                 <label>{t('psyche_languageVersion')}</label>
                 <strong>v{version}</strong>
             </div>
-             <div className="button-grid" style={{marginBottom: '1rem', gridTemplateColumns: '1fr 1fr'}}>
+             <div className="button-grid" style={{marginBottom: '1rem'}}>
                 <button 
                     className="control-button"
                     onClick={() => modal.open('psychePrimitives', {})}
                     title={t('psyche_library_tooltip')}
                 >
                     {t('psyche_library_button')}
-                </button>
-                <button 
-                    className="control-button"
-                    onClick={handleAuditArchitecture}
-                    title={t('psyche_audit_tooltip')}
-                >
-                    {t('psyche_audit_button')}
                 </button>
             </div>
 

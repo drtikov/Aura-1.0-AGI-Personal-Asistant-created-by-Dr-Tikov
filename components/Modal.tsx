@@ -5,7 +5,6 @@ interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
     title: string;
-    // FIX: Made children prop optional to resolve errors in components using Modal without explicit children.
     children?: React.ReactNode;
     footer?: React.ReactNode;
     className?: string;
@@ -24,7 +23,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
             );
             
             if (focusableElements && focusableElements.length > 0) {
-                // FIX: Cast to HTMLElement to ensure .focus() is available.
                 (focusableElements[0] as HTMLElement).focus();
             }
 
@@ -33,7 +31,6 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
                     onClose();
                 }
                 if (event.key === 'Tab' && modalRef.current) {
-                    // FIX: Cast querySelectorAll result to HTMLElement array to fix type errors on el.offsetParent.
                     const focusable = (Array.from(modalRef.current.querySelectorAll<HTMLElement>(
                         `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
                     )) as HTMLElement[]).filter(el => el.offsetParent !== null);
@@ -45,13 +42,11 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
                     
                     if (event.shiftKey) { // Shift + Tab
                         if (document.activeElement === firstElement) {
-                            // FIX: Cast lastElement to HTMLElement to ensure .focus() is available.
                             (lastElement as HTMLElement).focus();
                             event.preventDefault();
                         }
                     } else { // Tab
                         if (document.activeElement === lastElement) {
-                            // FIX: Cast firstElement to HTMLElement to ensure .focus() is available.
                             (firstElement as HTMLElement).focus();
                             event.preventDefault();
                         }

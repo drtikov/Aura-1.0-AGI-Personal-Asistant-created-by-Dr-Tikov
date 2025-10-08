@@ -1,5 +1,6 @@
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { ArchitecturalChangeProposal } from '../types';
 
 const MetricItem = ({ label, value }: { label: string, value: number }) => (
     <div className="state-item">
@@ -19,6 +20,18 @@ const MetricItem = ({ label, value }: { label: string, value: number }) => (
 export const ArchitecturalCruciblePanel = React.memo(() => {
     const { architecturalCrucibleState: state } = useArchitectureState();
     const { t } = useLocalization();
+    const { syscall } = useAuraDispatch();
+
+    const handleProposeRadicalChange = () => {
+        const proposal: Omit<ArchitecturalChangeProposal, 'id' | 'timestamp' | 'status'> = {
+            proposalType: 'architecture',
+            action: 'RADICAL_REFACTOR',
+            target: 'state/reducer.ts',
+            reasoning: 'The current monolithic reducer pattern is becoming a bottleneck for parallel state updates. Proposing a migration to an Actor Model-based state management system to improve performance and scalability under high cognitive load.',
+            priority: 0.95, // High priority
+        };
+        syscall('OA/ADD_PROPOSAL', { ...proposal, id: `arch_${self.crypto.randomUUID()}`, timestamp: Date.now(), status: 'proposed' });
+    };
 
     return (
         <div className="side-panel architectural-crucible-panel">
@@ -60,6 +73,12 @@ export const ArchitecturalCruciblePanel = React.memo(() => {
 
             <div className="panel-subsection-title">{t('geniality_proposals_title')}</div>
             <div className="kg-placeholder">{t('archCrucible_proposalsMoved')}</div>
+
+            <div className="button-grid" style={{marginTop: '1rem'}}>
+                <button className="control-button" onClick={handleProposeRadicalChange}>
+                    {t('archCrucible_proposeEvolution')}
+                </button>
+            </div>
         </div>
     );
 });

@@ -1,7 +1,5 @@
-
-
 import React, { useEffect } from 'react';
-// FIX: Corrected import path for types to resolve module error.
+// FIX: Added missing ToastMessage and ToastType to the import from ../types to resolve module not found errors.
 import { ToastMessage, ToastType } from '../types';
 
 interface ToastProps {
@@ -10,7 +8,6 @@ interface ToastProps {
     onClose: () => void;
 }
 
-// FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list, resolving type errors.
 const Toast = React.memo(({ message, type, onClose }: ToastProps) => {
   useEffect(() => { const timer = setTimeout(() => { onClose(); }, 5000); return () => clearTimeout(timer); }, [onClose]);
   return <div className={`toast toast-${type}`} onClick={onClose}><p>{message}</p></div>;

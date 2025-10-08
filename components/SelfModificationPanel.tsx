@@ -1,6 +1,6 @@
 
+
 import React from 'react';
-// FIX: Corrected casing in import path from 'auraContext' to 'AuraContext' to resolve module resolution errors.
 import { useArchitectureState, useLocalization } from '../context/AuraContext';
 
 export const SelfModificationPanel = React.memo(({ onRollback }: { onRollback: (snapshotId: string) => void; }) => {

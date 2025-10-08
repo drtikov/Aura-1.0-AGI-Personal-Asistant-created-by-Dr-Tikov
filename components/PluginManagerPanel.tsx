@@ -9,12 +9,16 @@ export const PluginManagerPanel = React.memo(() => {
     const { t } = useLocalization();
 
     const handleToggle = (plugin: Plugin) => {
+        if (plugin.status === 'pending') {
+            addToast(t('plugin_pending_toast'), 'info');
+            return;
+        }
         const newStatus = plugin.status === 'enabled' ? 'disabled' : 'enabled';
         
         // Handle knowledge ingestion as a side-effect in the UI handler
         if (plugin.type === 'KNOWLEDGE' && newStatus === 'enabled' && plugin.knowledge) {
             syscall('ADD_FACTS_BATCH', plugin.knowledge);
-            addToast(`Knowledge package "${plugin.name}" ingested.`, 'success');
+            addToast(`Knowledge package "${t(plugin.name)}" ingested.`, 'success');
         }
 
         syscall('PLUGIN/SET_STATUS', { pluginId: plugin.id, status: newStatus });
@@ -40,6 +44,7 @@ export const PluginManagerPanel = React.memo(() => {
                 <div key={plugin.id} className="plugin-item">
                     <div className="plugin-info">
                         <h5 className="plugin-name">
+                            {plugin.status === 'pending' && <span title="Synthesized Plugin (Pending Integration)">🤖</span>}
                             <span className={`plugin-type-badge type-${plugin.type}`}>{getPluginTypeName(plugin.type)}</span>
                             {t(plugin.name)}
                             {plugin.type === 'KNOWLEDGE' && plugin.knowledge && (
@@ -56,6 +61,7 @@ export const PluginManagerPanel = React.memo(() => {
                                 type="checkbox"
                                 checked={plugin.status === 'enabled'}
                                 onChange={() => handleToggle(plugin)}
+                                disabled={plugin.status === 'pending'}
                             />
                             <span className="toggle-slider"></span>
                         </label>

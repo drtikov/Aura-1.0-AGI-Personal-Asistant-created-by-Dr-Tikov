@@ -1,5 +1,5 @@
 import React from 'react';
-import { useLogsState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useLogsState, useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
 import { CoreMonitor } from './CoreMonitor';
 import { LoadingOverlay } from './LoadingOverlay';
@@ -32,6 +32,7 @@ const getChromaStyle = (state?: InternalState): React.CSSProperties => {
 
 export const LeftColumnComponent = () => {
     const { history, performanceLogs } = useLogsState();
+    const { internalState } = useCoreState();
     const {
         activeLeftTab, setActiveLeftTab, outputPanelRef, currentCommand, setCurrentCommand,
         attachedFile, handleRemoveAttachment, fileInputRef, handleFileChange, handleMicClick,
@@ -44,20 +45,33 @@ export const LeftColumnComponent = () => {
         <div className="left-column">
             <div className="left-column-tabs">
                 <button className={`tab-button ${activeLeftTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveLeftTab('chat')}>{t('chatTab')}</button>
-                <button className={`tab-button ${activeLeftTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveLeftTab('monitor')}>{t('monitorTab')}</button>
+                <button className={`tab-button ${activeLeftTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveLeftTab('monitor')}>
+                    {t('monitorTab')}
+                    {internalState.autonomousEvolutions > 0 && (
+                        <span className="accordion-summary">{internalState.autonomousEvolutions}</span>
+                    )}
+                </button>
             </div>
 
             {activeLeftTab === 'chat' && (
                 <div className="chat-container">
                     <header className="chat-header">
                         <h1 data-text="AURA">AURA</h1>
-                        <p>Prototype of AGI</p>
+                        <p>Partner AI OS</p>
                     </header>
                     <div className="output-panel" ref={outputPanelRef}>
                         {history.map((entry: HistoryEntry) => (
                             <div key={entry.id} id={`history-entry-${entry.id}`} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
                                 <div className="entry-content" style={getChromaStyle(entry.internalStateSnapshot)}>
-                                    {entry.text && <SafeMarkdown text={entry.text} />}
+                                    {entry.from === 'tool' ? (
+                                        <>
+                                            <div className="tool-name">{entry.text}</div>
+                                            {entry.args && <pre><code>{JSON.stringify(entry.args, null, 2)}</code></pre>}
+                                        </>
+                                    ) : (
+                                        entry.text && <SafeMarkdown text={entry.text} />
+                                    )}
+
                                     {entry.from === 'user' && entry.fileName && (
                                         <div className="file-attachment-display">
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="16" height="16"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg>
@@ -70,6 +84,16 @@ export const LeftColumnComponent = () => {
                                             {entry.skill}
                                             {entry.logId && ( <button className="trace-button" onClick={() => { const log = performanceLogs.find((l: PerformanceLogEntry) => l.id === entry.logId); if (log) modal.open('causalChain', { log }); }}>Trace</button> )}
                                         </span>
+                                    )}
+                                     {entry.sources && entry.sources.length > 0 && (
+                                        <div className="sources-container">
+                                            <h4>Sources:</h4>
+                                            <ul>
+                                                {entry.sources.map((source, i) => (
+                                                    <li key={i}><a href={source.uri} target="_blank" rel="noopener noreferrer">{i + 1}. {source.title}</a></li>
+                                                ))}
+                                            </ul>
+                                        </div>
                                     )}
                                     {entry.from === 'bot' && !entry.streaming && entry.text && (
                                         <div className="feedback-controls">
@@ -85,7 +109,7 @@ export const LeftColumnComponent = () => {
                             </div>
                         ))}
                     </div>
-                    <WorkingMemoryPanel onDispatch={dispatch} />
+                    <WorkingMemoryPanel />
                     <form className="input-area" onSubmit={(e) => { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); }}>
                          <LoadingOverlay isActive={processingState.active} text={processingState.stage} />
                         {attachedFile && (
@@ -101,15 +125,15 @@ export const LeftColumnComponent = () => {
                             <div className="input-controls">
                                 <button type="button" onClick={() => fileInputRef.current?.click()} disabled={processingState.active} title={t('inputAttachFile')} aria-label={t('inputAttachFile')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></button>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
-                                <button type="button" onClick={handleMicClick} className={`mic-button ${isRecording ? 'recording' : ''}`} disabled={processingState.active} title={isRecording ? t('inputStopRecording') : t('inputStartRecording')} aria-label={isRecording ? t('inputStopRecording') : t('inputStartRecording')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.49 6-3.31 6-6.72h-1.7z"/></svg></button>
+                                <button type="button" onClick={handleMicClick} className={`mic-button ${isRecording ? 'recording' : ''}`} disabled={processingState.active} title={isRecording ? t('inputStopRecording') : t('inputStartRecording')} aria-label={isRecording ? t('inputStopRecording') : t('inputStartRecording')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg></button>
                                 <button type="submit" disabled={processingState.active || (!currentCommand.trim() && !attachedFile)}>{t('inputSend')}</button>
                             </div>
                         </div>
                     </form>
                 </div>
             )}
-            
-            {activeLeftTab === 'monitor' && ( <CoreMonitor /> )}
+
+            {activeLeftTab === 'monitor' && <CoreMonitor />}
         </div>
     );
 };

@@ -175,7 +175,7 @@ export const SelfProgrammingPanel = React.memo(() => {
                                     {candidate.source === 'autonomous' ? '🤖' : '👤'}
                                 </small>
                                 <span className={`proposal-title-${candidate.type}`}>{candidate.type}: {candidate.type === 'CREATE' ? (candidate as CreateFileCandidate).newFile.path : (candidate as ModifyFileCandidate).targetFile}</span>
-                                <strong>{candidate.status}</strong>
+                                <strong className={`status-${candidate.status}`}>{candidate.status.replace(/_/g, ' ')}</strong>
                             </div>
                             <p><em>{candidate.reasoning}</em></p>
                             
@@ -189,6 +189,12 @@ export const SelfProgrammingPanel = React.memo(() => {
                             {selectedCandidateId === candidate.id && selectedCandidate && (
                                 <div className="candidate-details-container">
                                     <CandidateDetails candidate={selectedCandidate} />
+                                    {selectedCandidate.agisReport && (
+                                        <div className="code-snippet-container" style={{marginTop: '1rem'}}>
+                                            <div className="panel-subsection-title" style={{ marginTop: 0, padding: '0.5rem', borderBottom: '1px solid var(--border-color)'}}>Metis Sandbox Report</div>
+                                            <pre><code>{JSON.stringify(selectedCandidate.agisReport, null, 2)}</code></pre>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 

@@ -1,7 +1,4 @@
-
-
 import React from 'react';
-// FIX: Corrected casing in import path from 'auraContext' to 'AuraContext' to resolve module resolution errors.
 import { useSystemState, useLocalization } from '../context/AuraContext';
 
 export const SystemVitals = React.memo(() => {
@@ -10,7 +7,7 @@ export const SystemVitals = React.memo(() => {
     
     return (
         <div className="standalone-panel">
-            <div className="panel-subsection-title" style={{ marginTop: 0, marginBottom: '0.5rem' }}>{t('title_resourceMonitor')}</div>
+            <div className="panel-subsection-title" style={{ marginTop: 0, marginBottom: '0.5rem' }}>{t('resourceMonitor')}</div>
             <div className="internal-state-content" style={{gap: '0.5rem', display: 'flex', flexDirection: 'column'}}>
                 <div className="state-item">
                     <label>{t('resourceMonitor_cpu')}</label>

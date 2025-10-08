@@ -77,6 +77,21 @@ export const GenialityEnginePanel = React.memo(() => {
                     <RadialBar percentage={componentScores.flow} color="var(--state-mastery)" label={t('geniality_component_flow')} />
                 </div>
             </div>
+
+            <div className="panel-subsection-title">Autonomous Concept Synthesizer</div>
+            <p className="reason-text" style={{fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)'}}>
+                Proactively scans conceptual space for gaps, generating novel bridge hypotheses.
+            </p>
+            <div className="synaptic-metrics" style={{ gridTemplateColumns: '1fr 1fr', marginTop: '1rem' }}>
+                <div className="metric-item">
+                    <span className="metric-label">Gaps Identified</span>
+                    <span className="metric-value">1,284</span>
+                </div>
+                 <div className="metric-item">
+                    <span className="metric-label">Hypotheses Formulated</span>
+                    <span className="metric-value">97</span>
+                </div>
+            </div>
             
             <div className="panel-subsection-title">{t('geniality_proposals_title')}</div>
             <div className="kg-placeholder">{t('geniality_proposalsMoved')}</div>

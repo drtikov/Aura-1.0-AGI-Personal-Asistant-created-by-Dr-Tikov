@@ -27,7 +27,7 @@ export const PraxisResonatorPanel = () => {
                                 <div className="spinner-small" />
                             </span>
                             <span className="log-text" title={session.planId}>
-                                {t('praxisResonator_resonating')} "{session.chat.model}"
+                                {t('praxisResonator_resonating')} "{session.model}"
                             </span>
                             <span className="log-time">{timeAgo(session.createdAt)}</span>
                         </div>

@@ -1,13 +1,15 @@
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-// FIX: Corrected import path for types to resolve module error.
-import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal } from '../types';
+// FIX: Added ToastType to import to resolve module error.
+import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal, SelfProgrammingCandidate } from '../types';
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
 import { HAL } from '../core/hal';
+import { UseGeminiAPIResult } from './useGeminiAPI';
 
 type SyscallFn = (call: SyscallCall, args: any) => void;
 
-export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearDB: () => Promise<void>) => {
+// FIX: Corrected the return type of the `t` function from `void` to `string`.
+export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, syscall: SyscallFn, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearMemoryAndState: () => Promise<void>, geminiAPI: UseGeminiAPIResult) => {
     const [currentCommand, setCurrentCommand] = useState('');
     const [attachedFile, setAttachedFile] = useState<{ file: File, previewUrl: string, type: 'image' | 'audio' | 'video' | 'other' } | null>(null);
     const [processingState, setProcessingState] = useState({ active: false, stage: '' });
@@ -53,19 +55,15 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
     const handleClearMemory = useCallback(async () => {
         if (HAL.UI.confirm(t('toastResetConfirm'))) {
             try {
-                await clearDB(); // Clear the persistent storage first
-                // This is a special case that bypasses the syscall for a full reset.
-                // In a pure kernel model, this would be the only non-syscall dispatch.
-                const dispatch = (action: Action) => (window as any)._auraRootDispatch(action);
-                dispatch({ type: 'RESET_STATE' });
+                await clearMemoryAndState();
                 addToast(t('toastResetSuccess'), 'success');
-                setTimeout(() => HAL.System.reload(), 1000); // Reload to ensure a clean start
+                setTimeout(() => HAL.System.reload(), 500); // Reload to ensure a clean start
             } catch (e) {
                 console.error("Failed to clear memory:", e);
                 addToast(t('toastResetFailed'), 'error');
             }
         }
-    }, [addToast, t, clearDB]);
+    }, [addToast, t, clearMemoryAndState]);
 
     const handleExportState = useCallback(() => {
         try {
@@ -128,7 +126,6 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
                     if (!importedState.version || importedState.version < CURRENT_STATE_VERSION) {
                         importedState = migrateState(importedState);
                     }
-                    const dispatch = (action: Action) => (window as any)._auraRootDispatch(action);
                     dispatch({ type: 'IMPORT_STATE', payload: importedState });
                     addToast(t('toastImportSuccess', { source: file.name }), 'success');
                 } catch (error) {
@@ -140,7 +137,7 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
             };
             reader.readAsText(file);
         }
-    }, [addToast, t]);
+    }, [dispatch, addToast, t]);
 
     const handleImportAsCode = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         addToast('Importing state from code is not yet implemented.', 'warning');
@@ -176,15 +173,6 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
         syscall('SET_SATORI_STATE', { isActive: !isActive });
     }, [syscall, state.satoriState.isActive]);
 
-    // Attaching the root dispatcher to the window for special cases like reset/import
-    useEffect(() => {
-        (window as any)._auraRootDispatch = (action: Action) => {
-             // This is a temporary backdoor for global state resets. In a real OS, this would be a kernel panic/reboot.
-             const rootDispatch = (state.history as any).__proto__.dispatch;
-             if (rootDispatch) rootDispatch(action);
-        };
-    }, [state.history]);
-
 
     // FIX: Added missing handlers that are used by various modals.
     const approveProposal = useCallback((proposal: ArchitecturalChangeProposal) => {
@@ -192,6 +180,17 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
         const modLogId = `mod_log_${self.crypto.randomUUID()}`;
         syscall('APPLY_ARCH_PROPOSAL', { proposal, snapshotId, modLogId, isAutonomous: false });
         addToast(t('toast_proposalApproved', { action: proposal.action, target: proposal.target }), 'success');
+        
+        const reportText = `**User-Approved Evolution**
+
+- **Timestamp**: ${new Date().toLocaleString()}
+- **Change**: Architectural Modification
+- **Action**: ${proposal.action.replace(/_/g, ' ')}
+- **Target**: \`${Array.isArray(proposal.target) ? proposal.target.join(', ') : proposal.target}\`
+- **Description**: ${proposal.reasoning}`;
+        
+        syscall('ADD_HISTORY_ENTRY', { from: 'system', text: reportText });
+
     }, [syscall, addToast, t]);
 
     const rejectProposal = useCallback((id: string) => {
@@ -199,25 +198,35 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
         addToast(t('toast_proposalRejected'), 'info');
     }, [syscall, addToast, t]);
 
-    const handleWhatIf = useCallback((scenario: string) => {
+    const handleWhatIf = useCallback(async (scenario: string) => {
         setProcessingState({ active: true, stage: 'whatIf' });
         syscall('ADD_HISTORY_ENTRY', { from: 'user', text: `What if: "${scenario}"` });
-        // In a real implementation, this would call the Gemini API.
-        setTimeout(() => {
-            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Simulated Outcome for "${scenario}"] The results indicate a positive trend in global cooperation.` });
+        try {
+            const result = await geminiAPI.analyzeWhatIfScenario(scenario);
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: result });
+        } catch (e) {
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Simulation Failed: ${(e as Error).message}]` });
+        } finally {
             setProcessingState({ active: false, stage: '' });
-        }, 2000);
-    }, [syscall, setProcessingState]);
+        }
+    }, [syscall, geminiAPI, setProcessingState]);
 
-    const handleSearch = useCallback((query: string) => {
+    const handleSearch = useCallback(async (query: string) => {
         setProcessingState({ active: true, stage: 'search' });
         syscall('ADD_HISTORY_ENTRY', { from: 'user', text: `Search for: "${query}"` });
-        // In a real implementation, this would call a search tool.
-        setTimeout(() => {
-            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Web Search Results for "${query}"] The capital of France is Paris.` });
+        try {
+            const { summary, sources } = await geminiAPI.performWebSearch(query);
+            const formattedSources = sources.map((s: any) => ({
+                title: s.web?.title || 'Unknown Source',
+                uri: s.web?.uri || '#',
+            }));
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: summary, sources: formattedSources });
+        } catch (e) {
+            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Web Search Failed: ${(e as Error).message}]` });
+        } finally {
             setProcessingState({ active: false, stage: '' });
-        }, 2000);
-    }, [syscall, setProcessingState]);
+        }
+    }, [syscall, geminiAPI, setProcessingState]);
 
     const handleSetStrategicGoal = useCallback(async (goal: string) => {
         setProcessingState({ active: true, stage: t('strategicGoal_decomposing') });
@@ -246,20 +255,139 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
         }, 1500);
     }, [syscall, setProcessingState, t]);
 
-    const handleBrainstorm = useCallback((topic: string) => {
+    const handleBrainstorm = useCallback(async (topic: string) => {
         setProcessingState({ active: true, stage: t('brainstorm_processing') });
-        syscall('ADD_HISTORY_ENTRY', { from: 'user', text: `Brainstorm ideas about: "${topic}"` });
-        // In a real implementation, this would call the Gemini API.
-        setTimeout(() => {
-            syscall('ADD_HISTORY_ENTRY', { from: 'bot', text: `[Brainstorming on "${topic}"]\n- Idea 1\n- Idea 2\n- Idea 3` });
-            setProcessingState({ active: false, stage: '' });
-        }, 2000);
-    }, [syscall, setProcessingState, t]);
+        const proposal = await geminiAPI.runBrainstormingSession(topic);
+        if (proposal) {
+            syscall('OA/ADD_PROPOSAL', proposal);
+        }
+        setProcessingState({ active: false, stage: '' });
+    }, [syscall, geminiAPI, setProcessingState, t]);
 
     const handleSetTelos = useCallback((telos: string) => {
         syscall('SET_TELOS', telos);
         addToast('Core Telos has been updated.', 'success');
     }, [syscall, addToast]);
+
+    const handleStartDocumentForge = useCallback(async (goal: string) => {
+        syscall('DOCUMENT_FORGE/START_PROJECT', { goal });
+
+        try {
+            const outline = await geminiAPI.generateDocumentOutline(goal);
+            if (!outline) {
+                throw new Error("Outline generation failed.");
+            }
+            syscall('DOCUMENT_FORGE/SET_OUTLINE', { outline });
+
+            for (const chapter of outline.chapters) {
+                syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { isGenerating: true } });
+                const contentJson = await geminiAPI.generateChapterContent(outline.title, chapter.title, goal);
+                
+                try {
+                    const result = JSON.parse(contentJson || '{}');
+                    const chapterContent = result.content;
+                    const diagramDescription = result.diagramDescription;
+
+                    syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { content: chapterContent || "[Content generation failed]", isGenerating: false } });
+
+                    if (diagramDescription) {
+                        syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { diagram: { description: diagramDescription, isGenerating: true, imageUrl: null } } });
+                        const imageUrls = await geminiAPI.generateImage(diagramDescription, '', '16:9', 'blueprint', 1, null, false, '', 0.5, 50, 'none', 'none', 'none', 'none', 'none', false, {});
+                        if (imageUrls && imageUrls.length > 0) {
+                            syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { diagram: { description: diagramDescription, isGenerating: false, imageUrl: imageUrls[0] } } });
+                        } else {
+                             syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { diagram: { description: diagramDescription, isGenerating: false, imageUrl: null } } });
+                        }
+                    }
+
+                } catch (parseError) {
+                    console.error("Failed to parse chapter content JSON:", parseError);
+                    // If JSON parsing fails, use the raw text as content
+                    syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { content: contentJson || "[Content generation failed]", isGenerating: false } });
+                }
+            }
+
+            syscall('DOCUMENT_FORGE/FINALIZE_PROJECT', {});
+
+        } catch (error) {
+            console.error("Document forge process failed:", error);
+            const errorMessage = error instanceof Error ? error.message : "An unknown error occurred.";
+            syscall('DOCUMENT_FORGE/SET_STATUS', { status: 'error', message: errorMessage });
+        }
+    }, [syscall, geminiAPI]);
+
+    const handlePoseQuestion = useCallback((question: string) => {
+        syscall('ADD_KNOWN_UNKNOWN', {
+            id: `ku_${self.crypto.randomUUID()}`,
+            question,
+            priority: 0.9, // High priority for user-posed questions
+            status: 'unexplored',
+        });
+        addToast(t('toast_questionPosed'), 'success');
+    }, [syscall, addToast, t]);
+
+    const handleStartSandboxSprint = useCallback(async (goal: string) => {
+        dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/START_SPRINT', args: { goal } } });
+        
+        try {
+            const log = (message: string) => dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/LOG_STEP', args: message } });
+    
+            log("Initializing sandbox environment...");
+            log(`Analyzing performance vectors for goal: '${goal}'`);
+            
+            const fileList = Object.keys(state.selfProgrammingState.virtualFileSystem);
+            const targetFile = await geminiAPI.suggestFileForRefactoring(goal, fileList);
+    
+            if (!targetFile || !fileList.includes(targetFile)) {
+                throw new Error(`AI could not suggest a valid target file for the goal.`);
+            }
+            log(`Target file identified for modification: ${targetFile}`);
+    
+            const originalCode = state.selfProgrammingState.virtualFileSystem[targetFile];
+            
+            log(`Generating mutation candidate for ${targetFile}...`);
+            const persona = state.personaState.registry.find(p => p.id === 'elon_musk');
+            if (!persona) throw new Error("Could not find pragmatic persona for sandbox sprint.");
+            
+            const candidate = await geminiAPI.generateSelfProgrammingModification(goal, targetFile, originalCode, persona.systemInstruction);
+            
+            if (!candidate) {
+                throw new Error("Failed to generate a valid code modification candidate.");
+            }
+            log(`Candidate ${candidate.id.slice(-8)} generated. Simulating in Metis Sandbox...`);
+            
+            const testResults = await geminiAPI.testSelfProgrammingCandidate(candidate, originalCode);
+            
+            log(`Simulation complete. Compiling results...`);
+    
+            const performanceGains = [
+                { metric: 'AI Quality Analysis', change: testResults.qualityAnalysis },
+                { metric: 'AI Bug Analysis', change: testResults.potentialBugs },
+                { metric: 'AI Overall Assessment', change: testResults.overallAssessment },
+                { metric: 'AI Overall Score', change: testResults.overallScore.toFixed(3) },
+            ];
+            
+            const finalResult = {
+                originalGoal: goal,
+                performanceGains,
+                diff: {
+                    filePath: targetFile,
+                    before: originalCode,
+                    after: candidate.codeSnippet,
+                },
+            };
+    
+            dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/COMPLETE_SPRINT', args: finalResult } });
+    
+        } catch (error) {
+            const errorMessage = (error as Error).message;
+            dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/LOG_STEP', args: `ERROR: ${errorMessage}` } });
+            setTimeout(() => {
+                dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/RESET', args: {} } });
+            }, 5000);
+            addToast(`Sandbox sprint failed: ${errorMessage}`, 'error');
+        }
+    }, [dispatch, state.selfProgrammingState.virtualFileSystem, state.personaState.registry, geminiAPI, addToast]);
 
 
     return {
@@ -298,6 +426,9 @@ export const useUIHandlers = (state: AuraState, syscall: SyscallFn, addToast: (m
         handleSetStrategicGoal,
         handleMultiverseBranch,
         handleBrainstorm,
-        handleSetTelos
+        handleSetTelos,
+        handleStartDocumentForge,
+        handlePoseQuestion,
+        handleStartSandboxSprint,
     };
 };

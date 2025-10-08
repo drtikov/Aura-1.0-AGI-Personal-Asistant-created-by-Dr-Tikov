@@ -1,11 +1,8 @@
-
-
 import React, { useState, useRef, useCallback, DragEvent, useEffect } from 'react';
 import { Modal } from './Modal';
 import { Accordion } from './Accordion';
 import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext';
 import { GunaState } from '../types';
-// FIX: Add missing import for the useModal hook to resolve 'Cannot find name' error.
 import { useModal } from '../context/ModalContext';
 
 type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
@@ -88,16 +85,15 @@ const styleGroups: StyleGroup[] = [
     {
         labelKey: 'imageGen_style_group_painting',
         styles: [
-// FIX: Reverted keys to videoGen_ to align with localization.ts fix and resolve duplicate key errors.
-            { id: 'watercolor', labelKey: 'videoGen_style_watercolor' },
-            { id: 'oilPainting', labelKey: 'videoGen_style_oilPainting' },
+            { id: 'watercolor', labelKey: 'imageGen_style_watercolor' },
+            { id: 'oilPainting', labelKey: 'imageGen_style_oilPainting' },
             { id: 'impressionism', labelKey: 'imageGen_style_impressionism' },
             { id: 'surrealism', labelKey: 'imageGen_style_surrealism' },
             { id: 'charcoalSketch', labelKey: 'imageGen_style_charcoalSketch' },
             { id: 'impasto', labelKey: 'imageGen_style_impasto' },
-            { id: 'gouache', labelKey: 'videoGen_style_gouache' },
-            { id: 'pastel', labelKey: 'videoGen_style_pastel' },
-            { id: 'fresco', labelKey: 'videoGen_style_fresco' },
+            { id: 'gouache', labelKey: 'imageGen_style_gouache' },
+            { id: 'pastel', labelKey: 'imageGen_style_pastel' },
+            { id: 'fresco', labelKey: 'imageGen_style_fresco' },
         ]
     },
     {
@@ -144,6 +140,7 @@ const styleGroups: StyleGroup[] = [
     {
         labelKey: 'imageGen_style_group_scifi',
         styles: [
+// FIX: Changed labelKey to use 'imageGen_style_steampunk' to resolve a duplicate key issue in localization.ts, as indicated by the comment.
             { id: 'steampunk', labelKey: 'imageGen_style_steampunk' },
             { id: 'dieselpunk', labelKey: 'imageGen_style_dieselpunk' },
             { id: 'biopunk', labelKey: 'imageGen_style_biopunk' },

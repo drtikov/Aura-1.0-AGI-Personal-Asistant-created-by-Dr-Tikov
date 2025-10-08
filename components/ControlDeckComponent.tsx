@@ -1,13 +1,12 @@
 // components/ControlDeckComponent.tsx
+// This file contains the implementation for the main control deck UI.
+// It is the canonical source for ControlDeckComponent.
 
 import React from 'react';
-// FIX: Added useSystemState to the import to resolve the current error.
 import { useArchitectureState, useLogsState, useMemoryState, useCoreState, useEngineState, useSystemState, useAuraDispatch, useLocalization, usePlanningState } from '../context/AuraContext';
 import { Accordion } from './Accordion';
-// FIX: Corrected the import path for `controlDeckConfig` from a non-existent file to the correct one.
 import { mainControlDeckLayout, advancedControlsLayout, PanelConfig } from './controlDeckConfig';
 import { useModal } from '../context/ModalContext';
-// FIX: Corrected import path alias for translations to resolve module error.
 import { translations } from '../localization';
 import { NarrativeSummaryPanel } from './NarrativeSummaryPanel';
 import { ManualControlPanel } from './ManualControlPanel';
@@ -94,7 +93,6 @@ export const ControlDeckComponent = () => {
         core: coreState,
         engine: engineState,
         planning: planningState,
-        // FIX: Added the 'system' property to the stateSlices object to provide data for panels like ResourceMonitorPanel.
         system: systemState,
     };
 
@@ -107,7 +105,7 @@ export const ControlDeckComponent = () => {
                 <ManualControlPanel />
                 {mainControlDeckLayout.map(panel => renderPanel(panel, stateSlices, handlers, t))}
 
-                <div className="panel-group-title" style={{ marginTop: '1.5rem' }}>{t('title_advancedModules')}</div>
+                <div className="panel-group-title" style={{ marginTop: '1.5rem' }}>{t('advancedModules')}</div>
                 <div className="button-grid advanced-modules-grid">
                     {advancedControlsLayout.map(panel => {
                         const summary = panel.summary ? panel.summary(stateSlices, t) : undefined;

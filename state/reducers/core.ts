@@ -1,5 +1,5 @@
 // state/reducers/core.ts
-import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal } from '../../types';
+import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown } from '../../types';
 
 export const coreReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -40,6 +40,14 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 userModel: {
                     ...state.userModel,
                     ...args,
+                }
+            };
+
+        case 'UPDATE_PERSONALITY_PORTRAIT':
+            return {
+                userModel: {
+                    ...state.userModel,
+                    personalityPortrait: args,
                 }
             };
             
@@ -96,6 +104,22 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             };
         }
 
+        case 'UPDATE_KNOWN_UNKNOWNS_BATCH': {
+            const { updates } = args as { updates: { id: string; priority: number }[] };
+            const priorityMap = new Map(updates.map(u => [u.id, u.priority]));
+            
+            const newKnownUnknowns = state.knownUnknowns.map(ku => {
+                if (priorityMap.has(ku.id)) {
+                    return { ...ku, priority: priorityMap.get(ku.id)! };
+                }
+                return ku;
+            });
+            
+            return {
+                knownUnknowns: newKnownUnknowns,
+            };
+        }
+
         case 'UPDATE_NARRATIVE_SUMMARY':
             return { narrativeSummary: args };
 
@@ -106,6 +130,34 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                     telos: args,
                 }
             };
+
+        case 'TELOS/ADD_CANDIDATE':
+            return {
+                telosEngine: {
+                    ...state.telosEngine,
+                    candidateTelos: [...state.telosEngine.candidateTelos, args]
+                }
+            };
+        
+        case 'TELOS/REMOVE_CANDIDATE':
+            return {
+                telosEngine: {
+                    ...state.telosEngine,
+                    candidateTelos: state.telosEngine.candidateTelos.filter(c => c.id !== args)
+                }
+            };
+
+        case 'TELOS/ADOPT_CANDIDATE': {
+            const candidate = state.telosEngine.candidateTelos.find(c => c.id === args);
+            if (!candidate) return {};
+            return {
+                telosEngine: {
+                    ...state.telosEngine,
+                    telos: candidate.text,
+                    candidateTelos: state.telosEngine.candidateTelos.filter(c => c.id !== args),
+                }
+            };
+        }
 
         case 'TELOS/DECOMPOSE_AND_SET_TREE': {
             const { tree, rootId, vectors } = args;
@@ -310,6 +362,27 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 curiosityState: {
                     ...state.curiosityState,
                     activeCuriosityGoalId: args,
+                }
+            };
+        }
+
+        case 'INCREMENT_AUTONOMOUS_EVOLUTIONS':
+            return {
+                internalState: {
+                    ...state.internalState,
+                    autonomousEvolutions: state.internalState.autonomousEvolutions + 1,
+                }
+            };
+
+        case 'SITUATIONAL_AWARENESS/LOG_DOM_CHANGE': {
+            const newLogEntry = {
+                timestamp: Date.now(),
+                summary: args.summary,
+            };
+            return {
+                situationalAwareness: {
+                    ...state.situationalAwareness,
+                    domChangeLog: [newLogEntry, ...(state.situationalAwareness.domChangeLog || [])].slice(0, 20),
                 }
             };
         }

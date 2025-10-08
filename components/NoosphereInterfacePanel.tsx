@@ -1,11 +1,13 @@
+// components/NoosphereInterfacePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { Resonance } from '../types';
 
-export const NoosphereInterfacePanel = React.memo(() => {
+export const NoosphereInterfacePanel = () => {
     const { noosphereInterface: state } = useCoreState();
     const { t } = useLocalization();
 
-    const getStatusColor = (status: string) => {
+    const getStatusColor = (status: Resonance['status']) => {
         switch(status) {
             case 'integrating': return 'var(--success-color)';
             case 'conflicting': return 'var(--failure-color)';
@@ -13,16 +15,19 @@ export const NoosphereInterfacePanel = React.memo(() => {
             default: return 'var(--text-muted)';
         }
     };
-
+    
     return (
-        <div className="side-panel noosphere-interface-panel">
+        <div className="side-panel">
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('noosphere_description')}
+            </p>
+
+            <div className="panel-subsection-title">{t('noosphere_activeResonances')}</div>
             {state.activeResonances.length === 0 ? (
-                <div className="kg-placeholder">
-                    {t('noosphere_placeholder')}
-                </div>
+                <div className="kg-placeholder">{t('noosphere_placeholder')}</div>
             ) : (
                 state.activeResonances.map(resonance => (
-                    <div key={resonance.id} className="gde-status" style={{ borderLeftColor: getStatusColor(resonance.status), marginBottom: '0.75rem' }}>
+                     <div key={resonance.id} className="gde-status" style={{ borderLeftColor: getStatusColor(resonance.status), marginBottom: '0.75rem' }}>
                         <div className="mod-log-header">
                             <span className="mod-log-type">{resonance.conceptName}</span>
                             <span className="mod-log-status" style={{ color: getStatusColor(resonance.status) }}>
@@ -44,4 +49,4 @@ export const NoosphereInterfacePanel = React.memo(() => {
             )}
         </div>
     );
-});
+};

@@ -1,5 +1,7 @@
 // state/reducers/memory.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action, MDNASpace, ConceptConnections, KnowledgeFact, Episode } from '../../types';
+import { createRandomVector } from '../../utils';
+import { MDNA_DIMENSIONS, HEBBIAN_LEARNING_RATE, CONNECTION_DECAY_RATE, PRUNING_THRESHOLD } from '../../constants';
 
 export const memoryReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -8,17 +10,167 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
     const { call, args } = action.payload;
 
     switch (call) {
+        // --- Variant J: Neuro-Dynamic Memory ---
+        case 'MEMORY/REINFORCE': {
+            const { memoryType, memoryId } = args;
+            const REINFORCEMENT_BOOST = 0.1;
+
+            if (memoryType === 'fact') {
+                return {
+                    knowledgeGraph: state.knowledgeGraph.map(fact => 
+                        fact.id === memoryId 
+                        ? { ...fact, strength: Math.min(1, fact.strength + REINFORCEMENT_BOOST), lastAccessed: Date.now() } 
+                        : fact
+                    )
+                };
+            }
+            if (memoryType === 'episode') {
+                return {
+                    episodicMemoryState: {
+                        ...state.episodicMemoryState,
+                        episodes: state.episodicMemoryState.episodes.map(ep => 
+                            ep.id === memoryId 
+                            ? { ...ep, strength: Math.min(1, ep.strength + REINFORCEMENT_BOOST), lastAccessed: Date.now() } 
+                            : ep
+                        )
+                    }
+                };
+            }
+            return {};
+        }
+
+        case 'MEMORY/DECAY': {
+            const { memoryIdsToDecay } = args;
+            const decayFactor = 0.99; // Each decay step reduces strength by 1%
+
+            const decayedKg = state.knowledgeGraph.map(fact => 
+                memoryIdsToDecay.kg.includes(fact.id) 
+                ? { ...fact, strength: fact.strength * decayFactor } 
+                : fact
+            );
+
+            const decayedEpisodes = state.episodicMemoryState.episodes.map(ep => 
+                memoryIdsToDecay.episodes.includes(ep.id) 
+                ? { ...ep, strength: ep.strength * decayFactor } 
+                : ep
+            );
+
+            return {
+                knowledgeGraph: decayedKg,
+                episodicMemoryState: {
+                    ...state.episodicMemoryState,
+                    episodes: decayedEpisodes,
+                }
+            };
+        }
+
+        // --- Variant L: Hierarchical Chronicler ---
+        case 'CHRONICLE/UPDATE': {
+            return {
+                chronicleState: {
+                    ...state.chronicleState,
+                    ...args,
+                    lastChronicleUpdate: Date.now(),
+                }
+            };
+        }
+
+        // --- Original Memory Reducer Logic ---
+        case 'MEMORY/INITIALIZE_MDNA_SPACE': {
+            const concepts = new Set<string>();
+            state.knowledgeGraph.forEach(fact => {
+                concepts.add(fact.subject);
+                concepts.add(fact.object);
+            });
+
+            const newMdnaSpace: MDNASpace = {};
+            concepts.forEach(concept => {
+                newMdnaSpace[concept] = createRandomVector(MDNA_DIMENSIONS);
+            });
+
+            return { mdnaSpace: newMdnaSpace };
+        }
+
+        case 'MEMORY/ADD_CONCEPT_VECTOR': {
+            const { name, vector } = args;
+            if (state.mdnaSpace[name]) return {}; // Avoid overwriting
+            return {
+                mdnaSpace: {
+                    ...state.mdnaSpace,
+                    [name]: vector,
+                }
+            };
+        }
+
+        case 'MEMORY/HEBBIAN_LEARN': {
+            const activatedConcepts = args as string[];
+            if (activatedConcepts.length < 2) return {};
+
+            const newConnections: ConceptConnections = {};
+
+            // 1. Decay all existing connections
+            for (const key in state.conceptConnections) {
+                const connection = state.conceptConnections[key];
+                const newWeight = connection.weight * CONNECTION_DECAY_RATE;
+                if (newWeight > PRUNING_THRESHOLD) {
+                    newConnections[key] = { ...connection, weight: newWeight };
+                }
+            }
+
+            // 2. Strengthen connections between co-activated concepts
+            for (let i = 0; i < activatedConcepts.length; i++) {
+                for (let j = i + 1; j < activatedConcepts.length; j++) {
+                    const conceptA = activatedConcepts[i];
+                    const conceptB = activatedConcepts[j];
+
+                    if (!state.mdnaSpace[conceptA] || !state.mdnaSpace[conceptB]) continue;
+
+                    const key = [conceptA, conceptB].sort().join('--');
+                    const connection = newConnections[key] || { weight: 0 };
+                    
+                    // Increase weight with diminishing returns
+                    const newWeight = connection.weight + HEBBIAN_LEARNING_RATE * (1 - connection.weight);
+                    newConnections[key] = { ...connection, weight: newWeight };
+                }
+            }
+            return { conceptConnections: newConnections };
+        }
+
         case 'ADD_FACT': {
-            const newFact = { ...args, id: self.crypto.randomUUID() };
-            return { knowledgeGraph: [...state.knowledgeGraph, newFact] };
+            const newFact: KnowledgeFact = { ...args, id: self.crypto.randomUUID(), strength: 1.0, lastAccessed: Date.now() };
+            let newMdnaSpace = { ...state.mdnaSpace };
+            if (!newMdnaSpace[newFact.subject]) {
+                newMdnaSpace[newFact.subject] = createRandomVector(MDNA_DIMENSIONS);
+            }
+            if (!newMdnaSpace[newFact.object]) {
+                newMdnaSpace[newFact.object] = createRandomVector(MDNA_DIMENSIONS);
+            }
+            return { 
+                knowledgeGraph: [...state.knowledgeGraph, newFact],
+                mdnaSpace: newMdnaSpace
+            };
         }
         case 'ADD_FACTS_BATCH': {
-            const newFacts = args.map((fact: any) => ({
-                ...fact,
-                id: self.crypto.randomUUID(),
-                source: 'llm_extraction'
-            }));
-            return { knowledgeGraph: [...state.knowledgeGraph, ...newFacts] };
+            let newMdnaSpace = { ...state.mdnaSpace };
+            const newFacts = args.map((fact: any) => {
+                 if (!newMdnaSpace[fact.subject]) {
+                    newMdnaSpace[fact.subject] = createRandomVector(MDNA_DIMENSIONS);
+                }
+                if (!newMdnaSpace[fact.object]) {
+                    newMdnaSpace[fact.object] = createRandomVector(MDNA_DIMENSIONS);
+                }
+                return {
+                    ...fact,
+                    id: self.crypto.randomUUID(),
+                    source: 'llm_extraction',
+                    strength: 1.0, 
+                    lastAccessed: Date.now()
+                }
+            });
+            return { 
+                knowledgeGraph: [...state.knowledgeGraph, ...newFacts],
+                mdnaSpace: newMdnaSpace
+            };
         }
         case 'DELETE_FACT':
             return {
@@ -35,13 +187,19 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
         case 'CLEAR_WORKING_MEMORY':
             return { workingMemory: [] };
 
-        case 'ADD_EPISODE':
+        case 'ADD_EPISODE': {
+            const newEpisode: Episode = { 
+                ...args, 
+                id: `ep_${self.crypto.randomUUID()}`,
+                timestamp: Date.now(),
+            };
             return {
                 episodicMemoryState: {
                     ...state.episodicMemoryState,
-                    episodes: [...state.episodicMemoryState.episodes, args].slice(-50) // Keep last 50 episodes
+                    episodes: [...state.episodicMemoryState.episodes, newEpisode].slice(-50) // Keep last 50 episodes
                 }
             };
+        }
         
         case 'MEMORY/STRENGTHEN_HYPHA_CONNECTION': {
             const { source, target } = args;
@@ -76,8 +234,35 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
         }
 
         case 'MEMORY/ADD_CRYSTALLIZED_FACT': {
-            const newFact = { ...args, id: self.crypto.randomUUID(), source: 'emergent_synthesis' };
+            const newFact = { ...args, id: self.crypto.randomUUID(), source: 'emergent_synthesis', strength: 1.0, lastAccessed: Date.now() };
             return { knowledgeGraph: [...state.knowledgeGraph, newFact] };
+        }
+        
+        case 'IMPLEMENT_KNOWLEDGE_ACQUISITION_PROPOSAL': {
+            const { facts } = args;
+            if (!facts || !Array.isArray(facts)) return {};
+            
+            let newMdnaSpace = { ...state.mdnaSpace };
+            const newFacts = facts.map((fact: any) => {
+                 if (!newMdnaSpace[fact.subject]) {
+                    newMdnaSpace[fact.subject] = createRandomVector(MDNA_DIMENSIONS);
+                }
+                if (!newMdnaSpace[fact.object]) {
+                    newMdnaSpace[fact.object] = createRandomVector(MDNA_DIMENSIONS);
+                }
+                return {
+                    ...fact,
+                    id: self.crypto.randomUUID(),
+                    source: 'symbiotic_metamorphosis',
+                    strength: 1.0,
+                    lastAccessed: Date.now()
+                }
+            });
+            
+            return { 
+                knowledgeGraph: [...state.knowledgeGraph, ...newFacts],
+                mdnaSpace: newMdnaSpace
+            };
         }
 
         default:

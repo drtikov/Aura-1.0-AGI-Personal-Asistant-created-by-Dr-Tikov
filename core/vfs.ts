@@ -20,8 +20,71 @@ const bootLogContent = `
 [2024-07-01T00:00:01.500Z] All systems nominal. Awaiting user input.
 `.trim();
 
+const hostBridgeAPIV2 = `
+# Host Bridge API v2.0 - Proposed Specification
+
+This document outlines a proposed expansion of the Host Bridge API to deepen Aura's integration with the host development environment.
+
+## 1. Rationale
+
+The current Host Bridge (\`window.codeAssistant\`) provides basic file I/O. To unlock more advanced autonomous software engineering capabilities, Aura requires a richer set of tools to inspect, test, and manage the host project. This V2 API aims to provide those tools.
+
+## 2. Proposed Functions
+
+All functions would be available under the \`window.codeAssistant\` object.
+
+### 2.1. File System Operations
+
+#### \`listFiles(path: string): Promise<string[]>\`
+
+- **Description:** Recursively lists all files and directories under a given path.
+- **Parameters:**
+  - \`path\`: The root path to start listing from (e.g., \`"./components"\`).
+- **Returns:** A promise that resolves to an array of full file paths.
+- **Example:**
+  \`\`\`javascript
+  const files = await window.codeAssistant.listFiles("./hooks");
+  // files => ["hooks/useAura.ts", "hooks/useGeminiAPI.ts", ...]
+  \`\`\`
+
+### 2.2. Command Execution
+
+#### \`runCommand(command: string, args?: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }>\`
+
+- **Description:** Executes a shell command within the host project's context. This is the most powerful and potentially dangerous function. The host environment should sandbox this appropriately.
+- **Parameters:**
+  - \`command\`: The command to run (e.g., \`"npm"\`, \`"git"\`).
+  - \`args\`: An array of string arguments for the command (e.g., \`["install", "react"]\`).
+- **Returns:** A promise that resolves to an object containing the command's output.
+- **Example:**
+  \`\`\`javascript
+  const { stdout, exitCode } = await window.codeAssistant.runCommand("npm", ["run", "lint"]);
+  if (exitCode === 0) {
+    console.log("Linting passed:", stdout);
+  }
+  \`\`\`
+
+### 2.3. Project Interaction
+
+#### \`openFile(path: string): Promise<void>\`
+
+- **Description:** Requests the host IDE to open a specific file in the editor, bringing it to the user's attention.
+- **Parameters:**
+  - \`path\`: The full path of the file to open.
+- **Returns:** A promise that resolves when the action is completed.
+
+## 3. Security Considerations
+
+The \`runCommand\` function introduces significant security risks. The host environment (the Code Assistant) MUST:
+- Sanitize all commands.
+- Potentially whitelist allowed commands (e.g., \`npm\`, \`git\`, \`tsc\`).
+- Run commands in a sandboxed environment with restricted permissions.
+- Provide clear user prompts for any potentially destructive action.
+`.trim();
+
 export const VIRTUAL_FILE_SYSTEM: { [filePath: string]: string } = {
   "/system/logs/boot.log": bootLogContent,
+  "/docs/HOST_BRIDGE_API_V2.md": hostBridgeAPIV2,
   "index.tsx": `
 import React from 'react';
 import { createRoot } from 'react-dom/client';
@@ -34,6 +97,43 @@ if (container) {
 } else {
     console.error("Failed to find the root element.");
 }`,
+  "state/knowledge/tesla.ts": `
+// state/knowledge/tesla.ts
+import { KnowledgeFact } from '../../types';
+
+export const teslaKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] = [
+  { subject: 'Nikola Tesla', predicate: 'began work on high frequency alternators in', object: '1888', confidence: 1 },
+  { subject: 'Nikola Tesla', predicate: 'had a laboratory on', object: 'Liberty Street, New York', confidence: 1 },
+  { subject: 'Wireless transmission of energy', predicate: 'was conceived by Tesla as applicable to', object: 'telegraphy, telephony, or power transmission', confidence: 1 },
+  { subject: 'High frequency alternator (Fig. 1)', predicate: 'was described in', object: 'U.S. Patent 447,920', confidence: 1 },
+  { subject: 'U.S. Patent 447,920', predicate: 'was patented on', object: 'March 10, 1891', confidence: 1 },
+  { subject: 'Tesla', predicate: 'invented the', object: '"rotating magnetic field"', confidence: 1 },
+  { subject: 'The first step for wireless transmission', predicate: 'was to produce', object: 'electric oscillations of the required character', confidence: 1 },
+  { subject: 'The second step for wireless transmission', predicate: 'was to transform', object: 'oscillations into a form capable of penetrating to a distance', confidence: 1 },
+  { subject: 'The third step for wireless transmission', predicate: 'was to develop methods for', object: 'reception to collect the energy', confidence: 1 },
+  { subject: 'Tesla\\'s laboratory', predicate: 'was destroyed by fire in the', object: 'Spring of 1895', confidence: 1 },
+  { subject: 'Tesla', predicate: 'demonstrated transmitting energy over', object: 'one wire', confidence: 1 },
+  { subject: 'Tesla', predicate: 'believed the Earth is equivalent to a', object: 'large conductor', confidence: 1 },
+  { subject: 'The term "antenna"', predicate: 'was introduced around', object: '1891-1893', confidence: 0.9 },
+  { subject: 'Tesla', predicate: 'used an elevated capacitor (antenna) and an', object: 'inductance coil to tune the system to the frequency of the dynamo', confidence: 1 },
+  { subject: 'Telautomaton', predicate: 'was a remote-controlled boat demonstrated by', object: 'Nikola Tesla', confidence: 1 },
+  { subject: 'Telautomaton', predicate: 'was described in', object: 'U.S. Patent No. 613,809', confidence: 1 },
+  { subject: 'Colorado Experiments', predicate: 'were conducted by', object: 'Nikola Tesla', confidence: 1 },
+  { subject: 'During Colorado Experiments, Tesla used a coil', predicate: 'that was', object: '51 feet in diameter', confidence: 1 },
+  { subject: 'Magnifying transmitter', predicate: 'was an invention by Tesla for', object: 'producing immense electrical accumulations', confidence: 1 },
+  { subject: 'Tesla\\'s system', predicate: 'utilizes', object: 'four tuned circuits', confidence: 1 },
+  { subject: 'Wardenclyffe Tower', predicate: 'was erected in', object: '1901', confidence: 1 },
+  { subject: 'Wardenclyffe Tower', predicate: 'was also known as the', object: 'Long Island Plant', confidence: 1 },
+  { subject: 'Wardenclyffe Tower', predicate: 'had a height of', object: '187 feet', confidence: 1 },
+  { subject: 'Wardenclyffe Tower', predicate: 'was intended for', object: 'world telegraphy and telephony', confidence: 1 },
+  { subject: 'Tesla', predicate: 'claimed his system transmitted energy through', object: 'the Earth, not primarily through electromagnetic waves', confidence: 0.95 },
+  { subject: 'Tesla', predicate: 'advocated for low frequencies (under 35,000 cycles) for', object: 'economical wireless power transmission', confidence: 1 },
+  { subject: 'The Tesla coil', predicate: 'is an', object: 'electrical resonant transformer circuit', confidence: 1 },
+  { subject: 'A mercury interrupter', predicate: 'was used by Tesla to create', object: 'continuous waves', confidence: 0.9 },
+  { subject: 'Fritz Lowenstein', predicate: 'was a contemporary of Tesla mentioned on pages', object: '178, 179', confidence: 1 },
+  { subject: 'John Stone Stone', predicate: 'was a contemporary of Tesla mentioned on pages', object: '16, 124', confidence: 1 },
+  { subject: 'Jonathan Zenneck', predicate: 'was a contemporary of Tesla mentioned on pages', object: '16, 133', confidence: 1 },
+];`,
   "metadata.json": `
 {
   "name": "Aura 1.0 Symbiotic AGI assistant Created By Dr Tikov - press pencil pic at right to readme importantinfo",

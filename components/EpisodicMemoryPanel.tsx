@@ -24,7 +24,15 @@ export const EpisodicMemoryPanel = React.memo(() => {
                 episodicMemoryState.episodes
                     .sort((a, b) => b.timestamp - a.timestamp) // Show newest first
                     .map(episode => (
-                        <div key={episode.id} className="episode-item" style={{ borderLeftColor: getValenceColor(episode.valence) }}>
+                        <div 
+                            key={episode.id} 
+                            className="episode-item" 
+                            style={{ 
+                                borderLeftColor: getValenceColor(episode.valence),
+                                opacity: 0.4 + (episode.strength * 0.6) 
+                            }}
+                            title={`Strength: ${episode.strength.toFixed(2)}`}
+                        >
                             <div className="episode-header">
                                 <h5 className="episode-title">{episode.title}</h5>
                                 <div className="episode-salience-container" title={`${t('episodicMemory_salience')}: ${episode.salience.toFixed(2)}`}>

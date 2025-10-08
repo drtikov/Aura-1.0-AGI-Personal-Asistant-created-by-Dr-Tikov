@@ -1,76 +1,5 @@
 // state/reducers/system.ts
-import { AuraState, Action, CGLPlan, POLCommand } from '../../types';
-
-/**
- * Converts a single CGL step into a POL command.
- */
-const convertStepToCommand = (step: any): POLCommand => {
-    // FIX: Added the required 'status' property to the POLCommand object.
-    const command: POLCommand = {
-        id: `pol-${self.crypto.randomUUID().slice(0, 8)}`,
-        sourceStepId: step.id,
-        type: 'NOOP',
-        payload: {},
-        status: 'pending',
-    };
-
-    switch (step.operation) {
-        case 'GENERATE_RESPONSE':
-        case 'TEXT_SYNTHESIS':
-            command.type = 'CHAT_MESSAGE';
-            command.payload = { message: step.parameters.prompt };
-            break;
-        case 'EXECUTE_TOOL':
-            command.type = 'TOOL_EXECUTE';
-            command.payload = { name: step.parameters.name, args: step.parameters.args };
-            break;
-        case 'KNOWLEDGE_QUERY':
-            command.type = 'SYSCALL';
-            command.payload = { call: 'ADD_TO_WORKING_MEMORY', args: `Query Result for: ${step.parameters.query}` };
-            break;
-        default:
-            command.type = 'SYSCALL';
-            command.payload = { call: 'ADD_COMMAND_LOG', args: { text: `Unknown CGL operation: ${step.operation}`, type: 'warning' } };
-            break;
-    }
-    return command;
-};
-
-/**
- * Compiles a CGL plan into a staged, parallelizable POL command queue.
- * This version groups consecutive tool calls into a single parallel stage.
- */
-const compileCGLToStagedPOL = (plan: CGLPlan): POLCommand[][] => {
-    const stages: POLCommand[][] = [];
-    if (!plan || !plan.steps) return stages;
-
-    let currentParallelStage: POLCommand[] = [];
-
-    for (const step of plan.steps) {
-        const command = convertStepToCommand(step);
-        
-        // Group consecutive tool calls for parallel execution
-        if (command.type === 'TOOL_EXECUTE') {
-            currentParallelStage.push(command);
-        } else {
-            // If we encounter a non-tool command, push the current parallel stage (if any)
-            if (currentParallelStage.length > 0) {
-                stages.push(currentParallelStage);
-                currentParallelStage = [];
-            }
-            // Push the current command as its own sequential stage
-            stages.push([command]);
-        }
-    }
-
-    // Add any remaining commands in the last parallel stage
-    if (currentParallelStage.length > 0) {
-        stages.push(currentParallelStage);
-    }
-
-    return stages;
-};
-
+import { AuraState, Action, CGLPlan, POLCommand, AGISDecision, MetacognitiveLink, CognitiveTask } from '../../types';
 
 export const systemReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -101,6 +30,39 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
                     diagnosticLog: state.metacognitiveNexus.diagnosticLog.map(f =>
                         f.id === args.id ? { ...f, ...args.updates } : f
                     ),
+                }
+            };
+        }
+
+        case 'METACGNITIVE_NEXUS/ADD_META_LINK': {
+            const newLink: MetacognitiveLink = {
+                ...args,
+                id: `meta_${self.crypto.randomUUID()}`,
+                observationCount: 1,
+                lastUpdated: Date.now(),
+            };
+            const linkKey = `${newLink.source.key}(${newLink.source.condition})->${newLink.target.key}(${newLink.target.metric})`;
+            const existingLink = state.metacognitiveCausalModel[linkKey];
+
+            if (existingLink) {
+                const updatedLink = {
+                    ...existingLink,
+                    correlation: (existingLink.correlation * existingLink.observationCount + newLink.correlation) / (existingLink.observationCount + 1),
+                    observationCount: existingLink.observationCount + 1,
+                    lastUpdated: Date.now(),
+                };
+                return {
+                    metacognitiveCausalModel: {
+                        ...state.metacognitiveCausalModel,
+                        [linkKey]: updatedLink,
+                    }
+                };
+            }
+
+            return {
+                metacognitiveCausalModel: {
+                    ...state.metacognitiveCausalModel,
+                    [linkKey]: newLink,
                 }
             };
         }
@@ -140,21 +102,37 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
 
-        case 'KERNEL/SET_TASK_QUEUE':
+        case 'KERNEL/ADD_TASK': {
+            // FIX: Correctly cast `args` to `CognitiveTask` to match the expected type, which uses the `CognitiveTaskType` enum.
+            const newTask = args as CognitiveTask;
+            // Prevent adding duplicate tasks if one is already queued or running
+            if (state.kernelState.runningTask?.type === newTask.type || state.kernelState.taskQueue.some(t => t.type === newTask.type)) {
+                return {};
+            }
             return {
                 kernelState: {
                     ...state.kernelState,
-                    taskQueue: args,
+                    taskQueue: [...state.kernelState.taskQueue, newTask],
                 }
             };
+        }
 
-        case 'KERNEL/SET_RUNNING_TASK':
+        case 'KERNEL/SET_RUNNING_TASK': {
+            // FIX: Correctly cast `args` to `CognitiveTask` to match the type of `runningTask`.
+            const task = args as CognitiveTask | null;
+            let queue = state.kernelState.taskQueue;
+            if (task) {
+                // Remove the task from the queue when it starts running
+                queue = state.kernelState.taskQueue.filter(t => t.id !== task.id);
+            }
             return {
                 kernelState: {
                     ...state.kernelState,
-                    runningTask: args,
+                    runningTask: task,
+                    taskQueue: queue,
                 }
             };
+        }
         
         case 'KERNEL/LOG_SYSCALL':
             return {
@@ -164,94 +142,54 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
             
-        // --- COGNITIVE OS SYSCALLS ---
-        case 'COGNITIVE_OS/EXECUTE_DIRECTIVE':
+        // --- AGIS SYSCALLS ---
+        case 'AGIS/TOGGLE_PAUSE': {
             return {
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'directive_received',
-                    activeDirective: args,
-                    activePlan: null,
-                    commandQueue: [],
-                    currentStageIndex: 0,
-                    currentStageCommands: null,
-                    completedCommands: [],
-                    lastError: null,
-                    isDynamicClusterActive: false,
-                }
-            };
-        
-        case 'COGNITIVE_OS/SET_PLAN': {
-            const stagedQueue = compileCGLToStagedPOL(args);
-            return {
-                 cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'ready_to_execute',
-                    activePlan: args,
-                    commandQueue: stagedQueue,
-                    currentStageIndex: 0,
-                }
-            };
-        }
-        
-        case 'COGNITIVE_OS/ADVANCE_STAGE': {
-            const { stage, stageIndex } = args;
-            return {
-                 cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'executing_pol',
-                    currentStageIndex: stageIndex + 1,
-                    currentStageCommands: stage,
-                }
-            }
-        }
-
-        case 'COGNITIVE_OS/STAGE_COMPLETE': {
-            return {
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'ready_to_execute', // Ready for the next stage
-                    completedCommands: [...state.cognitiveOSState.completedCommands, ...args.completedCommands],
-                    currentStageCommands: null,
-                }
-            }
-        }
-        
-        case 'COGNITIVE_OS/PIPELINE_COMPLETE': {
-             return {
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'complete',
-                    currentStageCommands: null,
+                autonomousReviewBoardState: {
+                    ...state.autonomousReviewBoardState,
+                    isPaused: !state.autonomousReviewBoardState.isPaused,
                 }
             };
         }
 
-        case 'COGNITIVE_OS/EXECUTION_FAILED':
+        case 'AGIS/ADD_DECISION_LOG': {
+            const newDecision: AGISDecision = {
+                ...args,
+                id: `agis_decision_${self.crypto.randomUUID()}`,
+                timestamp: Date.now(),
+            };
+            
+            let recentSuccesses = state.autonomousReviewBoardState.recentSuccesses;
+            let recentFailures = state.autonomousReviewBoardState.recentFailures;
+
+            if (newDecision.decision === 'auto-approved') {
+                recentSuccesses++;
+            } else if (newDecision.decision === 'rejected') {
+                recentFailures++;
+            }
+
             return {
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'execution_failed',
-                    lastError: args.error,
-                    currentStageCommands: null,
+                autonomousReviewBoardState: {
+                    ...state.autonomousReviewBoardState,
+                    decisionLog: [newDecision, ...state.autonomousReviewBoardState.decisionLog].slice(0, 50),
+                    recentSuccesses,
+                    recentFailures,
                 }
             };
+        }
         
-        case 'COGNITIVE_OS/CLEANUP':
+        case 'AGIS/CALIBRATE_CONFIDENCE': {
             return {
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    status: 'idle',
-                    activeDirective: null,
-                    activePlan: null,
-                    commandQueue: [],
-                    currentStageIndex: 0,
-                    currentStageCommands: null,
-                    completedCommands: [],
-                    lastError: null,
-                    isDynamicClusterActive: false,
+                autonomousReviewBoardState: {
+                    ...state.autonomousReviewBoardState,
+                    agisConfidenceThreshold: args.newThreshold,
+                    lastCalibrationReason: args.reason,
+                    // Reset counters after calibration
+                    recentSuccesses: 0,
+                    recentFailures: 0,
                 }
             };
+        }
 
         default:
             return {};

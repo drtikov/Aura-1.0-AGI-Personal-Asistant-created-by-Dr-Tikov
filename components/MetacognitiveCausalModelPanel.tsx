@@ -1,3 +1,4 @@
+// components/MetacognitiveCausalModelPanel.tsx
 import React from 'react';
 import { MetacognitiveLink } from '../types';
 import { useSystemState, useLocalization } from '../context/AuraContext';

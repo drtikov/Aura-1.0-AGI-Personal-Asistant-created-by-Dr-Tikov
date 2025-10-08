@@ -2,32 +2,32 @@ import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const EpistemicBoundaryPanel = React.memo(() => {
-    const { boundaryDetectionEngine: state } = useCoreState();
+    const { knownUnknowns } = useCoreState();
     const { t } = useLocalization();
-    const timeAgo = (timestamp: number) => {
-        const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
-        const minutes = Math.floor(seconds / 60);
-        return t('timeAgoMinutes', { count: minutes });
-    };
+
+    const unexploredGaps = [...knownUnknowns]
+        .filter(ku => ku.status === 'unexplored')
+        .sort((a, b) => b.priority - a.priority);
 
     return (
         <div className="side-panel epistemic-boundary-panel">
-            {state.epistemicBoundaries.length === 0 ? (
-                <div className="kg-placeholder">{t('epistemic_placeholder')}</div>
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('epistemic_description')}
+            </p>
+            <div className="panel-subsection-title">{t('epistemic_unexploredGaps')}</div>
+            {unexploredGaps.length === 0 ? (
+                <div className="kg-placeholder">{t('epistemic_noGaps')}</div>
             ) : (
-                state.epistemicBoundaries.map(boundary => (
-                    <div key={boundary.id} className="veto-log-item" style={{ borderLeftColor: 'var(--secondary-color)', background: 'rgba(255, 0, 255, 0.05)' }}>
-                        <div className="veto-action" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                           <strong>{t('epistemic_limitation')}</strong>
-                           <small style={{color: 'var(--text-muted)'}}>{timeAgo(boundary.timestamp)}</small>
+                unexploredGaps.map(gap => (
+                    <div key={gap.id} className="veto-log-item" style={{ borderLeftColor: 'var(--secondary-color)', background: 'rgba(255, 0, 255, 0.05)' }}>
+                        <div className="causal-link-header" style={{ marginBottom: '0.25rem', alignItems: 'flex-start' }}>
+                            <p className="veto-reason" style={{ fontStyle: 'italic', color: 'var(--text-color)', margin: 0, flexGrow: 1 }}>
+                                "{gap.question}"
+                            </p>
+                             <span className="priority-score" title={t('epistemic_priority')}>
+                                {gap.priority.toFixed(2)}
+                            </span>
                         </div>
-                        <p className="veto-reason" style={{ fontStyle: 'italic', color: 'var(--text-color)', marginTop: '0.25rem' }}>
-                            "{boundary.limitation}"
-                        </p>
-                         <p className="veto-principle" style={{fontSize: '0.75rem'}}>
-                            {t('epistemic_evidence', { count: boundary.evidence.length })}
-                        </p>
                     </div>
                 ))
             )}

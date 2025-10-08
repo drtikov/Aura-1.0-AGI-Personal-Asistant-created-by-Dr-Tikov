@@ -1,5 +1,5 @@
 // state/reducers/architecture.ts
-import { AuraState, Action, ModificationLogEntry, ArchitecturalChangeProposal, CodeEvolutionProposal, CausalInferenceProposal, CreateFileCandidate, ModifyFileCandidate, SelfProgrammingCandidate, ArchitecturalImprovementProposal, UnifiedProposal, DesignHeuristic, SynapticNode, CorticalColumn, SynapticLink, POLCommandSynthesisProposal } from '../../types';
+import { AuraState, Action, ModificationLogEntry, ArchitecturalChangeProposal, CodeEvolutionProposal, CausalInferenceProposal, CreateFileCandidate, ModifyFileCandidate, SelfProgrammingCandidate, ArchitecturalImprovementProposal, UnifiedProposal, DesignHeuristic, SynapticNode, CorticalColumn, SynapticLink, POLCommandSynthesisProposal, PsycheProposal, SkillSynthesisProposal, Plugin, SynthesizedSkill, KnowledgeAcquisitionProposal, AbstractConceptProposal } from '../../types';
 import { clamp } from '../../utils';
 
 export const architectureReducer = (state: AuraState, action: Action): Partial<AuraState> => {
@@ -9,6 +9,32 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'VFS/APPLY_PATCH': {
+            const { filePath, newContent } = args;
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    virtualFileSystem: {
+                        ...state.selfProgrammingState.virtualFileSystem,
+                        [filePath]: newContent,
+                    }
+                }
+            };
+        }
+
+        case 'VFS/REVERT_PATCH': {
+            const { filePath, originalCode } = args;
+            return {
+                selfProgrammingState: {
+                    ...state.selfProgrammingState,
+                    virtualFileSystem: {
+                        ...state.selfProgrammingState.virtualFileSystem,
+                        [filePath]: originalCode,
+                    }
+                }
+            };
+        }
+
         case 'HEURISTICS_FORGE/ADD_AXIOM': {
             const newAxiom = {
                 ...args,
@@ -37,24 +63,15 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 return plugin; // Keep default status for others
             });
 
+            // FIX: Removed reference to non-existent 'cognitiveOSState'. This state slice has been removed or renamed.
             return {
                 pluginState: { registry: newRegistry },
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    isDynamicClusterActive: true,
-                    status: 'translating_cgl',
-                }
             };
         }
         
         case 'COGNITIVE_ARCHITECT/SKIP_CLUSTER': {
-            return {
-                cognitiveOSState: {
-                    ...state.cognitiveOSState,
-                    isDynamicClusterActive: false,
-                    status: 'translating_cgl',
-                }
-            };
+            // FIX: Removed reference to non-existent 'cognitiveOSState'.
+            return {};
         }
 
         case 'HEURISTICS_FORGE/ADD_HEURISTIC': {
@@ -120,6 +137,18 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
         
         case 'APPLY_ARCH_PROPOSAL': {
             const { proposal, snapshotId, modLogId, isAutonomous } = args;
+            let updatedComponents = { ...state.cognitiveArchitecture.components };
+
+            if (proposal.action === 'ADD_SKILL' && proposal.newModule) {
+                updatedComponents[proposal.newModule] = { version: '1.0', status: 'active' };
+            } else if (proposal.action === 'DEPRECATE_SKILL') {
+                const targetSkill = Array.isArray(proposal.target) ? proposal.target[0] : proposal.target;
+                if (updatedComponents[targetSkill]) {
+                    updatedComponents[targetSkill] = { ...updatedComponents[targetSkill], status: 'inactive' };
+                }
+            }
+            // Add other actions like 'MODIFY_SKILL' here in the future
+
             const newLog: ModificationLogEntry = {
                 id: modLogId,
                 timestamp: Date.now(),
@@ -128,19 +157,22 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 validationStatus: 'validated',
                 isAutonomous,
             };
+
             return {
-                ...state,
+                cognitiveArchitecture: {
+                    ...state.cognitiveArchitecture,
+                    components: updatedComponents,
+                },
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    // FIX: Added a type guard to ensure the spread operation on the union type is safe.
-                    // FIX: Added a type guard to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
-                        if (p.id === proposal.id && p.proposalType === 'architecture') {
-                            const updated: ArchitecturalChangeProposal = { ...p, status: 'approved' };
-                            return updated;
+                        if (p.id === proposal.id) {
+                            if (p.proposalType === 'architecture') {
+                                return { ...p, status: 'implemented' };
+                            }
                         }
                         return p;
-                    }),
+                    }) as UnifiedProposal[],
                 },
                 modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
                 systemSnapshots: [
@@ -287,18 +319,22 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                     // FIX: Added a type guard to prevent unsafe spreading of a discriminated union.
                     // This ensures TypeScript can correctly infer the type of the returned object.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
-                        if (p.id === args.id && (p.proposalType === 'self_programming_create' || p.proposalType === 'self_programming_modify')) {
-                            return { ...p, status: 'rejected' };
+                        if (p.id === args.id) {
+                            if (p.proposalType === 'self_programming_create') {
+                                return { ...p, status: 'rejected' };
+                            }
+                            if (p.proposalType === 'self_programming_modify') {
+                                return { ...p, status: 'rejected' };
+                            }
                         }
                         return p;
-                    })
+                    }) as UnifiedProposal[]
                 }
             };
         }
 
         case 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE': {
-            const { id } = args;
-            const candidate = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === id) as SelfProgrammingCandidate | undefined;
+            const candidate = args as SelfProgrammingCandidate;
             if (!candidate) return {};
 
             let updatedVFS = { ...state.selfProgrammingState.virtualFileSystem };
@@ -332,12 +368,12 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 },
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.filter(p => p.id !== id),
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.filter(p => p.id !== candidate.id),
                 },
                 modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
                 systemSnapshots: [
                     ...state.systemSnapshots,
-                    { id: self.crypto.randomUUID(), timestamp: Date.now(), reason: `Pre-apply self-programming candidate ${id}`, state }
+                    { id: self.crypto.randomUUID(), timestamp: Date.now(), reason: `Pre-apply self-programming candidate ${candidate.id.slice(0,8)}`, state }
                 ].slice(-10),
             };
         }
@@ -528,11 +564,13 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
         }
         
         case 'CREATE_CORTICAL_COLUMN': {
-            const newColumn = args as CorticalColumn;
+            // FIX: 'newNode' was not defined. This fix creates the required SynapticNode
+            // when a cortical column is created, allowing it to be added to the synaptic matrix.
+            // The unused 'newColumn' definition was removed as this logic is handled in another reducer.
             const newNode: SynapticNode = {
-                id: newColumn.id,
-                type: 'skill',
-                activation: 0.1,
+                id: args.id,
+                type: 'concept',
+                activation: 0.05,
             };
             return {
                 synapticMatrix: {
@@ -547,9 +585,18 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
         
         case 'IMPLEMENT_POL_SYNTHESIS_PROPOSAL': {
             const proposal = args as POLCommandSynthesisProposal;
-            if (!proposal || proposal.status === 'implemented') return {};
+            if (!proposal) return {};
             
-            const newCommandName = proposal.newCommandName.toUpperCase().replace(/\s+/g, '_');
+            const newCommandName = proposal.newCommandName;
+
+            const newLog: ModificationLogEntry = {
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                description: `Autonomous POL command synthesis: ${newCommandName}.`,
+                gainType: 'OPTIMIZATION',
+                validationStatus: 'validated',
+                isAutonomous: true,
+            };
 
             return {
                 cognitiveArchitecture: {
@@ -563,18 +610,114 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 },
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    // FIX: Added a type guard to prevent unsafe spreading of a discriminated union.
-                    // This ensures TypeScript can correctly infer the type of the returned object.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === proposal.id && p.proposalType === 'pol_command_synthesis') {
-                            return { ...p, status: 'implemented' };
+                            const updated: POLCommandSynthesisProposal = { ...p, status: 'implemented' };
+                            return updated;
                         }
                         return p;
                     })
+                },
+                modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+            };
+        }
+
+        case 'IMPLEMENT_SKILL_SYNTHESIS_PROPOSAL': {
+            const proposal = args as SkillSynthesisProposal;
+            if (!proposal) return {};
+
+            const newSkill: SynthesizedSkill = {
+                id: `skill_${proposal.skillName}`,
+                name: proposal.skillName,
+                description: proposal.reasoning,
+                steps: proposal.generatedCode.split('\n'),
+                status: 'active',
+                policyWeight: 1.0,
+            };
+
+            const newLog: ModificationLogEntry = {
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                description: `Autonomous skill synthesis: ${newSkill.name}.`,
+                gainType: 'INNOVATION',
+                validationStatus: 'validated',
+                isAutonomous: true,
+            };
+
+            return {
+                cognitiveForgeState: {
+                    ...state.cognitiveForgeState,
+                    synthesizedSkills: [...state.cognitiveForgeState.synthesizedSkills, newSkill]
+                },
+                ontogeneticArchitectState: {
+                    ...state.ontogeneticArchitectState,
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                        if (p.id === proposal.id && p.proposalType === 'skill_synthesis') {
+                            const updated: SkillSynthesisProposal = { ...p, status: 'implemented' };
+                            return updated;
+                        }
+                        return p;
+                    })
+                },
+                modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+            };
+        }
+        
+        case 'IMPLEMENT_KNOWLEDGE_ACQUISITION_PROPOSAL': {
+            const { id } = args;
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === id) as KnowledgeAcquisitionProposal | undefined;
+            if (!proposal) return {};
+
+            const newLog: ModificationLogEntry = {
+                id: self.crypto.randomUUID(),
+                timestamp: Date.now(),
+                description: `Symbiotic knowledge acquisition: ${proposal.topic}.`,
+                gainType: 'INNOVATION',
+                validationStatus: 'validated',
+                isAutonomous: false, // This is user-approved
+            };
+
+            return {
+                ontogeneticArchitectState: {
+                    ...state.ontogeneticArchitectState,
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                        if (p.id === id && p.proposalType === 'knowledge_acquisition') {
+                            const updated: KnowledgeAcquisitionProposal = { ...p, status: 'implemented' };
+                            return updated;
+                        }
+                        return p;
+                    })
+                },
+                modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+            };
+        }
+        
+        case 'IMPLEMENT_ABSTRACT_CONCEPT_PROPOSAL': {
+            const { proposal } = args;
+            return {
+                ontogeneticArchitectState: {
+                    ...state.ontogeneticArchitectState,
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                        if (p.id === proposal.id && p.proposalType === 'abstract_concept') {
+                            const updated: AbstractConceptProposal = { ...p, status: 'implemented' };
+                            return updated;
+                        }
+                        return p;
+                    }) as UnifiedProposal[]
                 }
             };
         }
 
+        case 'PLUGIN/ADD_PLUGIN': {
+            const newPlugin = args as Plugin;
+            return {
+                pluginState: {
+                    ...state.pluginState,
+                    registry: [...state.pluginState.registry, newPlugin]
+                }
+            };
+        }
+        
         default:
             return {};
     }

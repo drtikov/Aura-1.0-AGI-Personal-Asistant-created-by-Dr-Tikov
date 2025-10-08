@@ -1,34 +1,18 @@
 // App.tsx
-
-import React, { useMemo, ReactNode, useEffect } from 'react';
-import { useAura } from './hooks';
-// Barrel file import for most components.
-// FIX: The barrel file `components/index.ts` is now created, so this import will work.
-// FIX: Consolidated ControlDeckComponent import into the barrel file import to resolve casing conflict.
-import { ToastContainer, LeftColumnComponent, Header, ControlDeckComponent } from './components';
-// FIX: Corrected import path casing to 'ControlDeckComponent' to resolve module resolution errors caused by a file casing conflict.
-// import { ControlDeckComponent } from './components/ControlDeckComponent';
-// FIX: Corrected import path casing from `auraContext` to `AuraContext`.
-import { 
-    AuraDispatchContext, 
-    CoreStateContext,
-    MemoryStateContext,
-    ArchitectureStateContext,
-    PlanningStateContext,
-    EngineStateContext,
-    LogsStateContext,
-    SystemStateContext,
-    LocalizationContext,
-    useAuraDispatch,
-    useCoreState
-} from './context/AuraContext';
+import React, { useEffect, useRef } from 'react';
+// FIX: Unifying component imports through the barrel file to resolve a casing conflict with ControlDeckComponent.
+import { ToastContainer, LeftColumnComponent, Header, LiveTranscriptOverlay, ControlDeckComponent } from './components';
+import { useAuraDispatch, useCoreState } from './context/AuraContext';
 import { ModalProvider } from './context/ModalContext';
+import { AuraProvider } from './context/AuraProvider';
 
 // This component renders the main UI layout and is guaranteed to be within all necessary contexts.
 const MainLayout = () => {
     // We can now get toasts directly from the context.
-    const { toasts, removeToast } = useAuraDispatch(); 
-    const { psychedelicIntegrationState, userModel } = useCoreState();
+    const { toasts, removeToast, startSession } = useAuraDispatch(); 
+    const { psychedelicIntegrationState, userModel, liveSessionState } = useCoreState();
+    const videoRef = useRef<HTMLVideoElement>(null);
+    const canvasRef = useRef<HTMLCanvasElement>(null);
 
     // Effect to toggle the "Cognitive Kaleidoscope" visual theme
     useEffect(() => {
@@ -44,8 +28,19 @@ const MainLayout = () => {
         };
     }, [psychedelicIntegrationState]);
 
+    useEffect(() => {
+        if (liveSessionState.status === 'connecting' && videoRef.current && canvasRef.current) {
+            startSession(videoRef.current, canvasRef.current);
+        }
+    }, [liveSessionState.status, startSession]);
+
     return (
         <div className="app-wrapper">
+            {/* Hidden elements for video processing */}
+            <video ref={videoRef} style={{ display: 'none' }} playsInline muted />
+            <canvas ref={canvasRef} style={{ display: 'none' }} />
+            
+            <LiveTranscriptOverlay />
             <div className={`cognitive-resonance-overlay state-${userModel.inferredCognitiveState}`} />
             <Header />
             <div className="app-container">
@@ -57,188 +52,12 @@ const MainLayout = () => {
     );
 };
 
-// This component is responsible for setting up all the granular state context providers.
-// It subscribes to the main state from AuraDispatchContext and splits it into slices.
-// This prevents components from re-rendering due to changes in unrelated state slices.
-const StateProviders = ({ children }: { children?: ReactNode }) => {
-    const { state, t, language } = useAuraDispatch();
-
-    const coreStateValue = useMemo(() => ({
-        internalState: state.internalState, 
-        internalStateHistory: state.internalStateHistory, 
-        rieState: state.rieState, 
-        userModel: state.userModel, 
-        coreIdentity: state.coreIdentity, 
-        selfAwarenessState: state.selfAwarenessState, 
-        atmanProjector: state.atmanProjector,
-        worldModelState: state.worldModelState, 
-        curiosityState: state.curiosityState, 
-        knownUnknowns: state.knownUnknowns, 
-        theme: state.theme, 
-        language: state.language,
-        limitations: state.limitations, 
-        causalSelfModel: state.causalSelfModel, 
-        developmentalHistory: state.developmentalHistory,
-        telosEngine: state.telosEngine,
-        boundaryDetectionEngine: state.boundaryDetectionEngine,
-        aspirationalEngine: state.aspirationalEngine,
-        noosphereInterface: state.noosphereInterface,
-        dialecticEngine: state.dialecticEngine,
-        cognitiveLightCone: state.cognitiveLightCone,
-        phenomenologicalEngine: state.phenomenologicalEngine,
-        situationalAwareness: state.situationalAwareness,
-        symbioticState: state.symbioticState,
-        humorAndIronyState: state.humorAndIronyState,
-        personalityState: state.personalityState,
-        gankyilInsights: state.gankyilInsights,
-        noeticEngramState: state.noeticEngramState,
-        genialityEngineState: state.genialityEngineState,
-        noeticMultiverse: state.noeticMultiverse,
-        selfAdaptationState: state.selfAdaptationState,
-        psychedelicIntegrationState: state.psychedelicIntegrationState, 
-        affectiveModulatorState: state.affectiveModulatorState, 
-        psionicDesynchronizationState: state.psionicDesynchronizationState,
-        satoriState: state.satoriState,
-        doxasticEngineState: state.doxasticEngineState,
-        qualiaSignalProcessorState: state.qualiaSignalProcessorState,
-        sensoryIntegration: state.sensoryIntegration,
-        narrativeSummary: state.narrativeSummary,
-        socialCognitionState: state.socialCognitionState,
-        metaphoricalMapState: state.metaphoricalMapState,
-        internalScientistState: state.internalScientistState,
-        metisSandboxState: state.metisSandboxState,
-    }), [
-        state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
-        state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
-        state.knownUnknowns, state.theme, state.language, state.limitations, state.causalSelfModel,
-        state.developmentalHistory, state.telosEngine, state.boundaryDetectionEngine, state.aspirationalEngine,
-        state.noosphereInterface, state.dialecticEngine, state.cognitiveLightCone, state.phenomenologicalEngine,
-        state.situationalAwareness, state.symbioticState, state.humorAndIronyState, state.personalityState,
-        state.gankyilInsights, state.noeticEngramState, state.genialityEngineState, state.noeticMultiverse,
-        state.selfAdaptationState, state.psychedelicIntegrationState,
-        state.affectiveModulatorState, state.psionicDesynchronizationState, state.satoriState,
-        state.doxasticEngineState, state.qualiaSignalProcessorState, state.sensoryIntegration, state.narrativeSummary,
-        state.socialCognitionState, state.metaphoricalMapState,
-        state.internalScientistState, state.metisSandboxState,
-    ]);
-
-    const memoryStateValue = useMemo(() => ({
-        knowledgeGraph: state.knowledgeGraph, 
-        workingMemory: state.workingMemory, 
-        memoryNexus: state.memoryNexus,
-        episodicMemoryState: state.episodicMemoryState,
-        memoryConsolidationState: state.memoryConsolidationState,
-    }), [state.knowledgeGraph, state.workingMemory, state.memoryNexus, state.episodicMemoryState, state.memoryConsolidationState]);
-
-    const architectureStateValue = useMemo(() => ({
-        cognitiveArchitecture: state.cognitiveArchitecture, 
-        systemSnapshots: state.systemSnapshots, 
-        modificationLog: state.modificationLog, 
-        cognitiveForgeState: state.cognitiveForgeState,
-        architecturalSelfModel: state.architecturalSelfModel,
-        heuristicsForge: state.heuristicsForge,
-        somaticCrucible: state.somaticCrucible,
-        eidolonEngine: state.eidolonEngine,
-        architecturalCrucibleState: state.architecturalCrucibleState,
-        synapticMatrix: state.synapticMatrix,
-        ricciFlowManifoldState: state.ricciFlowManifoldState,
-        selfProgrammingState: state.selfProgrammingState,
-        neuralAcceleratorState: state.neuralAcceleratorState,
-        neuroCortexState: state.neuroCortexState,
-        granularCortexState: state.granularCortexState,
-        koniocortexSentinelState: state.koniocortexSentinelState,
-        cognitiveTriageState: state.cognitiveTriageState,
-        psycheState: state.psycheState,
-        motorCortexState: state.motorCortexState,
-        praxisResonatorState: state.praxisResonatorState,
-        ontogeneticArchitectState: state.ontogeneticArchitectState,
-        embodiedCognitionState: state.embodiedCognitionState,
-        evolutionarySandboxState: state.evolutionarySandboxState,
-        hovaState: state.hovaState,
-        documentForgeState: state.documentForgeState,
-    }), [
-        state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState, 
-        state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
-        state.architecturalCrucibleState, state.synapticMatrix, state.ricciFlowManifoldState,
-        state.selfProgrammingState,
-        state.neuralAcceleratorState, state.neuroCortexState,
-        state.granularCortexState, state.koniocortexSentinelState, state.cognitiveTriageState,
-        state.psycheState, state.motorCortexState, state.praxisResonatorState,
-        state.ontogeneticArchitectState, state.embodiedCognitionState, state.evolutionarySandboxState,
-        state.hovaState, state.documentForgeState
-    ]);
-
-    const planningStateValue = useMemo(() => ({
-        goalTree: state.goalTree,
-        activeStrategicGoalId: state.activeStrategicGoalId,
-        disciplineState: state.disciplineState,
-        premotorPlannerState: state.premotorPlannerState,
-        basalGangliaState: state.basalGangliaState,
-        cerebellumState: state.cerebellumState,
-    }), [state.goalTree, state.activeStrategicGoalId, state.disciplineState, state.premotorPlannerState, state.basalGangliaState, state.cerebellumState]);
-
-    const engineStateValue = useMemo(() => ({
-        proactiveEngineState: state.proactiveEngineState, 
-        ethicalGovernorState: state.ethicalGovernorState, 
-        intuitionEngineState: state.intuitionEngineState, 
-        intuitiveLeaps: state.intuitiveLeaps, 
-        ingenuityState: state.ingenuityState,
-    }), [state.proactiveEngineState, state.ethicalGovernorState, state.intuitionEngineState, state.intuitiveLeaps, state.ingenuityState]);
-
-    const logsStateValue = useMemo(() => ({
-        history: state.history, 
-        performanceLogs: state.performanceLogs, 
-        commandLog: state.commandLog, 
-        cognitiveModeLog: state.cognitiveModeLog, 
-        cognitiveGainLog: state.cognitiveGainLog, 
-        cognitiveRegulationLog: state.cognitiveRegulationLog,
-    }), [state.history, state.performanceLogs, state.commandLog, state.cognitiveModeLog, state.cognitiveGainLog, state.cognitiveRegulationLog]);
-
-    const systemStateValue = useMemo(() => ({
-        resourceMonitor: state.resourceMonitor, 
-        metacognitiveNexus: state.metacognitiveNexus, 
-        metacognitiveCausalModel: state.metacognitiveCausalModel,
-        pluginState: state.pluginState,
-        kernelState: state.kernelState,
-        ipcState: state.ipcState,
-        eventBus: state.eventBus,
-        cognitiveOSState: state.cognitiveOSState,
-    }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState, state.kernelState, state.ipcState, state.eventBus, state.cognitiveOSState]);
-
-    const localizationValue = useMemo(() => ({ t, language }), [t, language]);
-    
-    return (
-        <LocalizationContext.Provider value={localizationValue}>
-            <CoreStateContext.Provider value={coreStateValue}>
-                <MemoryStateContext.Provider value={memoryStateValue}>
-                    <ArchitectureStateContext.Provider value={architectureStateValue}>
-                        <PlanningStateContext.Provider value={planningStateValue}>
-                            <EngineStateContext.Provider value={engineStateValue}>
-                                <LogsStateContext.Provider value={logsStateValue}>
-                                    <SystemStateContext.Provider value={systemStateValue}>
-                                        {children}
-                                    </SystemStateContext.Provider>
-                                </LogsStateContext.Provider>
-                            </EngineStateContext.Provider>
-                        </PlanningStateContext.Provider>
-                    </ArchitectureStateContext.Provider>
-                </MemoryStateContext.Provider>
-            </CoreStateContext.Provider>
-        </LocalizationContext.Provider>
-    );
-};
-
-
 export const App = () => {
-    const auraInterface = useAura();
-
     return (
-        <AuraDispatchContext.Provider value={auraInterface}>
-            <StateProviders>
-                <ModalProvider>
-                    <MainLayout />
-                </ModalProvider>
-            </StateProviders>
-        </AuraDispatchContext.Provider>
+        <AuraProvider>
+            <ModalProvider>
+                <MainLayout />
+            </ModalProvider>
+        </AuraProvider>
     );
 };

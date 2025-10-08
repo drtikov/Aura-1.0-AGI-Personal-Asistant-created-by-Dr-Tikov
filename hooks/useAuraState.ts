@@ -56,9 +56,10 @@ export const useAuraState = () => {
         }
     }, [state, memoryStatus]);
 
-    const handleClearDB = useCallback(async () => {
+    const clearMemoryAndState = useCallback(async () => {
         await HAL.Memristor.clearDB();
+        dispatch({ type: 'RESET_STATE' });
     }, []);
 
-    return { state, dispatch, memoryStatus, clearDB: handleClearDB };
+    return { state, dispatch, memoryStatus, clearMemoryAndState };
 };

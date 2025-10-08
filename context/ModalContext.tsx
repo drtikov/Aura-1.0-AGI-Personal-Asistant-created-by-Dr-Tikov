@@ -1,5 +1,3 @@
-
-
 import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
 import { CausalChainModal } from '../components/CausalChainModal';
 import { ProposalReviewModal } from '../components/ProposalReviewModal';
@@ -20,9 +18,11 @@ import { SkillGenesisModal } from '../components/SkillGenesisModal';
 import { AbstractConceptModal } from '../components/AbstractConceptModal';
 import { TelosModal } from '../components/TelosModal';
 import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal';
+import { DocumentForgeModal } from '../components/DocumentForgeModal';
 import { useAuraDispatch, useCoreState } from './AuraContext';
 import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types';
 import { PluginManagerModal } from '../components/PluginManagerModal';
+import { PoseQuestionModal } from '../components/PoseQuestionModal';
 
 type ModalType = 
     | 'causalChain' 
@@ -44,7 +44,9 @@ type ModalType =
     | 'abstractConcept'
     | 'telos'
     | 'psychePrimitives'
-    | 'pluginManager';
+    | 'pluginManager'
+    | 'poseQuestion'
+    | 'documentForge';
 
 interface ModalContextType {
     open: <T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => void;
@@ -56,15 +58,12 @@ const ModalContext = createContext<ModalContextType | undefined>(undefined);
 export const ModalProvider = ({ children }: { children?: ReactNode }) => {
     const [modal, setModal] = useState<{ type: ModalType; payload: any } | null>(null);
     const { 
-        // FIX: Replaced non-existent handlers with the correct ones from useAura.
         approveProposal, rejectProposal, handleWhatIf, 
         handleSearch, handleSetStrategicGoal, 
         processingState, handleMultiverseBranch, handleBrainstorm,
-        handleSetTelos
+        handleSetTelos, handlePoseQuestion
     } = useAuraDispatch();
     
-    // FIX: Use the specific useCoreState hook to get only the necessary state slices.
-    // This resolves the error where the larger 'state' object from useAuraDispatch was undefined.
     const { internalState, telosEngine } = useCoreState();
 
     const open = useCallback(<T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => {
@@ -186,6 +185,15 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
             />
             <PluginManagerModal
                 isOpen={modal?.type === 'pluginManager'}
+                onClose={close}
+            />
+            <PoseQuestionModal
+                isOpen={modal?.type === 'poseQuestion'}
+                onClose={close}
+                onPose={handlePoseQuestion}
+            />
+            <DocumentForgeModal
+                isOpen={modal?.type === 'documentForge'}
                 onClose={close}
             />
         </ModalContext.Provider>

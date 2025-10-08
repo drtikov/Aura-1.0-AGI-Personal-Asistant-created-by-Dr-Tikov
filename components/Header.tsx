@@ -1,10 +1,23 @@
 import React from 'react';
 import { useModal } from '../context/ModalContext';
-import { useLocalization } from '../context/AuraContext';
+import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext';
 
 export const Header = () => {
     const modal = useModal();
     const { t } = useLocalization();
+    const { syscall } = useAuraDispatch();
+    const { liveSessionState } = useCoreState();
+    const isLive = liveSessionState.status === 'live' || liveSessionState.status === 'connecting';
+
+    const handleGoLive = () => {
+        if (isLive) {
+            // The actual stopping logic is in useLiveSession, triggered by the overlay button
+            // This is just a backup, but the primary control is the overlay's "End Session"
+             syscall('LIVE/DISCONNECT', {});
+        } else {
+            syscall('LIVE/CONNECT', {});
+        }
+    };
 
     return (
         <header className="app-header">
@@ -12,6 +25,16 @@ export const Header = () => {
                 AURA
             </div>
             <div className="header-actions">
+                 <button 
+                    className={`image-generator-button go-live-button ${isLive ? 'live' : ''}`}
+                    onClick={handleGoLive}
+                    title={t('tip_goLive')}
+                >
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+                        <path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/>
+                    </svg>
+                    <span>{isLive ? t('header_goLive_active') : t('header_goLive')}</span>
+                </button>
                 <button 
                     className="image-generator-button"
                     onClick={() => modal.open('imageGeneration', {})}

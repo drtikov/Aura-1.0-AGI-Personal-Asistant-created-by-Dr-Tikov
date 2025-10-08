@@ -9,7 +9,7 @@ interface AccordionProps {
     hasNotifications?: boolean;
 }
 
-// FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list, resolving type errors in consuming components.
+// Wrapped in React.memo for performance optimization to prevent re-rendering when props have not changed.
 export const Accordion = React.memo(({ title, children, defaultOpen = false, summary, hasNotifications = false }: AccordionProps) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const contentId = useId();

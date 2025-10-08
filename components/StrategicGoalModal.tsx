@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal';
-// FIX: Corrected casing in import path from 'auraContext' to 'AuraContext' to resolve module resolution errors.
 import { useLocalization } from '../context/AuraContext';
 
 export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }: { isOpen: boolean; onSetGoal: (goal: string) => void; onClose: () => void; isProcessing: boolean; }) => {

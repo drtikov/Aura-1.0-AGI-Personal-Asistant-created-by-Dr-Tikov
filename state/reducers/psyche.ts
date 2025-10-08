@@ -1,5 +1,5 @@
 // state/reducers/psyche.ts
-import { AuraState, Action, CognitivePrimitiveDefinition } from '../../types';
+import { AuraState, Action, CognitivePrimitiveDefinition, PsycheProposal } from '../../types';
 
 export const psycheReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -31,6 +31,39 @@ export const psycheReducer = (state: AuraState, action: Action): Partial<AuraSta
                 };
             }
             return {}; // No changes if no new unique primitives were added
+        }
+
+        case 'IMPLEMENT_PSYCHE_PROPOSAL': {
+            const { proposal } = args as { proposal: PsycheProposal };
+            if (!proposal) return {};
+
+            const newPrimitive: CognitivePrimitiveDefinition = {
+                type: `SYNTH_${proposal.proposedConceptName.toUpperCase().replace(/\s/g, '_')}`,
+                description: proposal.reasoning,
+                payloadSchema: {
+                    type: 'object',
+                    properties: {
+                        input: { type: 'string', description: `Input related to source concepts: ${proposal.sourceConcepts.map(sc => sc.description).join(', ')}` }
+                    },
+                    required: ['input'],
+                },
+                isSynthesized: true,
+                sourcePrimitives: proposal.sourceConcepts.map(sc => sc.description)
+            };
+            
+            // Avoid duplicates
+            if (state.psycheState.primitiveRegistry[newPrimitive.type]) return {};
+
+            return {
+                psycheState: {
+                    ...state.psycheState,
+                    version: state.psycheState.version + 1,
+                    primitiveRegistry: {
+                        ...state.psycheState.primitiveRegistry,
+                        [newPrimitive.type]: newPrimitive,
+                    }
+                }
+            };
         }
 
         default:

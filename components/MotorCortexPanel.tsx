@@ -25,23 +25,6 @@ export const MotorCortexPanel = () => {
                 <label>{t('motorCortex_status')}</label>
                 <strong className={`status-${status}`}>{status}</strong>
             </div>
-            
-            <form onSubmit={handleSubmit} className="input-area" style={{padding: 0, borderTop: 'none'}}>
-                <div className="input-area-content" style={{ marginTop: '0.5rem' }}>
-                     <textarea
-                        value={directive}
-                        onChange={(e) => setDirective(e.target.value)}
-                        placeholder={t('motorCortex_directive_placeholder')}
-                        rows={2}
-                        disabled={status === 'executing'}
-                    />
-                     <div className="input-controls">
-                        <button type="submit" disabled={status === 'executing' || !directive.trim()}>
-                            {t('motorCortex_dispatch_button')}
-                        </button>
-                    </div>
-                </div>
-            </form>
 
             <div className="panel-subsection-title">{t('motorCortex_actionQueue')} ({actionQueue.length})</div>
             {actionQueue.length > 0 ? (

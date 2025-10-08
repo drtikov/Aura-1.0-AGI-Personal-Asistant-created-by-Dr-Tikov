@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
 import { SyscallCall } from '../types';
@@ -16,7 +17,12 @@ export const KnowledgeGraphPanel = React.memo(() => {
                     <div className="kg-placeholder">{t('knowledgeGraph_placeholder')}</div>
                 ) : (
                     graph.map((fact) => (
-                        <div className="kg-fact" key={fact.id}>
+                        <div 
+                            className="kg-fact" 
+                            key={fact.id}
+                            style={{ opacity: 0.4 + (fact.strength * 0.6) }}
+                            title={`Strength: ${fact.strength.toFixed(2)}`}
+                        >
                             <div className="kg-fact-confidence" style={{'--confidence': `${fact.confidence * 100}%`} as React.CSSProperties} title={`${t('causalSelfModel_confidence')}: ${Math.round(fact.confidence * 100)}%`}></div>
                             <span className="kg-subject">{fact.subject}</span>
                             <span className="kg-predicate">{fact.predicate}</span>

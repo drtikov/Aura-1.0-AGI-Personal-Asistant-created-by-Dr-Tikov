@@ -1,5 +1,3 @@
-
-
 import React from 'react';
 import { Modal } from './Modal';
 import { Accordion } from './Accordion';

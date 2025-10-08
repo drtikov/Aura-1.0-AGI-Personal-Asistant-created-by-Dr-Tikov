@@ -24,25 +24,49 @@ const HypothesisCard = ({ hypothesis }: { hypothesis: InternalScientistHypothesi
     </div>
 );
 
-const ExperimentCard = ({ experiment }: { experiment: InternalScientistExperiment }) => (
-    <div className="gde-status" style={{ borderLeftColor: 'var(--secondary-color)'}}>
-        <p><strong>Experiment:</strong> {experiment.design.reasoning}</p>
-        <div className="code-snippet-container" style={{maxHeight: '100px', marginTop: '0.5rem'}}>
-            <pre><code>{`// Target: ${experiment.design.targetFile}\n${experiment.design.codeSnippet}`}</code></pre>
+// FIX: Added a type guard to correctly display code information from the SelfProgrammingCandidate union type.
+const ExperimentCard = ({ experiment }: { experiment: InternalScientistExperiment }) => {
+    const codeInfo = experiment.design.type === 'MODIFY' 
+        ? `// Target: ${experiment.design.targetFile}\n${experiment.design.codeSnippet}`
+        : `// New File: ${experiment.design.newFile.path}\n${experiment.design.newFile.content}`;
+
+    return (
+        <div className="gde-status" style={{ borderLeftColor: 'var(--secondary-color)'}}>
+            <p><strong>Experiment:</strong> {experiment.design.reasoning}</p>
+            <div className="code-snippet-container" style={{maxHeight: '100px', marginTop: '0.5rem'}}>
+                <pre><code>{codeInfo}</code></pre>
+            </div>
         </div>
-    </div>
-);
+    );
+};
 
 export const InternalScientistPanel = () => {
     const { internalScientistState } = useCoreState();
     const { t } = useLocalization();
-    const { status, log, currentFinding, currentHypothesis, currentExperiment, causalInference } = internalScientistState;
+    const { status, log, currentFinding, currentHypothesis, currentExperiment, causalInference, currentSimulationResult } = internalScientistState;
+
+    const renderResultValue = (label: string, value: number) => {
+        const isPositive = value > 0;
+        const isNegative = value < 0;
+        const color = isPositive ? 'var(--success-color)' : isNegative ? 'var(--failure-color)' : 'var(--text-muted)';
+        const sign = isPositive ? '+' : '';
+
+        return (
+            <div className="metric-item">
+                <span className="metric-label">{label}</span>
+                <span className="metric-value" style={{ color }}>{sign}{(value * 100).toFixed(1)}%</span>
+            </div>
+        );
+    };
 
     return (
         <div className="side-panel">
              <div className="awareness-item">
                 <label>{t('cogArchPanel_status')}</label>
-                <strong>{status.replace(/_/g, ' ')}</strong>
+                <strong style={{ textTransform: 'capitalize' }}>
+                    {status}
+                    {status !== 'idle' && <div className="spinner-small" style={{ display: 'inline-block', marginLeft: '0.5rem' }} />}
+                </strong>
             </div>
 
             {currentFinding && (
@@ -55,6 +79,24 @@ export const InternalScientistPanel = () => {
                 <>
                     <div className="panel-subsection-title">{t('scientist_currentHypothesis')}</div>
                     <HypothesisCard hypothesis={currentHypothesis} />
+                </>
+            )}
+            {status === 'simulating' && (
+                 <>
+                    <div className="panel-subsection-title">{t('scientist_simulationResult')}</div>
+                     <div className="gde-status" style={{ borderLeftColor: 'var(--guna-dharma)'}}>
+                        <p><strong>{t('scientist_prediction')}:</strong> <em>"{t('scientist_simulating')}"</em></p>
+                    </div>
+                </>
+            )}
+            {currentSimulationResult && (
+                 <>
+                    <div className="panel-subsection-title">{t('scientist_simulationResult')}</div>
+                     <div className="secondary-metrics" style={{ gridTemplateColumns: '1fr 1fr 1fr', textAlign: 'center' }}>
+                        {renderResultValue(t('scientist_wisdomChange'), currentSimulationResult.wisdomChange)}
+                        {renderResultValue(t('scientist_happinessChange'), currentSimulationResult.happinessChange)}
+                        {renderResultValue(t('scientist_harmonyChange'), currentSimulationResult.harmonyChange)}
+                    </div>
                 </>
             )}
             {currentExperiment && (
@@ -83,7 +125,7 @@ export const InternalScientistPanel = () => {
                     log.map(entry => (
                         <div key={entry.timestamp} className="command-log-item log-type-info">
                             <span className="log-icon">🔬</span>
-                            <span className="log-text">{entry.event.replace(/_/g, ' ')}</span>
+                            <span className="log-text" style={{ textTransform: 'capitalize' }}>{entry.event.replace(/_/g, ' ')}</span>
                             <span className="log-time">{timeAgo(entry.timestamp, t)}</span>
                         </div>
                     ))

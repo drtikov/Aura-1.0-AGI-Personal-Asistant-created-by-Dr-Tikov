@@ -30,6 +30,125 @@ const shotTypes: { id: ShotType; labelKey: string }[] = [ { id: 'none', labelKey
 const lensPresets: { id: LensPreset; labelKey: string }[] = [ { id: 'none', labelKey: 'imageGen_preset_none' }, { id: 'wide', labelKey: 'imageGen_lens_wide' }, { id: 'standard', labelKey: 'imageGen_lens_standard' }, { id: 'telephoto', labelKey: 'imageGen_lens_telephoto' }, { id: 'macro', labelKey: 'imageGen_lens_macro' }, { id: 'fisheye', labelKey: 'imageGen_lens_fisheye' } ];
 const atmospheres: { id: Atmosphere; labelKey: string }[] = [ { id: 'none', labelKey: 'imageGen_preset_none' }, { id: 'ethereal', labelKey: 'imageGen_atmosphere_ethereal' }, { id: 'gritty', labelKey: 'imageGen_atmosphere_gritty' }, { id: 'ominous', labelKey: 'imageGen_atmosphere_ominous' }, { id: 'serene', labelKey: 'imageGen_atmosphere_serene' }, { id: 'joyful', labelKey: 'imageGen_atmosphere_joyful' }, { id: 'nostalgic', labelKey: 'imageGen_atmosphere_nostalgic' }, { id: 'mysterious', labelKey: 'imageGen_atmosphere_mysterious' } ];
 
+interface Style {
+    id: string;
+    labelKey: string;
+}
+
+interface StyleGroup {
+    labelKey: string;
+    styles: Style[];
+}
+
+const styleGroups: StyleGroup[] = [
+    {
+        labelKey: 'imageGen_style_group_core',
+        styles: [
+            { id: 'photorealistic', labelKey: 'imageGen_style_photorealistic' },
+            { id: 'fantasy', labelKey: 'imageGen_style_fantasy' },
+            { id: 'cyberpunk', labelKey: 'imageGen_style_cyberpunk' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_painting',
+        styles: [
+            { id: 'watercolor', labelKey: 'imageGen_style_watercolor' },
+            { id: 'oilPainting', labelKey: 'imageGen_style_oilPainting' },
+            { id: 'impressionism', labelKey: 'imageGen_style_impressionism' },
+            { id: 'surrealism', labelKey: 'imageGen_style_surrealism' },
+            { id: 'charcoalSketch', labelKey: 'imageGen_style_charcoalSketch' },
+            { id: 'impasto', labelKey: 'imageGen_style_impasto' },
+            { id: 'gouache', labelKey: 'imageGen_style_gouache' },
+            { id: 'pastel', labelKey: 'imageGen_style_pastel' },
+            { id: 'fresco', labelKey: 'imageGen_style_fresco' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_digital',
+        styles: [
+            { id: 'threeDRender', labelKey: 'imageGen_style_threeDRender' },
+            { id: 'lowPoly', labelKey: 'imageGen_style_lowPoly' },
+            { id: 'pixelart', labelKey: 'imageGen_style_pixelart' },
+            { id: 'glitchArt', labelKey: 'imageGen_style_glitchArt' },
+            { id: 'holographic', labelKey: 'imageGen_style_holographic' },
+            { id: 'synthwave', labelKey: 'imageGen_style_synthwave' },
+            { id: 'vaporwave', labelKey: 'imageGen_style_vaporwave' },
+            { id: 'vectorArt', labelKey: 'imageGen_style_vectorArt' },
+            { id: 'mattePainting', labelKey: 'imageGen_style_mattePainting' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_photo',
+        styles: [
+            { id: 'vintage', labelKey: 'imageGen_style_vintage' },
+            { id: 'filmNoir', labelKey: 'imageGen_style_filmNoir' },
+            { id: 'longExposure', labelKey: 'imageGen_style_longExposure' },
+            { id: 'tiltShift', labelKey: 'imageGen_style_tiltShift' },
+            { id: 'doubleExposure', labelKey: 'imageGen_style_doubleExposure' },
+            { id: 'infrared', labelKey: 'imageGen_style_infrared' },
+            { id: 'goldenHour', labelKey: 'imageGen_style_goldenHour' },
+            { id: 'daguerreotype', labelKey: 'imageGen_style_daguerreotype' },
+            { id: 'polaroid', labelKey: 'imageGen_style_polaroid' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_illustration',
+        styles: [
+            { id: 'comicBook', labelKey: 'imageGen_style_comicBook' },
+            { id: 'graphicNovel', labelKey: 'imageGen_style_graphicNovel' },
+            { id: 'storybook', labelKey: 'imageGen_style_storybook' },
+            { id: 'linocut', labelKey: 'imageGen_style_linocut' },
+            { id: 'woodcut', labelKey: 'imageGen_style_woodcut' },
+            { id: 'penAndInk', labelKey: 'imageGen_style_penAndInk' },
+            { id: 'airbrush', labelKey: 'imageGen_style_airbrush' },
+            { id: 'charcoal', labelKey: 'imageGen_style_charcoal' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_scifi',
+        styles: [
+            { id: 'steampunk', labelKey: 'imageGen_style_steampunk' },
+            { id: 'dieselpunk', labelKey: 'imageGen_style_dieselpunk' },
+            { id: 'biopunk', labelKey: 'imageGen_style_biopunk' },
+            { id: 'solarpunk', labelKey: 'imageGen_style_solarpunk' },
+            { id: 'eldritch', labelKey: 'imageGen_style_eldritch' },
+            { id: 'retrofuturism', labelKey: 'imageGen_style_retrofuturism' },
+            { id: 'nanopunk', labelKey: 'imageGen_style_nanopunk' },
+        ]
+    },
+
+    {
+        labelKey: 'imageGen_style_group_unconventional',
+        styles: [
+            { id: 'psychedelic', labelKey: 'imageGen_style_psychedelic' },
+            { id: 'fractalArt', labelKey: 'imageGen_style_fractalArt' },
+            { id: 'opArt', labelKey: 'imageGen_style_opArt' },
+            { id: 'generativeArt', labelKey: 'imageGen_style_generativeArt' },
+            { id: 'dadaism', labelKey: 'imageGen_style_dadaism' },
+            { id: 'cubism', labelKey: 'imageGen_style_cubism' },
+            { id: 'popArt', labelKey: 'imageGen_style_popArt' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_technical',
+        styles: [
+            { id: 'blueprint', labelKey: 'imageGen_style_blueprint' },
+            { id: 'xRay', labelKey: 'imageGen_style_xRay' },
+            { id: 'schematic', labelKey: 'imageGen_style_schematic' },
+            { id: 'isometric', labelKey: 'imageGen_style_isometric' },
+            { id: 'orthographic', labelKey: 'imageGen_style_orthographic' },
+            { id: 'infographic', labelKey: 'imageGen_style_infographic' },
+        ]
+    },
+    {
+        labelKey: 'imageGen_style_group_traditional',
+        styles: [
+            { id: 'ukiyoE', labelKey: 'imageGen_style_ukiyoE' },
+            { id: 'tribalArt', labelKey: 'imageGen_style_tribalArt' },
+            { id: 'cavePainting', labelKey: 'imageGen_style_cavePainting' },
+        ]
+    },
+];
 
 export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: boolean; onClose: () => void; initialImage?: string; }) => {
     const { t } = useLocalization();
@@ -258,13 +377,11 @@ export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: b
                             <label htmlFor="edit-style">{t('imageGen_artisticStyle')}</label>
                             <select id="edit-style" value={style} onChange={e => setStyle(e.target.value)} disabled={isGenerating}>
                                 <option value="none">{t('imageGen_style_none')}</option>
-                                <option value="photorealistic">{t('imageGen_style_photorealistic')}</option>
-                                <option value="fantasy art">{t('imageGen_style_fantasy')}</option>
-                                <option value="cyberpunk">{t('imageGen_style_cyberpunk')}</option>
-                                {/* FIX: Changed key from videoGen_style_watercolor to imageGen_style_watercolor to match refactor */}
-                                <option value="watercolor">{t('videoGen_style_watercolor')}</option>
-                                <option value="oil painting">{t('imageGen_style_oilPainting')}</option>
-                                <option value="surrealism">{t('imageGen_style_surrealism')}</option>
+                                {styleGroups.map(group => (
+                                    <optgroup key={group.labelKey} label={t(group.labelKey)}>
+                                        {group.styles.map(s => <option key={s.id} value={s.id}>{t(s.labelKey)}</option>)}
+                                    </optgroup>
+                                ))}
                             </select>
                         </div>
                          <div className="image-gen-control-group">

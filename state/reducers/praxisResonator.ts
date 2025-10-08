@@ -9,12 +9,19 @@ export const praxisResonatorReducer = (state: AuraState, action: Action): Partia
 
     switch (call) {
         case 'PRAXIS/CREATE_SESSION': {
+            const sessionData = args as { planId: string; chat: { model: string }; createdAt: number };
+            const serializableSession = {
+                planId: sessionData.planId,
+                model: sessionData.chat.model, // Extract only the model name
+                createdAt: sessionData.createdAt,
+            };
+
             return {
                 praxisResonatorState: {
                     ...state.praxisResonatorState,
                     activeSessions: {
                         ...state.praxisResonatorState.activeSessions,
-                        [args.planId]: args,
+                        [serializableSession.planId]: serializableSession,
                     }
                 }
             };

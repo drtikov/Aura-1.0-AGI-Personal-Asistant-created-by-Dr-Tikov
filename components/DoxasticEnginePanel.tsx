@@ -98,10 +98,8 @@ export const DoxasticEnginePanel = () => {
                                 <strong>{hypo.linkKey.replace('internalState.', '').replace('event.','')}</strong>
                             </p>
                             <div className="mod-log-header" style={{ justifyContent: 'space-between' }}>
+                                <small style={{ textTransform: 'capitalize' }}>Source: {hypo.source}</small>
                                 <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(hypo.status), fontWeight: 'bold' }}>{hypo.status}</span></small>
-                                {hypo.status === 'untested' && (
-                                    <button className="trace-button" onClick={() => testCausalHypothesis(hypo)}>Test</button>
-                                )}
                             </div>
                         </div>
                     ))

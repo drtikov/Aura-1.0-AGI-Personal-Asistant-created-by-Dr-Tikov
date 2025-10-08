@@ -4,15 +4,14 @@ import { GunaState } from '../types';
 import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis';
-import { useCoreState, useLocalization, useArchitectureState } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 import { SystemVitals } from './SystemVitals';
 
 export const CoreMonitor = React.memo(() => {
     const { internalState, rieState, userModel, internalStateHistory = [] } = useCoreState();
-    const { modificationLog } = useArchitectureState();
     const { t } = useLocalization();
 
-    const autonomousEvolutions = modificationLog.filter(log => log.isAutonomous).length;
+    const { autonomousEvolutions } = internalState;
 
     const gunaInfo = { 
         [GunaState.SATTVA]: { name: "Sattva", description: t('gunaSattvaDesc'), className: "sattva" }, 
@@ -65,7 +64,6 @@ export const CoreMonitor = React.memo(() => {
                 <div className="metric-item"> <span className="metric-label">{t('metricEthicalAlign')}</span> <span className="metric-value">{(internalState.harmonyScore * 100).toFixed(0)}%</span> </div> 
                 <div className="metric-item"> <span className="metric-label">{t('metricUserTrust')}</span> <span className="metric-value">{(userModel.trustLevel * 100).toFixed(0)}%</span> </div> 
                 <div className="metric-item"> <span className="metric-label">{t('metricSelfModel')}</span> <span className="metric-value">{(rieState.clarityScore * 100).toFixed(0)}%</span> </div> 
-                <div className="metric-item"> <span className="metric-label">{t('metricSelfEvolutions')}</span> <span className="metric-value">{autonomousEvolutions}</span> </div> 
             </div>
             <div className="hormone-signals"> 
                 <div className="hormone-item"> <label>{t('hormoneNovelty')}</label> <div className="state-bar-container"><div className="state-bar novelty-bar" style={{width: `${internalState.noveltySignal * 100}%`}}></div></div> </div> 
@@ -76,7 +74,7 @@ export const CoreMonitor = React.memo(() => {
             </div>
             
             <div className="state-trajectory">
-                <h4 className="trajectory-title">{t('trajectoryTitle')}</h4>
+                <h4 className="trajectory-header">{t('trajectoryTitle')}</h4>
                 <div className="sparkline-grid">
                     <div className="sparkline-item">
                         <div className="sparkline-labels"><span>{t('gaugeWisdom')}</span><span>{t('gaugeHappiness')}</span></div>
@@ -96,7 +94,7 @@ export const CoreMonitor = React.memo(() => {
                 </div>
             </div>
             <div className="temporal-focus-container">
-                <h4 className="temporal-focus-display-title">{t('temporalFocus_title')}</h4>
+                <h4 className="temporal-focus-display-header">{t('temporalFocus_title')}</h4>
                 <div className="temporal-focus-display">
                     <div className={`temporal-focus-item ${internalState.temporalFocus === 'past' ? 'active' : ''}`}>{t('temporalFocus_past')}</div>
                     <div className={`temporal-focus-item ${internalState.temporalFocus === 'present' ? 'active' : ''}`}>{t('temporalFocus_present')}</div>

@@ -1,12 +1,17 @@
+// components/NoeticMultiversePanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
+import { MultiverseBranch } from '../types';
 
 export const NoeticMultiversePanel = React.memo(() => {
     const { noeticMultiverse: state } = useCoreState();
     const { t } = useLocalization();
 
+    const sortedBranches = [...state.activeBranches].sort((a, b) => b.viabilityScore - a.viabilityScore);
+    const primaryBranch = sortedBranches.length > 0 ? sortedBranches[0] : null;
+
     return (
-        <div className="side-panel noetic-multiverse-panel">
+        <div className="noetic-multiverse-panel">
             <div className="synaptic-metrics">
                 <div className="metric-item">
                     <span className="metric-label">{t('multiverse_activeBranches')}</span>
@@ -18,40 +23,36 @@ export const NoeticMultiversePanel = React.memo(() => {
                 </div>
             </div>
 
-            <div className="panel-subsection-title">{t('multiverse_activeBranches')}</div>
-            {state.activeBranches.length === 0 ? (
-                <div className="kg-placeholder">{t('multiverse_noBranches')}</div>
-            ) : (
-                state.activeBranches.map(branch => (
-                    <div key={branch.id} className="rie-insight-item" style={{ background: 'rgba(0, 255, 255, 0.05)' }}>
-                        <div className="rie-insight-header">
-                            <span title={branch.id}>Branch-{branch.id.substring(0, 8)}</span>
-                            <strong className="rie-insight-model-update-value">{branch.status}</strong>
-                        </div>
-                        <div className="rie-insight-body">
-                             <p>
-                                <em>{branch.reasoningPath}</em>
-                            </p>
-                            <div className="state-item" style={{paddingTop: '0.5rem'}}>
-                                <label>{t('multiverse_viability')}</label>
-                                <div className="state-bar-container">
-                                    <div className="state-bar" style={{ width: `${branch.viabilityScore * 100}%`, backgroundColor: 'var(--accent-color)' }}></div>
-                                </div>
+            <div className="panel-subsection-title">Probability Cone</div>
+            {sortedBranches.length > 0 ? (
+                <div className="multiverse-cone">
+                    {sortedBranches.map(branch => (
+                        <div 
+                            key={branch.id} 
+                            className={`multiverse-branch ${branch.id === primaryBranch?.id ? 'primary' : ''} ${branch.status === 'pruned' ? 'pruned' : ''}`}
+                        >
+                            <div className="branch-header">
+                                <span title={branch.id}>Branch {branch.id.substring(0, 8)}...</span>
+                                <span className="branch-viability">Viability: {(branch.viabilityScore * 100).toFixed(1)}%</span>
                             </div>
+                            <p className="branch-path">{branch.reasoningPath}</p>
                         </div>
-                    </div>
-                ))
+                    ))}
+                </div>
+            ) : (
+                <div className="kg-placeholder">{t('multiverse_noBranches')}</div>
             )}
+            
 
             <div className="panel-subsection-title">{t('multiverse_pruningLog')}</div>
-            {state.pruningLog.length === 0 ? (
-                <div className="kg-placeholder">{t('multiverse_noPrunedInsights')}</div>
-            ) : (
-                <ul className="ethical-principles-list">
+            {state.pruningLog.length > 0 ? (
+                <ul className="pruning-log-list">
                     {state.pruningLog.map((log, index) => (
                         <li key={index}>{log}</li>
                     ))}
                 </ul>
+            ) : (
+                <div className="kg-placeholder">{t('multiverse_noPrunedInsights')}</div>
             )}
         </div>
     );

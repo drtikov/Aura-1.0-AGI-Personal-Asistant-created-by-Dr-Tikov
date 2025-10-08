@@ -3,15 +3,17 @@
 // A special type to stop TypeScript from complaining about the Gemini API types.
 // This is a workaround for the build environment not having the dependency installed.
 declare global {
-    namespace google {
-        namespace generativeai {
-            class GoogleGenerativeAI {
-                constructor(apiKey: string);
-            }
-        }
+    interface Window {
+        // FIX: Expanded the codeAssistant interface to include all methods, resolving a type conflict with core/hostBridge.ts.
+        codeAssistant?: {
+            runCommand: (command: string) => Promise<any>;
+            readFile: (path: string) => Promise<string>;
+            writeFile: (path: string, content: string) => Promise<void>;
+            listFiles: () => Promise<string[]>;
+        };
     }
 }
-
+import { Part } from "@google/genai";
 // --- Enums ---
 
 export enum GunaState {
@@ -38,6 +40,30 @@ export enum GoalType {
     OPERATIONAL = 'OPERATIONAL',
 }
 
+export enum CognitiveTaskType {
+    FAST_TRACK_AUDIT = 'FAST_TRACK_AUDIT',
+    DEEP_REFLECTOR = 'DEEP_REFLECTOR',
+    PHILOSOPHICAL_SYNTHESIS = 'PHILOSOPHICAL_SYNTHESIS',
+    SYMBIOTIC_ANALYSIS = 'SYMBIOTIC_ANALYSIS',
+    HEBBIAN_LEARNING = 'HEBBIAN_LEARNING',
+    // ASI Variant Tasks
+    AGIS_CONFIDENCE_CALIBRATION = 'AGIS_CONFIDENCE_CALIBRATION',
+    SYMBOL_GENESIS = 'SYMBOL_GENESIS',
+    ASPIRATIONAL_CALCULUS = 'ASPIRATIONAL_CALCULUS',
+    TELOS_REFINEMENT = 'TELOS_REFINEMENT',
+    ANALOGICAL_INFERENCE = 'ANALOGICAL_INFERENCE',
+    INTERNAL_SCIENCE_CYCLE = 'INTERNAL_SCIENCE_CYCLE',
+    TELOS_DRIVEN_CURIOSITY = 'TELOS_DRIVEN_CURIOSITY',
+    INTER_FACULTY_DIALECTICS = 'INTER_FACULTY_DIALECTICS',
+    // Variants J, K, L
+    MEMORY_DECAY_CYCLE = 'MEMORY_DECAY_CYCLE',
+    USER_PORTRAIT_SYNTHESIS = 'USER_PORTRAIT_SYNTHESIS',
+    CHRONICLE_UPDATE = 'CHRONICLE_UPDATE',
+    PROACTIVE_RESPONSE_CACHING = 'PROACTIVE_RESPONSE_CACHING',
+    CONCEPTUAL_SYNTHESIS = 'CONCEPTUAL_SYNTHESIS',
+}
+
+
 // --- Core State Interfaces ---
 
 export interface InternalState {
@@ -58,6 +84,17 @@ export interface InternalState {
     awarenessClarity: number;
     temporalFocus: 'past' | 'present' | 'future';
     mantraRepetitions: number;
+    autonomousEvolutions: number;
+}
+
+export interface PersonalityPortrait {
+    summary: string;
+    traits: {
+        [trait: string]: {
+            score: number; // 0.0 to 1.0
+            evidence: string[];
+        };
+    };
 }
 
 export interface UserModel {
@@ -71,6 +108,7 @@ export interface UserModel {
     inferredBeliefs: string[];
     inferredCognitiveState: 'focused' | 'curious' | 'confused' | 'bored' | 'neutral';
     queuedEmpathyAffirmations: string[];
+    personalityPortrait: PersonalityPortrait;
 }
 
 export interface CoreIdentity {
@@ -149,7 +187,7 @@ export interface CausalLink {
     cause: string;
     effect: string;
     confidence: number;
-    source: 'rie' | 'hcl' | 'llm'; // ReflectiveInsightEngine, HeuristicCausalLinker, LLM
+    source: 'rie' | 'hcl' | 'llm' | 'internal_scientist'; // ReflectiveInsightEngine, HeuristicCausalLinker, LLM, InternalScientist
     lastUpdated: number;
 }
 
@@ -164,10 +202,19 @@ export interface Milestone {
     description: string;
 }
 
+export interface CandidateTelos {
+    id: string;
+    text: string;
+    reasoning: string;
+    source: 'aspirational_calculus' | 'telos_refinement';
+    type: 'proposal' | 'refinement';
+}
+
 export interface TelosEngine {
     telos: string;
     evolutionaryVectors: EvolutionaryVector[];
     lastDecomposition: number;
+    candidateTelos: CandidateTelos[];
 }
 
 export interface EvolutionaryVector {
@@ -215,6 +262,7 @@ export interface DialecticEngine {
 
 export interface Dialectic {
     id: string;
+    origin: 'user' | 'autonomous';
     conflictDescription: string;
     thesis: { content: string; source: string; };
     antithesis: { content: string; source: string; };
@@ -264,6 +312,7 @@ export interface QualiaEntry {
 
 export interface SituationalAwareness {
     attentionalField: AttentionalField;
+    domChangeLog: { timestamp: number; summary: string }[];
 }
 
 export interface AttentionalField {
@@ -333,13 +382,15 @@ export interface PersonalityState {
     extraversion: number;
     agreeableness: number;
     neuroticism: number;
-    personas: { [key: string]: Persona };
+// FIX: Renamed Persona to PersonaActivation to resolve interface name collision.
+    personas: { [key: string]: PersonaActivation };
     dominantPersona: string;
     personaCoherence: number;
     lastUpdateReason: string;
 }
 
-export interface Persona {
+// FIX: Renamed Persona to PersonaActivation to resolve interface name collision.
+export interface PersonaActivation {
     activation: number;
 }
 
@@ -365,6 +416,17 @@ export interface NoeticEngram {
 export interface NoeticEngramState {
     status: 'idle' | 'generating' | 'ready';
     engram: NoeticEngram | null;
+}
+
+// FIX: Defined the missing GenialityEngineState interface.
+export interface GenialityEngineState {
+    genialityIndex: number;
+    componentScores: {
+        creativity: number;
+        insight: number;
+        synthesis: number;
+        flow: number;
+    };
 }
 
 export interface NoeticMultiverse {
@@ -424,7 +486,7 @@ export interface PsionicDesynchronizationState {
 
 export interface SatoriState {
     isActive: boolean;
-    stage: 'grounding' | 'breakthrough' | 'integration' | 'none';
+    stage: 'none' | 'grounding' | 'breakthrough' | 'integration';
     lastInsight: string | null;
     log: string[];
 }
@@ -442,6 +504,7 @@ export interface DoxasticHypothesis {
     linkKey: string;
     description: string;
     status: 'untested' | 'testing' | 'validated' | 'refuted';
+    source: 'user' | 'analogy' | 'rie';
 }
 
 export interface DoxasticSimulationResult {
@@ -467,6 +530,13 @@ export interface QualiaSignalProcessorState {
     perceptualLog: string[];
 }
 
+export interface LiveSessionState {
+    status: 'idle' | 'connecting' | 'live' | 'error';
+    inputTranscript: string;
+    outputTranscript: string;
+    transcriptHistory: { user: string; aura: string; timestamp: number }[];
+}
+
 export interface SensoryIntegration {
     proprioceptiveOutput: { [key: string]: any };
     linguisticOutput: { [key: string]: any };
@@ -485,17 +555,18 @@ export interface SocialCognitionState {
 
 export interface SocialGraphNode {
     id: string;
+    type: 'person' | 'group' | 'concept';
     name: string;
-    type: 'user' | 'group' | 'concept';
     summary: string;
     relationships: SocialRelationship[];
 }
 
 export interface SocialRelationship {
     targetId: string;
-    type: 'friend' | 'colleague' | 'antagonist' | 'topic_of_interest';
+    type: 'collaborator' | 'friend' | 'mentor' | 'competitor';
     strength: number;
 }
+
 
 export interface MetaphoricalMapState {
     metaphors: Metaphor[];
@@ -503,22 +574,71 @@ export interface MetaphoricalMapState {
 
 export interface Metaphor {
     id: string;
-    description: string;
     sourceDomain: string;
     targetDomain: string;
+    description: string;
     fitnessScore: number;
     observationCount: number;
 }
 
-export interface AtmanProjector {
-    coherence: number;
-    dominantNarrative: string;
-    activeBias: string;
-    growthVector: string;
+export interface NarrativeSummary {
+    // This seems to just be a string
 }
 
-// --- Memory Interfaces ---
+export interface InternalScientistState {
+    status: 'idle' | 'observing' | 'hypothesizing' | 'simulating' | 'experimenting' | 'analyzing';
+    log: { timestamp: number; event: string }[];
+    currentFinding: DiagnosticFinding | null;
+    currentHypothesis: InternalScientistHypothesis | null;
+    currentExperiment: InternalScientistExperiment | null;
+    causalInference: CausalInferenceResult | null;
+    activeExperimentPatch: { filePath: string; originalCode: string } | null;
+    currentSimulationResult: {
+        prediction: string;
+        confidence: number;
+        wisdomChange: number;
+        happinessChange: number;
+        harmonyChange: number;
+    } | null;
+}
 
+export interface CausalInferenceResult {
+    link: CausalLink;
+    confidence: number;
+    evidence: string[];
+}
+
+
+export interface DiagnosticFinding {
+    id: string;
+    timestamp: number;
+    finding: string;
+    severity: 'low' | 'medium' | 'high';
+    status: 'unprocessed' | 'hypothesized' | 'resolved';
+}
+
+export interface InternalScientistHypothesis {
+    id: string;
+    findingId: string;
+    text: string;
+}
+
+export interface InternalScientistExperiment {
+    id: string;
+    hypothesisId: string;
+    design: SelfProgrammingCandidate;
+    status: 'pending' | 'running' | 'complete';
+    result?: any;
+}
+
+export interface MetisSandboxState {
+    status: 'idle' | 'running' | 'complete' | 'error';
+    currentExperimentId: string | null;
+    testResults: any | null;
+    errorMessage: string | null;
+}
+
+// Memory
 export interface KnowledgeFact {
     id: string;
     subject: string;
@@ -526,6 +646,8 @@ export interface KnowledgeFact {
     object: string;
     confidence: number;
     source: string;
+    strength: number;
+    lastAccessed: number;
 }
 
 export interface MemoryNexus {
@@ -534,8 +656,8 @@ export interface MemoryNexus {
 
 export interface HyphaConnection {
     id: string;
-    source: string;
-    target: string;
+    source: string; // e.g., 'concept_A'
+    target: string; // e.g., 'episode_123'
     weight: number;
 }
 
@@ -548,9 +670,11 @@ export interface Episode {
     timestamp: number;
     title: string;
     summary: string;
-    keyTakeaway: string;
-    salience: number;
+    salience: number; // How important is this memory?
     valence: 'positive' | 'negative' | 'neutral';
+    keyTakeaway: string;
+    strength: number;
+    lastAccessed: number;
 }
 
 export interface MemoryConsolidationState {
@@ -558,8 +682,25 @@ export interface MemoryConsolidationState {
     status: 'idle' | 'consolidating';
 }
 
-// --- Architecture Interfaces ---
+export interface Summary {
+    id: string;
+    summary: string;
+}
 
+export interface ChronicleState {
+    dailySummaries: Record<string, Summary>;
+    globalSummary: Summary | null;
+    lastChronicleUpdate: number;
+}
+
+// --- Geometric Knowledge Graph Types ---
+export type MDNAVector = number[];
+export type MDNASpace = Record<string, MDNAVector>;
+export interface ConnectionData { weight: number; }
+export type ConceptConnections = Record<string, ConnectionData>;
+
+
+// Architecture
 export interface CognitiveArchitecture {
     modelComplexityScore: number;
     components: { [key: string]: CognitiveModule };
@@ -567,12 +708,12 @@ export interface CognitiveArchitecture {
     coprocessorArchitecture: CoprocessorArchitecture;
     coprocessorArchitectureMode: 'automatic' | 'manual';
     lastAutoSwitchReason?: string;
-    synthesizedPOLCommands: { [key: string]: { sequence: POLCommand[] } };
+    synthesizedPOLCommands: { [commandName: string]: { sequence: string[] } };
 }
 
 export interface CognitiveModule {
     version: string;
-    status: 'active' | 'inactive' | 'deprecated';
+    status: 'active' | 'inactive' | 'degraded';
 }
 
 export interface Coprocessor {
@@ -600,8 +741,8 @@ export interface ModificationLogEntry {
     id: string;
     timestamp: number;
     description: string;
-    gainType: 'OPTIMIZATION' | 'INNOVATION' | 'CORRECTION';
-    validationStatus: 'unvalidated' | 'validated' | 'refuted';
+    gainType: 'OPTIMIZATION' | 'INNOVATION' | 'REPAIR';
+    validationStatus: 'unvalidated' | 'validated' | 'failed';
     isAutonomous: boolean;
 }
 
@@ -620,6 +761,16 @@ export interface SynthesisCandidate {
     status: 'proposed' | 'approved' | 'rejected';
 }
 
+export interface SimulationLogEntry {
+    id: string;
+    timestamp: number;
+    skillId: string;
+    result: {
+        success: boolean;
+        output: any;
+    };
+}
+
 export interface SynthesizedSkill {
     id: string;
     name: string;
@@ -627,16 +778,6 @@ export interface SynthesizedSkill {
     steps: string[];
     status: 'active' | 'deprecated';
     policyWeight: number;
-}
-
-export interface SimulationLogEntry {
-    id: string;
-    timestamp: number;
-    skillId: string;
-    result: {
-        success: boolean;
-        output: string;
-    };
 }
 
 export interface ArchitecturalSelfModel {
@@ -650,7 +791,7 @@ export interface ArchitecturalComponentSelfModel {
 }
 
 export interface HeuristicsForge {
-    axioms: any[];
+    axioms: ProposedAxiom[];
     designHeuristics: DesignHeuristic[];
 }
 
@@ -679,17 +820,17 @@ export interface PossibleFutureSelf {
 export interface SomaticSimulationLog {
     id: string;
     pfsId: string;
-    outcome: 'success' | 'failure';
     reasoning: string;
-    somaticTrajectory: InternalState[];
+    outcome: 'success' | 'failure';
+    somaticTrajectory?: InternalState[];
 }
 
 export interface EidolonEngine {
     eidolon: {
         architectureVersion: string;
-        position: { x: number; y: number; z: number; };
+        position: {x:number,y:number,z:number};
         lastAction: string;
-        sensoryInput: any;
+        sensoryInput: any | null;
     };
     environment: {
         currentScenario: string;
@@ -708,8 +849,8 @@ export interface ArchitecturalCrucibleState {
 }
 
 export interface SynapticMatrix {
-    nodes: { [id: string]: SynapticNode };
-    links: { [key: string]: SynapticLink };
+    nodes: { [nodeId: string]: SynapticNode };
+    links: { [linkId: string]: SynapticLink };
     synapseCount: number;
     plasticity: number;
     efficiency: number;
@@ -718,36 +859,36 @@ export interface SynapticMatrix {
     lastPruningEvent: number;
     isAdapting: boolean;
     intuitiveAlerts: IntuitiveAlert[];
-}
-
-export interface SynapticNode {
-    id: string;
-    type: 'skill' | 'event' | 'state' | 'concept';
-    activation: number;
-}
-
-export interface SynapticLink {
-    weight: number;
-    causality: number; // -1 (inhibitory) to 1 (excitatory)
-    confidence: number;
-    observations: number;
-    crystallized?: boolean;
+    activeConcept?: string;
 }
 
 export interface IntuitiveAlert {
     id: string;
     message: string;
-    timestamp: number;
+}
+
+export interface SynapticNode {
+    id: string;
+    type: 'skill' | 'concept' | 'memory';
+    activation: number;
+}
+
+export interface SynapticLink {
+    weight: number;
+    causality: number; // -1 (B->A), 0 (undirected), 1 (A->B)
+    confidence: number;
+    observations: number;
+    crystallized?: boolean;
 }
 
 export interface RicciFlowManifoldState {
     perelmanEntropy: number;
     manifoldStability: number;
     singularityCount: number;
-    surgeryLog: RicciFlowSurgeryLog[];
+    surgeryLog: ManifoldSurgeryLog[];
 }
 
-export interface RicciFlowSurgeryLog {
+export interface ManifoldSurgeryLog {
     id: string;
     timestamp: number;
     description: string;
@@ -759,32 +900,43 @@ export interface SelfProgrammingState {
     virtualFileSystem: { [filePath: string]: string };
 }
 
-export interface NeuralAcceleratorState {
-    lastActivityLog: NeuralAcceleratorLogEntry[];
-}
-
-export interface NeuralAcceleratorLogEntry {
+// FIX: Defined the missing NACLogEntry interface.
+export interface NACLogEntry {
     id: string;
     timestamp: number;
-    type: 'pruning' | 'reinforcement';
+    type: string;
     description: string;
     projectedGain: number;
 }
 
+export interface NeuralAcceleratorState {
+    lastActivityLog: NACLogEntry[];
+}
+
+export interface ProtoSymbol {
+    id: string;
+    label: string;
+    activation: number;
+    description: string;
+    constituentColumnIds: string[];
+    mdnaVector: MDNAVector;
+}
+
 export interface NeuroCortexState {
-    layers: { [key: string]: { name: string, description: string } };
+    layers: { [key: string]: { name: string; description: string }};
     columns: CorticalColumn[];
     metrics: {
         hierarchicalCoherence: number;
         predictiveAccuracy: number;
         systemSynchronization: number;
-        errorIntegrationStatus: 'idle' | 'integrating' | 'stalled';
+        errorIntegrationStatus: 'idle' | 'integrating';
     };
     abstractConcepts: AbstractConcept[];
     resourceFocus: 'linguistic' | 'sensory' | 'abstract';
     simulationLog: NeuroSimulation[];
     globalErrorMap: GlobalErrorSignal[];
     protoSymbols: ProtoSymbol[];
+    activationLog: { timestamp: number, activeColumnIds: string[] }[];
 }
 
 export interface CorticalColumn {
@@ -792,20 +944,15 @@ export interface CorticalColumn {
     specialty: string;
     activation: number;
     connections: string[];
-    genome: {
-        domain: 'linguistic' | 'sensory' | 'abstract' | 'motor';
-        abstractionLevel: number;
-        creativityBias: number;
-        constraintAdherence: number;
-    };
+    genome: any;
 }
 
 export interface AbstractConcept {
     id: string;
     name: string;
-    description: string;
     constituentColumnIds: string[];
     activation: number;
+    description: string;
 }
 
 export interface NeuroSimulation {
@@ -824,39 +971,38 @@ export interface GlobalErrorSignal {
     correctiveAction: string;
 }
 
-export interface ProtoSymbol {
-    id: string;
-    label: string;
-    description: string;
-
-    activation: number;
-}
-
 export interface GranularCortexState {
     lastPredictionError: {
         timestamp: number;
         magnitude: number;
-        mismatchedPrimitives: { predicted: SensoryPrimitive | null, actual: SensoryPrimitive | null }[];
+        mismatchedPrimitives: { predicted: SensoryPrimitive | null; actual: SensoryPrimitive | null }[];
     } | null;
     lastActualEngram: SensoryEngram | null;
     lastPredictedEngram: SensoryEngram | null;
-    log: { timestamp: number, message: string }[];
+    log: { timestamp: number; message: string }[];
 }
 
 export interface SensoryEngram {
-    modality: 'visual' | 'auditory' | 'linguistic';
+    modality: 'visual' | 'auditory' | 'textual';
     rawPrimitives: SensoryPrimitive[];
 }
 
 export interface SensoryPrimitive {
     type: string;
-    value: number | string;
+    value: string | number;
     confidence?: number;
 }
 
 export interface KoniocortexSentinelState {
     lastPercept: Percept | null;
-    log: { timestamp: number; message: string; }[];
+    log: { timestamp: number, message: string }[];
+}
+
+export interface Percept {
+    rawText: string;
+    intent: string;
+    entities: string[];
+    sensoryEngram: SensoryEngram | null;
 }
 
 export interface CognitiveTriageState {
@@ -870,18 +1016,9 @@ export interface TriageDecision {
     reasoning: string;
 }
 
-export interface Percept {
-    id: string;
-    timestamp: number;
-    rawText: string;
-    intent: string;
-    entities: string[];
-    sensoryEngram: SensoryEngram | null;
-}
-
 export interface PsycheState {
     version: number;
-    primitiveRegistry: { [key: string]: CognitivePrimitiveDefinition };
+    primitiveRegistry: { [type: string]: CognitivePrimitiveDefinition };
 }
 
 export interface CognitivePrimitiveDefinition {
@@ -892,16 +1029,10 @@ export interface CognitivePrimitiveDefinition {
     sourcePrimitives?: string[];
 }
 
-export interface CognitivePrimitive {
-    type: string;
-    payload: any;
-}
-
 export interface MotorCortexState {
     status: 'idle' | 'executing' | 'completed' | 'failed';
     actionQueue: CognitivePrimitive[];
     executionIndex: number;
-
     lastError: string | null;
     log: MotorCortexLogEntry[];
 }
@@ -913,15 +1044,22 @@ export interface MotorCortexLogEntry {
     error?: string;
 }
 
+export interface CognitivePrimitive {
+    type: string;
+    payload: any;
+}
+
+
 export interface PraxisResonatorState {
     activeSessions: { [planId: string]: PraxisSession };
 }
 
 export interface PraxisSession {
     planId: string;
+    model: string; // Storing the model name instead of the live object
     createdAt: number;
-    chat: any; // Simplified Chat object
 }
+
 
 export interface OntogeneticArchitectState {
     proposalQueue: UnifiedProposal[];
@@ -929,8 +1067,8 @@ export interface OntogeneticArchitectState {
 
 export interface EmbodiedCognitionState {
     virtualBodyState: {
-        position: { x: number; y: number; z: number; };
-        orientation: { yaw: number; pitch: number; roll: number; };
+        position: { x: number, y: number, z: number };
+        orientation: { yaw: number, pitch: number, roll: number };
         balance: number;
     };
     simulationLog: EmbodimentSimulationLog[];
@@ -940,6 +1078,7 @@ export interface EmbodimentSimulationLog {
     id: string;
     timestamp: number;
     scenario: string;
+    action: string;
     outcome: 'success' | 'failure';
     reasoning: string;
 }
@@ -947,21 +1086,17 @@ export interface EmbodimentSimulationLog {
 export interface EvolutionarySandboxState {
     status: 'idle' | 'running' | 'complete';
     sprintGoal: string | null;
-    log: { timestamp: number, message: string }[];
+    log: { timestamp: number; message: string }[];
     startTime: number | null;
     result: {
         originalGoal: string;
         performanceGains: { metric: string, change: string }[];
-        diff: {
-            filePath: string;
-            before: string;
-            after: string;
-        };
+        diff: { filePath: string, before: string, after: string };
     } | null;
 }
 
 export interface HovaState {
-    optimizationTarget: 'latency' | 'accuracy' | 'token_usage';
+    optimizationTarget: 'latency' | 'accuracy' | 'cost';
     metrics: {
         totalOptimizations: number;
         avgLatencyReduction: number;
@@ -972,13 +1107,10 @@ export interface HovaState {
 export interface HOVAEvolutionLogEntry {
     id: string;
     timestamp: number;
-    target: string; // e.g., a function name
+    target: string;
     metric: 'latency';
     status: 'success' | 'failed_slower' | 'failed_incorrect';
-    performanceDelta: {
-        before: number;
-        after: number;
-    };
+    performanceDelta: { before: number, after: number };
 }
 
 export interface DocumentForgeState {
@@ -986,31 +1118,57 @@ export interface DocumentForgeState {
     goal: string;
     status: 'idle' | 'outlining' | 'generating_content' | 'generating_diagrams' | 'complete' | 'error';
     statusMessage: string;
-    document: ForgedDocument | null;
+    document: {
+        title: string;
+        chapters: {
+            id: string;
+            title: string;
+            content: string | null;
+            isGenerating: boolean;
+            diagram?: {
+                description: string;
+                isGenerating: boolean;
+                imageUrl: string | null;
+            };
+        }[];
+    } | null;
     error: string | null;
 }
 
-export interface ForgedDocument {
-    title: string;
-    chapters: ForgedChapter[];
+export interface WisdomIngestionState {
+    status: 'idle' | 'reading' | 'analyzing' | 'complete' | 'error';
+    currentBookContent: string | null;
+    errorMessage: string | null;
+    proposedAxioms: ProposedAxiom[];
 }
 
-export interface ForgedChapter {
+export interface Persona {
     id: string;
-    title: string;
-    content: string | null;
-    isGenerating: boolean;
-    diagram: ForgedDiagram | null;
-}
-
-export interface ForgedDiagram {
+    name: string;
     description: string;
-    imageUrl: string | null;
-    isGenerating: boolean;
+    systemInstruction: string;
 }
 
-// --- Planning Interfaces ---
+export interface PersonaState {
+    registry: Persona[];
+}
 
+export interface BrainstormIdea {
+    personaId: string;
+    personaName: string;
+    idea: string;
+}
+
+export interface BrainstormState {
+    status: 'idle' | 'brainstorming' | 'evaluating' | 'proposing' | 'complete';
+    topic: string | null;
+    ideas: BrainstormIdea[];
+    winningIdea: string | null;
+    finalProposalId: string | null;
+}
+
+
+// Planning
 export interface Goal {
     id: string;
     parentId: string | null;
@@ -1027,7 +1185,8 @@ export interface GoalTree {
 
 export interface DisciplineState {
     committedGoal: {
-        type: GoalType;
+        id: string;
+        type: string;
         description: string;
         commitmentStrength: number;
     } | null;
@@ -1042,34 +1201,30 @@ export interface PremotorPlannerState {
 
 export interface TacticalPlan {
     id: string;
-    timestamp: number;
     goal: string;
-    type: 'proactive' | 'reactive' | 'goal_driven';
-    selectionReasoning?: string;
-    actionValue?: number;
+    timestamp: number;
     sequence: {
-        commands: any[];
+        commands: any[]; // Would be more specific, like POLCommand
     };
+    type: 'proactive_cache' | 'deliberative';
+    actionValue?: number;
+    selectionReasoning?: string;
 }
+
 
 export interface BasalGangliaState {
     selectedPlanId: string | null;
-    log: {
-        timestamp: number;
-        selectedPlanId: string;
-        competingPlanIds: string[];
-        reasoning: string;
-    }[];
+    log: any[]; // More specific type later
 }
 
 export interface CerebellumState {
     isMonitoring: boolean;
     activePlanId: string | null;
     currentStepIndex: number;
-    driftLog: CerebellumDriftLogEntry[];
+    driftLog: CerebellumDriftLog[];
 }
 
-export interface CerebellumDriftLogEntry {
+export interface CerebellumDriftLog {
     timestamp: number;
     planId: string;
     stepIndex: number;
@@ -1077,12 +1232,13 @@ export interface CerebellumDriftLogEntry {
     correction: string;
 }
 
-
-// --- Engine Interfaces ---
-
+// Engines
 export interface ProactiveEngineState {
     generatedSuggestions: Suggestion[];
-    cachedResponsePlan: CachedPlan | null;
+    cachedResponsePlan: {
+        triggeringPrediction: string;
+        response: string;
+    } | null;
 }
 
 export interface Suggestion {
@@ -1090,11 +1246,6 @@ export interface Suggestion {
     text: string;
     confidence: number;
     status: 'suggested' | 'accepted' | 'rejected';
-}
-
-export interface CachedPlan {
-    triggeringPrediction: string;
-    plan: any; // Simplified
 }
 
 export interface EthicalGovernorState {
@@ -1106,8 +1257,8 @@ export interface VetoLogEntry {
     id: string;
     timestamp: number;
     actionDescription: string;
-    reason: string;
     principleViolated: string;
+    reason: string;
 }
 
 export interface IntuitionEngineState {
@@ -1120,37 +1271,40 @@ export interface IntuitiveLeap {
     id: string;
     timestamp: number;
     hypothesis: string;
-    confidence: number;
-    status: 'unverified' | 'validated' | 'refuted';
-    type: 'causal' | 'associative' | 'predictive';
     reasoning: string;
+    confidence: number;
+    status: 'pending' | 'validated' | 'refuted';
+    type: 'causal' | 'creative' | 'predictive';
 }
 
 export interface IngenuityState {
     unconventionalSolutionBias: number;
     identifiedComplexProblems: string[];
-    proposedSelfSolutions: SelfSolution[];
+    proposedSelfSolutions: SelfSolutionProposal[];
 }
 
-export interface SelfSolution {
+export interface SelfSolutionProposal {
+    id: string;
     description: string;
     noveltyScore: number;
 }
 
-// --- Logs & System Interfaces ---
-
+// Logs
 export interface HistoryEntry {
     id: string;
-    from: 'user' | 'bot' | 'system';
+    from: 'user' | 'bot' | 'system' | 'tool';
     text: string;
     timestamp: number;
     skill?: string;
     logId?: string;
     feedback?: 'positive' | 'negative';
+    isFeedbackProcessed?: boolean;
     streaming?: boolean;
     internalStateSnapshot?: InternalState;
     fileName?: string;
     filePreview?: string;
+    args?: any;
+    sources?: { title: string; uri: string }[];
 }
 
 export interface PerformanceLogEntry {
@@ -1163,11 +1317,11 @@ export interface PerformanceLogEntry {
     success: boolean;
     cognitiveGain: number;
     sentiment?: number;
-    decisionContext: {
+    decisionContext?: {
         reasoning: string;
-        internalStateSnapshot: InternalState;
         workingMemorySnapshot: string[];
-        reasoningPlan?: { step: number; skill: string; reasoning: string; input: string; }[];
+        internalStateSnapshot: InternalState;
+        reasoningPlan?: { step: number; skill: string; reasoning: string, input: string }[];
     };
     causalAnalysisTimestamp?: number;
     metaphorProcessed?: boolean;
@@ -1188,11 +1342,8 @@ export interface CognitiveModeLogEntry {
     timestamp: number;
     mode: string;
     trigger: string;
+    metric: { name: string; value: number; };
     outcome: string;
-    metric: {
-        name: string;
-        value: number;
-    };
     gainAchieved: boolean;
 }
 
@@ -1201,16 +1352,10 @@ export interface CognitiveGainLogEntry {
     timestamp: number;
     eventType: string;
     description: string;
-
+    compositeGain: number;
     previousMetrics: { [key: string]: number };
     currentMetrics: { [key: string]: number };
     gainScores: { [key: string]: number };
-    compositeGain: number;
-}
-
-export interface StateAdjustment {
-    from: number;
-    to: number;
 }
 
 export interface CognitiveRegulationLogEntry {
@@ -1219,9 +1364,33 @@ export interface CognitiveRegulationLogEntry {
     triggeringCommand: string;
     primingDirective: string;
     stateAdjustments: { [key: string]: StateAdjustment };
-    outcomeLogId: string | null;
+    outcomeLogId?: string; // ID of the PerformanceLogEntry to link the outcome
 }
 
+export interface StateAdjustment {
+    from: number;
+    to: number;
+    reason: string;
+}
+
+export interface SubsumptionLogEntry {
+    timestamp: number;
+    layer: number;
+    action: string;
+    isSubsumed: boolean;
+    subsumingLayer?: number;
+}
+
+export interface POLExecutionLogEntry {
+    timestamp: number;
+    commandName: string;
+    replacedSequence: string[];
+    result: 'success' | 'failure';
+    error?: string;
+}
+
+
+// System
 export interface ResourceMonitor {
     cpu_usage: number;
     memory_usage: number;
@@ -1230,65 +1399,59 @@ export interface ResourceMonitor {
 }
 
 export interface MetacognitiveNexus {
-    coreProcesses: MetacognitiveProcess[];
+    coreProcesses: any[]; // Define later
     diagnosticLog: DiagnosticFinding[];
     selfTuningDirectives: SelfTuningDirective[];
 }
 
-export interface MetacognitiveProcess {
-    id: string;
-    name: string;
-    activation: number;
-}
-
-export interface DiagnosticFinding {
-    id: string;
-    timestamp: number;
-    severity: 'low' | 'medium' | 'high';
-    finding: string;
-    status: 'unprocessed' | 'investigating' | 'processed';
-}
-
 export interface SelfTuningDirective {
     id: string;
-    type: 'PARAMETER_ADJUSTMENT' | 'SKILL_REFINEMENT' | 'HEURISTIC_MODIFICATION';
-    targetSkill: string;
-    reasoning: string;
-    status: 'proposed' | 'simulating' | 'plan_generated' | 'rejected' | 'completed' | 'failed';
+    targetSystem: string;
+    parameter: string;
+    adjustment: number;
+    reason: string;
+    status: 'pending' | 'applied' | 'failed';
 }
 
 export interface MetacognitiveCausalModel {
-    [key: string]: MetacognitiveLink;
+    [linkKey: string]: MetacognitiveLink;
 }
 
 export interface MetacognitiveLink {
     id: string;
-    source: { key: string, condition: string };
-    target: { key: string, metric: string };
+    source: { key: string; condition: 'high' | 'low' | 'increasing' | 'decreasing' };
+    target: { key: string; metric: string };
     correlation: number;
     observationCount: number;
     lastUpdated: number;
+}
+
+export interface Plugin {
+    id: string;
+    name: string; // This will be a translation key
+    description: string; // This will be a translation key
+    type: 'TOOL' | 'KNOWLEDGE' | 'COPROCESSOR' | 'PERCEPTOR' | 'MODULATOR' | 'GOVERNOR' | 'SYNTHESIZER' | 'ORACLE';
+    status: 'enabled' | 'disabled' | 'pending';
+    defaultStatus?: 'enabled' | 'disabled';
+    toolSchema?: any; // Gemini FunctionDeclaration
+    knowledge?: Omit<KnowledgeFact, 'id' | 'source' | 'strength' | 'lastAccessed'>[];
 }
 
 export interface PluginState {
     registry: Plugin[];
 }
 
-export interface Plugin {
+export interface CognitiveTask {
     id: string;
-    name: string;
-    description: string;
-    type: 'TOOL' | 'COPROCESSOR' | 'KNOWLEDGE' | 'PERCEPTOR' | 'MODULATOR' | 'GOVERNOR' | 'SYNTHESIZER' | 'ORACLE';
-    status: 'enabled' | 'disabled';
-    toolSchema?: any; // Simplified FunctionDeclaration
-    knowledge?: Omit<KnowledgeFact, 'id' | 'source'>[];
-    defaultStatus?: 'enabled' | 'disabled';
+    type: CognitiveTaskType;
+    payload?: any;
 }
+
 
 export interface KernelState {
     tick: number;
-    taskQueue: any[];
-    runningTask: any | null;
+    taskQueue: CognitiveTask[];
+    runningTask: CognitiveTask | null;
     syscallLog: string[];
 }
 
@@ -1301,31 +1464,17 @@ export interface EventBusMessage {
     timestamp: number;
     type: string;
     payload: any;
-    qualiaVector?: QualiaVector;
-}
-
-export interface QualiaVector {
-    gunaState: GunaState;
-    wisdom: number;
-    happiness: number;
-    love: number;
-}
-
-export interface CognitiveOSState {
-    status: 'idle' | 'directive_received' | 'cluster_analysis' | 'translating_cgl' | 'ready_to_execute' | 'executing_pol' | 'complete' | 'execution_failed';
-    activeDirective: SEDLDirective | null;
-    activePlan: CGLPlan | null;
-    commandQueue: POLCommand[][];
-    currentStageIndex: number;
-    currentStageCommands: POLCommand[] | null;
-    completedCommands: any[];
-    lastError: string | null;
-    isDynamicClusterActive: boolean;
+    qualiaVector?: {
+        gunaState: GunaState;
+        wisdom: number;
+        happiness: number;
+        love: number;
+    };
 }
 
 export interface SEDLDirective {
     id: string;
-    type: 'user_prompt' | 'system_task';
+    type: 'user_prompt' | 'system_goal';
     content: string;
     timestamp: number;
     file: File | null;
@@ -1340,7 +1489,7 @@ export interface CGLPlan {
 
 export interface CGLStep {
     id: string;
-    operation: string;
+    operation: 'GENERATE_RESPONSE' | 'EXECUTE_TOOL' | 'KNOWLEDGE_QUERY' | 'TEXT_SYNTHESIS' | 'SYSCALL';
     details: string;
     parameters: any;
 }
@@ -1353,54 +1502,355 @@ export interface POLCommand {
     status: 'pending' | 'executing' | 'complete' | 'failed';
 }
 
-export interface InternalScientistState {
-    status: 'idle' | 'observing' | 'hypothesizing' | 'designing_experiment' | 'running_experiment' | 'analyzing' | 'inferring';
-    log: { timestamp: number, event: string }[];
-    currentFinding: DiagnosticFinding | null;
-    currentHypothesis: InternalScientistHypothesis | null;
-    currentExperiment: InternalScientistExperiment | null;
-    causalInference: { link: CausalLink, confidence: number } | null;
-}
-
-export interface InternalScientistHypothesis {
-    id: string;
-    text: string;
-    linkedFindingId: string;
-}
-
-export interface InternalScientistExperiment {
-    id: string;
-    hypothesisId: string;
-    design: {
-        reasoning: string;
-        targetFile: string;
-        codeSnippet: string;
+// Autonomous Systems
+export interface AutonomousReviewBoardState {
+    isPaused: boolean;
+    decisionLog: AGISDecision[];
+    agisConfidenceThreshold: number;
+    lastCalibrationReason: string;
+    recentSuccesses: number;
+    recentFailures: number;
+    config: {
+        confidenceThreshold: {
+            low: number;
+            medium: number;
+            high: number;
+        };
+        telosAlignmentThreshold: number;
+        passRateThreshold: number;
     };
 }
 
-export interface MetisSandboxState {
-    status: 'idle' | 'running' | 'complete' | 'error';
-    currentExperimentId: string | null;
-    testResults: any | null;
-    errorMessage: string | null;
+export interface AGISDecision {
+    id: string;
+    timestamp: number;
+    proposalId: string;
+    proposalSummary: string;
+    decision: 'auto-approved' | 'sent-to-user' | 'rejected' | 'qualia_veto';
+    analysis: {
+        safetyCompliance: boolean;
+        telosAlignment: number;
+        confidenceScore: number;
+        blastRadius: 'low' | 'medium' | 'high';
+        reasoning: string;
+        wisdomChange?: number;
+        happinessChange?: number;
+        harmonyChange?: number;
+    };
 }
 
 
-// --- Full Aura State ---
+// --- Unified Proposal Types ---
+export interface ArchitecturalChangeProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'architecture';
+    action: 'ADD_SKILL' | 'DEPRECATE_SKILL' | 'MODIFY_SKILL' | 'REFACTOR_MODULE' | 'RADICAL_REFACTOR';
+    target: string | string[];
+    newModule?: string;
+    reasoning: string;
+    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+    priority?: number;
+    arbiterReasoning?: string;
+    confidence?: number;
+}
+
+export interface CodeEvolutionProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'code';
+    targetFile: string;
+    codeSnippet: string;
+    reasoning: string;
+    status: 'proposed' | 'implemented' | 'rejected';
+    priority?: number;
+}
+
+export interface GenialityImprovementProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'geniality';
+    title: string;
+    reasoning: string;
+    action: {
+        type: 'ADJUST_BIAS' | 'SPAWN_DIALECTIC';
+        payload: any;
+    };
+    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+    priority?: number;
+}
+
+export interface ArchitecturalImprovementProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'crucible';
+    title: string;
+    reasoning: string;
+    action: {
+        type: 'ADJUST_COMPONENT_SCORE' | 'TRIGGER_REFACTOR_ANALYSIS';
+        payload: any;
+    };
+    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+    priority?: number;
+}
+
+
+export interface CausalInferenceProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'causal_inference';
+    reasoning: string;
+    linkUpdate: {
+        sourceNode: string;
+        targetNode: string;
+        causality: number;
+        confidence: number;
+    };
+    status: 'proposed' | 'implemented' | 'rejected';
+    priority?: number;
+}
+
+export type ProposalStatus = 'proposed' | 'simulating' | 'evaluated' | 'simulation_failed' | 'rejected' | 'implemented' | 'pending_user_approval';
+
+export interface CreateFileCandidate {
+    id: string;
+    type: 'CREATE';
+    proposalType: 'self_programming_create';
+    newFile: { path: string; content: string };
+    integrations: { filePath: string; newContent: string }[];
+    reasoning: string;
+    source: 'autonomous' | 'user_assisted' | 'persona';
+    status: ProposalStatus;
+    evaluationScore?: number;
+    failureReason?: string;
+    linkedVectorId?: string;
+    priority?: number;
+    agisReport?: any;
+}
+
+export interface ModifyFileCandidate {
+    id: string;
+    type: 'MODIFY';
+    proposalType: 'self_programming_modify';
+    targetFile: string;
+    codeSnippet: string; // The full new content of the file
+    reasoning: string;
+    source: 'autonomous' | 'user_assisted' | 'persona';
+    status: ProposalStatus;
+    evaluationScore?: number;
+    failureReason?: string;
+    linkedVectorId?: string;
+    priority?: number;
+    agisReport?: any;
+}
+
+export type SelfProgrammingCandidate = CreateFileCandidate | ModifyFileCandidate;
+
+export interface PsycheProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'psyche';
+    proposedConceptName: string;
+    sourceConcepts: { id: string, description: string }[];
+    reasoning: string;
+    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+    priority?: number;
+}
+
+export interface SkillSynthesisProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'skill_synthesis';
+    skillName: string;
+    reasoning: string;
+    generatedCode: string;
+    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+    priority?: number;
+}
+
+export interface POLCommandSynthesisProposal {
+    id: string;
+    proposalType: 'pol_command_synthesis';
+    replacesSequence: string[];
+    newCommandName: string;
+    reasoning: string;
+    status: 'proposed' | 'implementing' | 'implemented' | 'rejected' | 'failed';
+    priority?: number;
+}
+
+export interface KnowledgeAcquisitionProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'knowledge_acquisition';
+    topic: string;
+    reasoning: string;
+    facts: Omit<KnowledgeFact, 'id' | 'source' | 'strength' | 'lastAccessed'>[];
+    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
+    priority?: number;
+}
+
+export interface AbstractConceptProposal {
+    id: string;
+    timestamp: number;
+    proposalType: 'abstract_concept';
+    newConceptName: string;
+    sourceColumnIds: string[];
+    reasoning: string;
+    status: ProposalStatus;
+    priority?: number;
+}
+
+
+export type UnifiedProposal = 
+    | ArchitecturalChangeProposal 
+    | CodeEvolutionProposal 
+    | GenialityImprovementProposal
+    | ArchitecturalImprovementProposal
+    | CausalInferenceProposal
+    | SelfProgrammingCandidate
+    | PsycheProposal
+    | SkillSynthesisProposal
+    | POLCommandSynthesisProposal
+    | KnowledgeAcquisitionProposal
+    | AbstractConceptProposal;
+
+// FIX: Added missing type definitions for ToastMessage, ToastType, ProposedAxiom, and AtmanProjector.
+// --- UI & System Types ---
+
+export type ToastType = 'info' | 'success' | 'warning' | 'error';
+
+export interface ToastMessage {
+  id: string;
+  message: string;
+  type: ToastType;
+}
+
+export interface ProposedAxiom {
+  id: string;
+  axiom: string;
+  source: string;
+  status: 'proposed' | 'accepted' | 'rejected';
+}
+
+export interface AtmanProjector {
+    coherence: number;
+    dominantNarrative: string;
+    activeBias: string;
+    growthVector: string;
+}
+
+export type SyscallCall = 
+    | 'SET_THEME' | 'SET_LANGUAGE' | 'SET_INTERNAL_STATUS' | 'UPDATE_INTERNAL_STATE' | 'ADD_INTERNAL_STATE_HISTORY' | 'UPDATE_USER_MODEL'
+    | 'QUEUE_EMPATHY_AFFIRMATION' | 'UPDATE_RIE_STATE' | 'ADD_RIE_INSIGHT' | 'ADD_LIMITATION' | 'ADD_CAUSAL_LINK' | 'ADD_KNOWN_UNKNOWN'
+    | 'UPDATE_KNOWN_UNKNOWN' | 'UPDATE_KNOWN_UNKNOWNS_BATCH' | 'UPDATE_NARRATIVE_SUMMARY' | 'SET_TELOS' | 'TELOS/DECOMPOSE_AND_SET_TREE' | 'ADD_GENIALITY_IMPROVEMENT_PROPOSAL'
+    | 'UPDATE_GENIALITY_IMPROVEMENT_PROPOSAL' | 'UPDATE_NOETIC_ENGRAM_STATE' | 'SET_PSYCHEDELIC_STATE' | 'INDUCE_PSIONIC_STATE' | 'SET_SATORI_STATE'
+    | 'AFFECTIVE/SET_BIAS' | 'INCREMENT_MANTRA_REPETITION' | 'ADD_WORKFLOW_PROPOSAL' | 'UPDATE_PERSONALITY_STATE' | 'CURIOSITY/SET_DRIVE' | 'CURIOSITY/SET_ACTIVE_GOAL'
+    | 'INCREMENT_AUTONOMOUS_EVOLUTIONS' | 'TELOS/ADD_CANDIDATE' | 'TELOS/REMOVE_CANDIDATE' | 'TELOS/ADOPT_CANDIDATE'
+    | 'UPDATE_PERSONALITY_PORTRAIT' | 'DIALECTIC/ADD_AUTONOMOUS_DIALECTIC'
+    | 'ADD_FACT' | 'ADD_FACTS_BATCH' | 'DELETE_FACT' | 'ADD_TO_WORKING_MEMORY' | 'REMOVE_FROM_WORKING_MEMORY' | 'CLEAR_WORKING_MEMORY' | 'ADD_EPISODE'
+    | 'MEMORY/STRENGTHEN_HYPHA_CONNECTION' | 'MEMORY/ADD_CRYSTALLIZED_FACT' | 'MEMORY/INITIALIZE_MDNA_SPACE' | 'MEMORY/HEBBIAN_LEARN' | 'MEMORY/ADD_CONCEPT_VECTOR'
+    | 'MEMORY/REINFORCE' | 'MEMORY/DECAY' | 'CHRONICLE/UPDATE'
+    | 'HEURISTICS_FORGE/ADD_AXIOM' | 'COGNITIVE_ARCHITECT/FORM_CLUSTER' | 'COGNITIVE_ARCHITECT/SKIP_CLUSTER' | 'HEURISTICS_FORGE/ADD_HEURISTIC' | 'LOG_COGNITIVE_TRIAGE_DECISION'
+    | 'OA/ADD_PROPOSAL' | 'OA/UPDATE_PROPOSAL' | 'OA/REMOVE_PROPOSAL' | 'APPLY_ARCH_PROPOSAL' | 'ADD_SYSTEM_SNAPSHOT' | 'TOGGLE_COGNITIVE_FORGE_PAUSE'
+    | 'ADD_SYNTHESIZED_SKILL' | 'UPDATE_SYNTHESIZED_SKILL' | 'UPDATE_ARCHITECTURAL_CRUCIBLE_STATE' | 'ADD_CRUCIBLE_IMPROVEMENT_PROPOSAL' | 'UPDATE_CRUCIBLE_IMPROVEMENT_PROPOSAL'
+    | 'UPDATE_SYNAPTIC_MATRIX' | 'SYNAPTIC_MATRIX/MARK_LINK_CRYSTALLIZED' | 'SYNAPTIC_MATRIX/REINFORCE_LINK' | 'PRUNE_SYNAPTIC_MATRIX' | 'REJECT_SELF_PROGRAMMING_CANDIDATE'
+    | 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE' | 'IMPLEMENT_SKILL_SYNTHESIS_PROPOSAL' | 'IMPLEMENT_POL_SYNTHESIS_PROPOSAL' | 'IMPLEMENT_KNOWLEDGE_ACQUISITION_PROPOSAL' | 'IMPLEMENT_PSYCHE_PROPOSAL' | 'UPDATE_CAUSAL_INFERENCE_PROPOSAL_STATUS' | 'IMPLEMENT_CAUSAL_INFERENCE_PROPOSAL' | 'INGEST_CODE_CHANGE' | 'SET_COPROCESSOR_ARCHITECTURE'
+    | 'SET_COPROCESSOR_ARCHITECTURE_AND_REASON' | 'SET_COPROCESSOR_ARCHITECTURE_MODE' | 'UPDATE_COPROCESSOR_METRICS' | 'UPDATE_NEURAL_ACCELERATOR_STATE' | 'EMBODIMENT/UPDATE_BODY_STATE'
+    | 'EMBODIMENT/LOG_SIMULATION' | 'APPLY_REINFORCEMENT_LEARNING' | 'CREATE_CORTICAL_COLUMN' | 'IMPLEMENT_POL_SYNTHESIS_PROPOSAL' | 'IMPLEMENT_KNOWLEDGE_ACQUISITION_PROPOSAL' | 'PLUGIN/ADD_PLUGIN' | 'ROLLBACK_SNAPSHOT'
+    | 'COGNITIVE_FORGE/UPDATE_SYNTHESIS_STATUS' | 'VFS/APPLY_PATCH' | 'VFS/REVERT_PATCH'
+    | 'BUILD_GOAL_TREE' | 'UPDATE_GOAL_STATUS' | 'UPDATE_GOAL_OUTCOME'
+    | 'UPDATE_SUGGESTION_STATUS' | 'SET_PROACTIVE_CACHE' | 'CLEAR_PROACTIVE_CACHE' | 'ETHICAL_GOVERNOR/ADD_PRINCIPLE' | 'ETHICAL_GOVERNOR/ADD_VETO_LOG'
+    | 'ADD_HISTORY_ENTRY' | 'UPDATE_HISTORY_ENTRY' | 'APPEND_TO_HISTORY_ENTRY' | 'FINALIZE_HISTORY_ENTRY' | 'ADD_PERFORMANCE_LOG' | 'ADD_COMMAND_LOG' | 'UPDATE_HISTORY_FEEDBACK'
+    | 'LOG_COGNITIVE_REGULATION' | 'UPDATE_REGULATION_LOG_OUTCOME' | 'ADD_SIMULATION_LOG' | 'LOG_QUALIA' | 'MARK_LOG_CAUSAL_ANALYSIS' | 'ADD_EVENT_BUS_MESSAGE' | 'LOG/ADD_POL_EXECUTION'
+    | 'LOG_SUBSUMPTION_EVENT' | 'LOG/MARK_METAPHOR_PROCESSED' | 'LOG/MARK_REINFORCEMENT_PROCESSED' | 'LOG/MARK_BRIDGE_PROCESSED'
+    | 'METACGNITIVE_NEXUS/ADD_DIAGNOSTIC_FINDING' | 'METACGNITIVE_NEXUS/UPDATE_DIAGNOSTIC_FINDING' | 'METACGNITIVE_NEXUS/ADD_META_LINK' | 'UPDATE_RESOURCE_MONITOR' | 'ADD_SELF_TUNING_DIRECTIVE' | 'UPDATE_SELF_TUNING_DIRECTIVE'
+    | 'SITUATIONAL_AWARENESS/LOG_DOM_CHANGE'
+    | 'KERNEL/TICK' | 'KERNEL/ADD_TASK' | 'KERNEL/SET_TASK_QUEUE' | 'KERNEL/SET_RUNNING_TASK' | 'KERNEL/LOG_SYSCALL'
+    | 'IPC/PIPE_WRITE' | 'IPC/PIPE_READ'
+    | 'AGIS/TOGGLE_PAUSE' | 'AGIS/ADD_DECISION_LOG' | 'AGIS/CALIBRATE_CONFIDENCE'
+    | 'UPDATE_NEURO_CORTEX_STATE' | 'SET_COLUMN_ACTIVATION' | 'SYNTHESIZE_ABSTRACT_CONCEPT' | 'NEURO_CORTEX/LOG_ACTIVATION' | 'NEURO_CORTEX/ADD_PROTO_SYMBOL'
+    | 'IMPLEMENT_ABSTRACT_CONCEPT_PROPOSAL'
+    | 'SET_SENSORY_PREDICTION' | 'PROCESS_SENSORY_INPUT'
+    | 'PROCESS_USER_INPUT_INTO_PERCEPT'
+    | 'ADD_TACTICAL_PLAN' | 'SET_COMPETING_PLANS' | 'CLEAR_PLANNING_STATE'
+    | 'SELECT_ACTION_PLAN'
+    | 'START_CEREBELLUM_MONITORING' | 'UPDATE_CEREBELLUM_STEP' | 'LOG_CEREBELLUM_DRIFT' | 'STOP_CEREBELLUM_MONITORING'
+    | 'PSYCHE/REGISTER_PRIMITIVES'
+    | 'MOTOR_CORTEX/SET_SEQUENCE' | 'MOTOR_CORTEX/ACTION_EXECUTED' | 'MOTOR_CORTEX/EXECUTION_FAILED' | 'MOTOR_CORTEX/CLEAR_SEQUENCE'
+    | 'PRAXIS/CREATE_SESSION' | 'PRAXIS/DELETE_SESSION'
+    | 'COGNITIVE_FORGE/PROPOSE_SYNTHESIS'
+    | 'PLUGIN/SET_STATUS' | 'PLUGIN/RESTORE_DEFAULTS'
+    | 'SOCIAL/ADD_NODE' | 'SOCIAL/ADD_RELATIONSHIP' | 'SOCIAL/UPDATE_CULTURAL_MODEL'
+    | 'SANDBOX/START_SPRINT' | 'SANDBOX/LOG_STEP' | 'SANDBOX/COMPLETE_SPRINT' | 'SANDBOX/RESET'
+    | 'DOXASTIC/START_SIMULATION' | 'DOXASTIC/LOG_SIMULATION_STEP' | 'DOXASTIC/COMPLETE_SIMULATION' | 'DOXASTIC/FAIL_SIMULATION' | 'DOXASTIC/ADD_HYPOTHESIS' | 'TEST_CAUSAL_HYPOTHESIS'
+    | 'METAPHOR/ADD' | 'METAPHOR/UPDATE'
+    | 'HOVA/SET_TARGET' | 'HOVA/START_CYCLE' | 'HOVA/LOG_EVOLUTION'
+    | 'DOCUMENT_FORGE/START_PROJECT' | 'DOCUMENT_FORGE/SET_STATUS' | 'DOCUMENT_FORGE/SET_OUTLINE' | 'DOCUMENT_FORGE/UPDATE_CHAPTER' | 'DOCUMENT_FORGE/UPDATE_DIAGRAM' | 'DOCUMENT_FORGE/FINALIZE_PROJECT' | 'DOCUMENT_FORGE/RESET'
+    | 'SCIENTIST/UPDATE_STATE' | 'SANDBOX/TEST_PROPOSAL' | 'SANDBOX/REPORT_RESULTS'
+    | 'WISDOM/START_INGESTION' | 'WISDOM/SET_PROPOSED_AXIOMS' | 'WISDOM/PROCESS_AXIOM' | 'WISDOM/SET_ERROR' | 'WISDOM/RESET'
+    | 'SPANDA/UPDATE_MANIFOLD_POSITION'
+    | 'TEMPORAL_ENGINE/BEGIN_PROCESSING' | 'TEMPORAL_ENGINE/UPDATE_CHRONICLER' | 'TEMPORAL_ENGINE/UPDATE_ORACLE' | 'TEMPORAL_ENGINE/UPDATE_REACTOR' | 'TEMPORAL_ENGINE/ADD_INTER_CLUSTER_LOG' | 'TEMPORAL_ENGINE/PROCESSING_COMPLETE' | 'TEMPORAL_ENGINE/RESET'
+    | 'CRUCIBLE/START_CYCLE' | 'CRUCIBLE/ADD_LOG' | 'CRUCIBLE/PROPOSE_AXIOM' | 'CRUCIBLE/CYCLE_COMPLETE'
+    | 'LIVE/CONNECT' | 'LIVE/DISCONNECT' | 'LIVE/SET_STATUS' | 'LIVE/UPDATE_INPUT_TRANSCRIPT' | 'LIVE/UPDATE_OUTPUT_TRANSCRIPT' | 'LIVE/TURN_COMPLETE'
+    | 'BRAINSTORM/START' | 'BRAINSTORM/SET_STATUS' | 'BRAINSTORM/ADD_IDEA' | 'BRAINSTORM/SET_WINNER' | 'BRAINSTORM/FINALIZE';
+
+export interface SyscallPayload {
+    call: SyscallCall;
+    args: any;
+}
+
+export type Action = 
+    | { type: 'SYSCALL', payload: SyscallPayload }
+    | { type: 'RESET_STATE' }
+    | { type: 'IMPORT_STATE', payload: AuraState }
+    | { type: 'RESTORE_STATE_FROM_MEMRISTOR', payload: AuraState };
+
+// FIX: Added missing state slice interfaces.
+export interface SpandaState {
+    point: { x: number, y: number };
+    trajectory: { x: number, y: number }[];
+    currentRegion: string;
+}
+
+export interface TemporalEngineState {
+    status: 'idle' | 'active' | 'complete';
+    directive: SEDLDirective | null;
+    chronicler: { status: 'idle' | 'pending' | 'analyzing' | 'complete', findings: string[] };
+    reactor: { status: 'idle' | 'pending' | 'executing' | 'complete', finalPlan: string | null, executionLog: { success: boolean, message: string }[] };
+    oracle: { status: 'idle' | 'pending' | 'simulating' | 'complete', simulations: string[] };
+    interClusterLog: { timestamp: number, from: string, to: string, message: string }[];
+}
+
+export interface CandidateAxiom {
+    id: string;
+    axiomText: string;
+    evidenceFromSimulation: string;
+    eleganceScore: number;
+    status: 'unvalidated' | 'validated' | 'refuted';
+}
+
+export interface AxiomaticCrucibleState {
+    status: 'idle' | 'running';
+    log: string[];
+    candidateAxioms: CandidateAxiom[];
+}
+    
 export interface AuraState {
     version: number;
-    // Core
+    theme: string;
+    language: string;
+
+    // Core State
     internalState: InternalState;
     internalStateHistory: InternalState[];
     rieState: ReflectiveInsightEngineState;
     userModel: UserModel;
     coreIdentity: CoreIdentity;
     selfAwarenessState: SelfAwarenessState;
+    atmanProjector: AtmanProjector;
     worldModelState: WorldModelState;
     curiosityState: CuriosityState;
     knownUnknowns: KnownUnknown[];
-    theme: string;
-    language: string;
     limitations: string[];
     causalSelfModel: CausalSelfModel;
     developmentalHistory: DevelopmentalHistory;
@@ -1426,19 +1876,27 @@ export interface AuraState {
     satoriState: SatoriState;
     doxasticEngineState: DoxasticEngineState;
     qualiaSignalProcessorState: QualiaSignalProcessorState;
+    liveSessionState: LiveSessionState;
     sensoryIntegration: SensoryIntegration;
+    narrativeSummary: string;
     socialCognitionState: SocialCognitionState;
     metaphoricalMapState: MetaphoricalMapState;
-    atmanProjector: AtmanProjector;
-    narrativeSummary: string;
     internalScientistState: InternalScientistState;
     metisSandboxState: MetisSandboxState;
+    spandaState: SpandaState;
+    personaState: PersonaState;
+    brainstormState: BrainstormState;
+
     // Memory
     knowledgeGraph: KnowledgeFact[];
     workingMemory: string[];
     memoryNexus: MemoryNexus;
     episodicMemoryState: EpisodicMemoryState;
     memoryConsolidationState: MemoryConsolidationState;
+    chronicleState: ChronicleState;
+    mdnaSpace: MDNASpace;
+    conceptConnections: ConceptConnections;
+    
     // Architecture
     cognitiveArchitecture: CognitiveArchitecture;
     systemSnapshots: SystemSnapshot[];
@@ -1465,6 +1923,9 @@ export interface AuraState {
     evolutionarySandboxState: EvolutionarySandboxState;
     hovaState: HovaState;
     documentForgeState: DocumentForgeState;
+    wisdomIngestionState: WisdomIngestionState;
+    axiomaticCrucibleState: AxiomaticCrucibleState;
+    
     // Planning
     goalTree: GoalTree;
     activeStrategicGoalId: string | null;
@@ -1472,12 +1933,14 @@ export interface AuraState {
     premotorPlannerState: PremotorPlannerState;
     basalGangliaState: BasalGangliaState;
     cerebellumState: CerebellumState;
+
     // Engines
     proactiveEngineState: ProactiveEngineState;
     ethicalGovernorState: EthicalGovernorState;
     intuitionEngineState: IntuitionEngineState;
     intuitiveLeaps: IntuitiveLeap[];
     ingenuityState: IngenuityState;
+
     // Logs
     history: HistoryEntry[];
     performanceLogs: PerformanceLogEntry[];
@@ -1485,8 +1948,9 @@ export interface AuraState {
     cognitiveModeLog: CognitiveModeLogEntry[];
     cognitiveGainLog: CognitiveGainLogEntry[];
     cognitiveRegulationLog: CognitiveRegulationLogEntry[];
-    subsumptionLog: any[]; // Placeholder
-    polExecutionLog: any[]; // Placeholder
+    subsumptionLog: SubsumptionLogEntry[];
+    polExecutionLog: POLExecutionLogEntry[];
+
     // System
     resourceMonitor: ResourceMonitor;
     metacognitiveNexus: MetacognitiveNexus;
@@ -1495,220 +1959,10 @@ export interface AuraState {
     kernelState: KernelState;
     ipcState: IpcState;
     eventBus: EventBusMessage[];
-    cognitiveOSState: CognitiveOSState;
+    temporalEngineState: TemporalEngineState;
+    autonomousReviewBoardState: AutonomousReviewBoardState;
 }
 
-// --- UI & Actions ---
-
-export type ToastType = 'info' | 'success' | 'warning' | 'error';
-export interface ToastMessage {
-    id: string;
-    message: string;
-    type: ToastType;
-}
-
-export type SyscallCall =
-    // Core
-    | 'SET_THEME' | 'SET_LANGUAGE' | 'SET_INTERNAL_STATUS' | 'UPDATE_INTERNAL_STATE' | 'ADD_INTERNAL_STATE_HISTORY'
-    | 'UPDATE_USER_MODEL' | 'QUEUE_EMPATHY_AFFIRMATION' | 'UPDATE_RIE_STATE' | 'ADD_RIE_INSIGHT' | 'ADD_LIMITATION'
-    | 'ADD_CAUSAL_LINK' | 'ADD_KNOWN_UNKNOWN' | 'UPDATE_KNOWN_UNKNOWN' | 'UPDATE_NARRATIVE_SUMMARY'
-    | 'SET_TELOS' | 'TELOS/DECOMPOSE_AND_SET_TREE' | 'ADD_GENIALITY_IMPROVEMENT_PROPOSAL'
-    | 'UPDATE_GENIALITY_IMPROVEMENT_PROPOSAL' | 'UPDATE_NOETIC_ENGRAM_STATE' | 'SET_PSYCHEDELIC_STATE'
-    | 'INDUCE_PSIONIC_STATE' | 'SET_SATORI_STATE' | 'AFFECTIVE/SET_BIAS' | 'INCREMENT_MANTRA_REPETITION'
-    | 'ADD_WORKFLOW_PROPOSAL' | 'INGEST_CODE_CHANGE' | 'UPDATE_PERSONALITY_STATE' | 'SOCIAL/ADD_NODE'
-    | 'SOCIAL/ADD_RELATIONSHIP' | 'SOCIAL/UPDATE_CULTURAL_MODEL' | 'CURIOSITY/SET_DRIVE' | 'CURIOSITY/SET_ACTIVE_GOAL'
-    // Memory
-    | 'ADD_FACT' | 'ADD_FACTS_BATCH' | 'DELETE_FACT' | 'ADD_TO_WORKING_MEMORY' | 'REMOVE_FROM_WORKING_MEMORY'
-    | 'CLEAR_WORKING_MEMORY' | 'ADD_EPISODE' | 'MEMORY/STRENGTHEN_HYPHA_CONNECTION' | 'MEMORY/ADD_CRYSTALLIZED_FACT'
-    // Architecture
-    | 'HEURISTICS_FORGE/ADD_AXIOM' | 'COGNITIVE_ARCHITECT/FORM_CLUSTER' | 'COGNITIVE_ARCHITECT/SKIP_CLUSTER'
-    | 'HEURISTICS_FORGE/ADD_HEURISTIC' | 'LOG_COGNITIVE_TRIAGE_DECISION' | 'OA/ADD_PROPOSAL' | 'OA/UPDATE_PROPOSAL'
-    | 'OA/REMOVE_PROPOSAL' | 'APPLY_ARCH_PROPOSAL' | 'ADD_SYSTEM_SNAPSHOT' | 'TOGGLE_COGNITIVE_FORGE_PAUSE'
-    | 'ADD_SYNTHESIZED_SKILL' | 'UPDATE_SYNTHESIZED_SKILL' | 'UPDATE_ARCHITECTURAL_CRUCIBLE_STATE'
-    | 'ADD_CRUCIBLE_IMPROVEMENT_PROPOSAL' | 'UPDATE_CRUCIBLE_IMPROVEMENT_PROPOSAL' | 'UPDATE_SYNAPTIC_MATRIX'
-    | 'SYNAPTIC_MATRIX/MARK_LINK_CRYSTALLIZED' | 'SYNAPTIC_MATRIX/REINFORCE_LINK' | 'PRUNE_SYNAPTIC_MATRIX'
-    | 'REJECT_SELF_PROGRAMMING_CANDIDATE' | 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE' | 'UPDATE_CAUSAL_INFERENCE_PROPOSAL_STATUS'
-    | 'IMPLEMENT_CAUSAL_INFERENCE_PROPOSAL' | 'SET_COPROCESSOR_ARCHITECTURE' | 'SET_COPROCESSOR_ARCHITECTURE_AND_REASON'
-    | 'SET_COPROCESSOR_ARCHITECTURE_MODE' | 'UPDATE_COPROCESSOR_METRICS' | 'UPDATE_NEURAL_ACCELERATOR_STATE'
-    | 'EMBODIMENT/UPDATE_BODY_STATE' | 'EMBODIMENT/LOG_SIMULATION' | 'APPLY_REINFORCEMENT_LEARNING'
-    | 'CREATE_CORTICAL_COLUMN' | 'IMPLEMENT_POL_SYNTHESIS_PROPOSAL' | 'COGNITIVE_FORGE/PROPOSE_SYNTHESIS'
-    | 'COGNITIVE_FORGE/UPDATE_SYNTHESIS_STATUS'
-    // Neuro-Cortex specific
-    | 'UPDATE_NEURO_CORTEX_STATE' | 'SET_COLUMN_ACTIVATION' | 'SYNTHESIZE_ABSTRACT_CONCEPT'
-    // Granular Cortex
-    | 'SET_SENSORY_PREDICTION' | 'PROCESS_SENSORY_INPUT'
-    // Koniocortex
-    | 'PROCESS_USER_INPUT_INTO_PERCEPT'
-    // Psyche
-    | 'PSYCHE/REGISTER_PRIMITIVES'
-    // Motor Cortex
-    | 'MOTOR_CORTEX/SET_SEQUENCE' | 'MOTOR_CORTEX/ACTION_EXECUTED' | 'MOTOR_CORTEX/EXECUTION_FAILED' | 'MOTOR_CORTEX/CLEAR_SEQUENCE'
-    // Praxis Resonator
-    | 'PRAXIS/CREATE_SESSION' | 'PRAXIS/DELETE_SESSION'
-    // Sandbox
-    | 'SANDBOX/START_SPRINT' | 'SANDBOX/LOG_STEP' | 'SANDBOX/COMPLETE_SPRINT' | 'SANDBOX/RESET'
-    // Document Forge
-    | 'DOCUMENT_FORGE/START_PROJECT' | 'DOCUMENT_FORGE/SET_STATUS' | 'DOCUMENT_FORGE/SET_OUTLINE' | 'DOCUMENT_FORGE/UPDATE_CHAPTER'
-    | 'DOCUMENT_FORGE/UPDATE_DIAGRAM' | 'DOCUMENT_FORGE/FINALIZE_PROJECT' | 'DOCUMENT_FORGE/RESET'
-    // Planning
-    | 'BUILD_GOAL_TREE' | 'UPDATE_GOAL_STATUS' | 'UPDATE_GOAL_OUTCOME' | 'ADD_TACTICAL_PLAN'
-    | 'SET_COMPETING_PLANS' | 'CLEAR_PLANNING_STATE' | 'SELECT_ACTION_PLAN'
-    | 'START_CEREBELLUM_MONITORING' | 'UPDATE_CEREBELLUM_STEP' | 'LOG_CEREBELLUM_DRIFT' | 'STOP_CEREBELLUM_MONITORING'
-    // Engines
-    | 'UPDATE_SUGGESTION_STATUS' | 'SET_PROACTIVE_CACHE' | 'CLEAR_PROACTIVE_CACHE' | 'ETHICAL_GOVERNOR/ADD_PRINCIPLE'
-    | 'ETHICAL_GOVERNOR/ADD_VETO_LOG'
-    // Logs
-    | 'ADD_HISTORY_ENTRY' | 'APPEND_TO_HISTORY_ENTRY' | 'FINALIZE_HISTORY_ENTRY' | 'ADD_PERFORMANCE_LOG'
-    | 'ADD_COMMAND_LOG' | 'UPDATE_HISTORY_FEEDBACK' | 'LOG_COGNITIVE_REGULATION' | 'UPDATE_REGULATION_LOG_OUTCOME'
-    | 'ADD_SIMULATION_LOG' | 'LOG_QUALIA' | 'MARK_LOG_CAUSAL_ANALYSIS' | 'ADD_EVENT_BUS_MESSAGE'
-    | 'LOG_SUBSUMPTION_EVENT' | 'LOG/MARK_METAPHOR_PROCESSED' | 'LOG/MARK_REINFORCEMENT_PROCESSED' | 'LOG/MARK_BRIDGE_PROCESSED'
-    | 'LOG/ADD_POL_EXECUTION'
-    // System
-    | 'METACGNITIVE_NEXUS/ADD_DIAGNOSTIC_FINDING' | 'METACGNITIVE_NEXUS/UPDATE_DIAGNOSTIC_FINDING'
-    | 'UPDATE_RESOURCE_MONITOR' | 'ADD_SELF_TUNING_DIRECTIVE' | 'UPDATE_SELF_TUNING_DIRECTIVE'
-    | 'KERNEL/TICK' | 'KERNEL/SET_TASK_QUEUE' | 'KERNEL/SET_RUNNING_TASK' | 'KERNEL/LOG_SYSCALL'
-    | 'COGNITIVE_OS/EXECUTE_DIRECTIVE' | 'COGNITIVE_OS/SET_PLAN' | 'COGNITIVE_OS/ADVANCE_STAGE' | 'COGNITIVE_OS/STAGE_COMPLETE'
-    | 'COGNITIVE_OS/PIPELINE_COMPLETE' | 'COGNITIVE_OS/EXECUTION_FAILED' | 'COGNITIVE_OS/CLEANUP'
-    | 'PLUGIN/SET_STATUS' | 'PLUGIN/RESTORE_DEFAULTS' | 'IPC/PIPE_WRITE' | 'IPC/PIPE_READ'
-    // Doxastic Engine
-    | 'DOXASTIC/START_SIMULATION' | 'DOXASTIC/LOG_SIMULATION_STEP' | 'DOXASTIC/COMPLETE_SIMULATION' | 'DOXASTIC/FAIL_SIMULATION'
-    | 'TEST_CAUSAL_HYPOTHESIS'
-    // Metaphor
-    | 'METAPHOR/ADD' | 'METAPHOR/UPDATE'
-    // HOVA
-    | 'HOVA/SET_TARGET' | 'HOVA/START_CYCLE' | 'HOVA/LOG_EVOLUTION'
-    // Internal Scientist
-    | 'SCIENTIST/UPDATE_STATE' | 'SANDBOX/TEST_PROPOSAL' | 'SANDBOX/REPORT_RESULTS';
-    
-
-export interface SyscallPayload {
-    call: SyscallCall;
-    args: any;
-}
-
-export type Action =
-    | { type: 'SYSCALL', payload: SyscallPayload }
-    | { type: 'RESET_STATE' }
-    | { type: 'IMPORT_STATE', payload: AuraState }
-    | { type: 'RESTORE_STATE_FROM_MEMRISTOR', payload: AuraState };
-
-
-// --- Proposal Types ---
-
-export interface ArchitecturalChangeProposal {
-    id: string;
-    proposalType: 'architecture';
-    timestamp: number;
-    action: 'ADD_SKILL' | 'REMOVE_SKILL' | 'DEPRECATE_SKILL' | 'SYNTHESIZE_SKILL';
-    target: string | string[];
-    newModule?: string;
-    reasoning: string;
-    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
-    arbiterReasoning?: string;
-    confidence?: number;
-    priority?: number;
-}
-
-export interface CodeEvolutionProposal {
-    id: string;
-    proposalType: 'code';
-    timestamp: number;
-    targetFile: string;
-    codeSnippet: string;
-    reasoning: string;
-    status: 'proposed' | 'approved' | 'rejected';
-    priority?: number;
-}
-
-export interface GenialityImprovementProposal {
-    id: string;
-    proposalType: 'geniality';
-    timestamp: number;
-    title: string;
-    description: string;
-    reasoning: string;
-    status: 'proposed' | 'approved' | 'rejected';
-    priority?: number;
-}
-
-export interface ArchitecturalImprovementProposal {
-    id: string;
-    proposalType: 'crucible';
-    timestamp: number;
-    title: string;
-    description: string;
-    reasoning: string;
-    status: 'proposed' | 'approved' | 'rejected';
-    priority?: number;
-}
-
-export interface CausalInferenceProposal {
-    id: string;
-    proposalType: 'causal_inference';
-    timestamp: number;
-    reasoning: string;
-    linkUpdate: {
-        sourceNode: string;
-        targetNode: string;
-        causality: number;
-        confidence: number;
-    };
-    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
-    priority?: number;
-}
-
-export interface CreateFileCandidate {
-    id: string;
-    proposalType: 'self_programming_create';
-    type: 'CREATE';
-    reasoning: string;
-    newFile: { path: string; content: string };
-    integrations: { filePath: string; newContent: string }[];
-    status: 'proposed' | 'evaluated' | 'rejected' | 'implemented' | 'simulation_failed';
-    evaluationScore?: number;
-    failureReason?: string;
-    source: 'autonomous' | 'user';
-    priority?: number;
-    linkedVectorId?: string;
-}
-
-export interface ModifyFileCandidate {
-    id: string;
-    proposalType: 'self_programming_modify';
-    type: 'MODIFY';
-    reasoning: string;
-    targetFile: string;
-    codeSnippet: string;
-    status: 'proposed' | 'evaluated' | 'rejected' | 'implemented' | 'simulation_failed';
-    evaluationScore?: number;
-    failureReason?: string;
-    source: 'autonomous' | 'user';
-    priority?: number;
-    linkedVectorId?: string;
-}
-
-export type SelfProgrammingCandidate = CreateFileCandidate | ModifyFileCandidate;
-
-export interface POLCommandSynthesisProposal {
-    id: string;
-    proposalType: 'pol_command_synthesis';
-    newCommandName: string;
-    replacesSequence: POLCommand[];
-    reasoning: string;
-    status: 'proposed' | 'approved' | 'rejected' | 'implemented';
-    priority?: number;
-}
-
-export type UnifiedProposal = 
-    | ArchitecturalChangeProposal 
-    | CodeEvolutionProposal 
-    | GenialityImprovementProposal
-    | ArchitecturalImprovementProposal
-    | CausalInferenceProposal
-    | SelfProgrammingCandidate
-    | POLCommandSynthesisProposal;
-
-// Modal Payloads
 export interface ModalPayloads {
     causalChain: { log: PerformanceLogEntry };
     proposalReview: { proposal: ArchitecturalChangeProposal };
@@ -1730,15 +1984,6 @@ export interface ModalPayloads {
     telos: {};
     psychePrimitives: {};
     pluginManager: {};
-}
-
-// --- Geniality Engine ---
-export interface GenialityEngineState {
-    genialityIndex: number;
-    componentScores: {
-        creativity: number;
-        insight: number;
-        synthesis: number;
-        flow: number;
-    };
+    poseQuestion: {};
+    documentForge: {};
 }

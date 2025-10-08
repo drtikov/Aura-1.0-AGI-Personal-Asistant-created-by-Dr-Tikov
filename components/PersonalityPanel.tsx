@@ -1,8 +1,7 @@
-
-
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext';
-import { PersonalityState, Persona } from '../types';
+// FIX: Updated import to use PersonaActivation instead of the collided Persona type.
+import { PersonalityState, PersonaActivation } from '../types';
 
 interface TraitBarProps {
     label: string;
@@ -66,7 +65,8 @@ export const PersonalityPanel = React.memo(() => {
             
              <div className="panel-subsection-title" style={{marginTop: '1rem'}}>{t('personality_personas')}</div>
             <div className="personas-container">
-                {personalityState.personas && Object.entries(personalityState.personas).map(([id, persona]: [string, Persona]) => (
+                {/* FIX: Updated type annotation to PersonaActivation. */}
+                {personalityState.personas && Object.entries(personalityState.personas).map(([id, persona]: [string, PersonaActivation]) => (
                     <div key={id} className={`persona-item ${personalityState.dominantPersona === id ? 'dominant' : ''}`}>
                         <div className="persona-header">
                             <span className="persona-name">{t(`personality_${id}_name`)}</span>

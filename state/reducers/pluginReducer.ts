@@ -30,6 +30,16 @@ export const pluginReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
         }
+        
+        case 'PLUGIN/ADD_PLUGIN': {
+             return {
+                pluginState: {
+                    ...state.pluginState,
+                    registry: [...state.pluginState.registry, args]
+                }
+            };
+        }
+        
         default:
             return {};
     }
