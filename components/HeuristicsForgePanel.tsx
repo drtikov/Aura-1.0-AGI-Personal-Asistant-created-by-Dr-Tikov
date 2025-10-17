@@ -1,5 +1,6 @@
+// components/HeuristicsForgePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 import { DesignHeuristic } from '../types';
 
 export const HeuristicsForgePanel = React.memo(() => {
@@ -36,8 +37,8 @@ export const HeuristicsForgePanel = React.memo(() => {
                         </div>
                          <div className="causal-link-footer" style={{textAlign: 'left', marginTop: '0.5rem', display: 'flex', justifyContent: 'space-between'}}>
                             <span><strong>{t('phenomenology_source')}:</strong> {item.source}</span>
-                            <span style={{ color: getStatusColor(item.validationStatus), fontWeight: 'bold', textTransform: 'uppercase' }} title={`Effectiveness: ${item.effectivenessScore.toFixed(3)}`}>
-                                {t(`heuristic_status_${item.validationStatus}`)}
+                            <span style={{ color: getStatusColor(item.validationStatus), fontWeight: 'bold', textTransform: 'uppercase' }} title={`${t('heuristics_effectiveness')}: ${item.effectivenessScore.toFixed(2)}`}>
+                                {item.validationStatus}
                             </span>
                         </div>
                     </div>

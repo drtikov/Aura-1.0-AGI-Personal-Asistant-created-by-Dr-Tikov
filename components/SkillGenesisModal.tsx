@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const SkillGenesisModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
     const [specialty, setSpecialty] = useState('');
@@ -35,7 +36,7 @@ export const SkillGenesisModal = ({ isOpen, onClose }: { isOpen: boolean; onClos
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
-            title={t('skillGenesis_title_train')}
+            title={t('skillGenesis_train')}
             footer={footer}
             className="skill-genesis-modal"
         >

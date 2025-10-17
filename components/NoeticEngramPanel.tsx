@@ -1,5 +1,6 @@
+// components/NoeticEngramPanel.tsx
 import React from 'react';
-import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { NoeticEngram } from '../types';
 
 export const NoeticEngramPanel = React.memo(() => {

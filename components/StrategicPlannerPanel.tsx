@@ -1,10 +1,13 @@
+// components/StrategicPlannerPanel.tsx
 import React from 'react';
-import { usePlanningState, useLocalization } from '../context/AuraContext';
+import { usePlanningState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 import { Goal } from '../types';
 
 export const StrategicPlannerPanel = React.memo(() => {
     const { goalTree, activeStrategicGoalId: activeGoalId } = usePlanningState();
     const { t } = useLocalization();
+    const { handleScrollToHistory } = useAuraDispatch();
+
     const renderGoalNode = (goalId: string) => {
         const goal = goalTree[goalId];
         if (!goal) return null;
@@ -32,6 +35,21 @@ export const StrategicPlannerPanel = React.memo(() => {
                             style={{ width: `${goal.progress * 100}%`}}
                         ></div>
                     </div>
+                     {goal.status === 'failed' && goal.failureReason && (
+                        <div className="failure-reason-display" style={{marginTop: '0.5rem'}}>
+                            <p>{goal.failureReason}</p>
+                        </div>
+                    )}
+                    {goal.status === 'completed' && goal.resultHistoryId && (
+                        <div style={{marginTop: '0.5rem', textAlign: 'right'}}>
+                            <button 
+                                className="trace-button"
+                                onClick={() => handleScrollToHistory(goal.resultHistoryId!)}
+                            >
+                                View Result
+                            </button>
+                        </div>
+                    )}
                 </div>
                 {goal.children && goal.children.length > 0 && (
                     <div className="goal-children-container">

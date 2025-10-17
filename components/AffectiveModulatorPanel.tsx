@@ -1,6 +1,6 @@
-
+// components/AffectiveModulatorPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 const BiasSlider = ({ label, biasKey, value, syscall }: { label: string; biasKey: string; value: number; syscall: any }) => (
     <div className="state-item">
@@ -28,7 +28,6 @@ export const AffectiveModulatorPanel = React.memo(() => {
 
     return (
         <div className="side-panel affective-modulator-panel">
-            <div className="panel-subsection-title" style={{ marginTop: 0 }}>{t('affectiveModulator_title')}</div>
             <p className="reason-text" style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
                 {t('affectiveModulator_description')}
             </p>

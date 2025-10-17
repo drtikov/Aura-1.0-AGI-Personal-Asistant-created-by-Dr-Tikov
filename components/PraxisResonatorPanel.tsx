@@ -1,6 +1,7 @@
 // components/PraxisResonatorPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Import the `PraxisSession` type for explicit typing.
 import { PraxisSession } from '../types';
 

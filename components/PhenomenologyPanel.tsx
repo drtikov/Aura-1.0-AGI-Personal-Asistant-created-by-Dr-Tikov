@@ -1,5 +1,6 @@
+// components/PhenomenologyPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const PhenomenologyPanel = React.memo(() => {
     const { phenomenologicalEngine: state } = useCoreState();

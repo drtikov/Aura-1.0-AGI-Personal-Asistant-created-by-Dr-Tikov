@@ -9,9 +9,7 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
 
     switch (call) {
         case 'ADD_HISTORY_ENTRY': {
-            if (args.from === 'system' && state.history.some(h => h.text === args.text)) {
-                return {};
-            }
+            // The de-duplication logic for system messages has been removed for clarity.
             const newEntry = {
                 ...args,
                 id: args.id || self.crypto.randomUUID(),
@@ -22,6 +20,13 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             };
         }
         
+        case 'UPDATE_HISTORY_ENTRY':
+             return {
+                history: state.history.map(entry =>
+                    entry.id === args.id ? { ...entry, ...args.finalState } : entry
+                ),
+            };
+            
         case 'APPEND_TO_HISTORY_ENTRY':
             return {
                 history: state.history.map(entry =>
@@ -48,6 +53,13 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
                 history: state.history.map(entry =>
                     entry.id === args.id ? { ...entry, feedback: args.feedback, isFeedbackProcessed: false } : entry
                 ),
+            };
+            
+        case 'LOG/MARK_MYCELIAL_TRAINED':
+            return {
+                performanceLogs: state.performanceLogs.map(log =>
+                    log.id === args.logId ? { ...log, mycelialTrained: true } : log
+                )
             };
             
         case 'LOG_COGNITIVE_REGULATION':
@@ -92,8 +104,12 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             };
 
         case 'LOG_SUBSUMPTION_EVENT':
+            // FIX: Corrected reducer to use the 'subsumptionLogState' object and its 'log' array property.
             return {
-                subsumptionLog: [args, ...state.subsumptionLog].slice(0, 50)
+                subsumptionLogState: {
+                    ...state.subsumptionLogState,
+                    log: [args, ...state.subsumptionLogState.log].slice(0, 50),
+                }
             };
         
         case 'LOG/MARK_METAPHOR_PROCESSED':

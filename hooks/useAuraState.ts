@@ -4,6 +4,10 @@ import { auraReducer } from '../state/reducer';
 import { CURRENT_STATE_VERSION } from '../constants';
 import { migrateState } from '../state/migrations';
 import { HAL } from '../core/hal';
+// FIX: Import missing AuraState type.
+import { AuraState, HistoryEntry } from '../types';
+
+const CONTINUATION_SNAPSHOT_KEY = 'auraContinuationSnapshot';
 
 // Custom hook to manage Aura's state, including persistence via the HAL
 export const useAuraState = () => {
@@ -11,14 +15,31 @@ export const useAuraState = () => {
     const [memoryStatus, setMemoryStatus] = useState<'initializing' | 'ready' | 'saving' | 'error'>('initializing');
     const isInitialized = useRef(false);
 
-    // Effect for loading state from Memristor on initial mount
+    // Effect for loading state on initial mount (from seamless reboot or Memristor)
     useEffect(() => {
         const initializeState = async () => {
             if (isInitialized.current) return;
             isInitialized.current = true;
 
             try {
-                let loadedState = await HAL.Memristor.loadState();
+                // 1. Check for seamless reboot snapshot first
+                const snapshot = sessionStorage.getItem(CONTINUATION_SNAPSHOT_KEY);
+                if (snapshot) {
+                    sessionStorage.removeItem(CONTINUATION_SNAPSHOT_KEY); // Crucial: remove after reading
+                    const loadedState = JSON.parse(snapshot);
+                    const systemMessage: HistoryEntry = {
+                        id: self.crypto.randomUUID(),
+                        from: 'system',
+                        text: 'SYSTEM: Seamless reboot complete. State restored.',
+                        timestamp: Date.now()
+                    };
+                    dispatch({ type: 'IMPORT_STATE', payload: { ...loadedState, history: [...loadedState.history, systemMessage] } });
+                    setMemoryStatus('ready');
+                    return; // Initialization is done
+                }
+
+                // 2. If no snapshot, proceed with normal Memristor loading
+                let loadedState: AuraState | null = await HAL.Memristor.loadState();
                 if (loadedState) {
                     if (!loadedState.version || loadedState.version < CURRENT_STATE_VERSION) {
                         console.log(`State version mismatch. Migrating from v${loadedState.version || 1} to v${CURRENT_STATE_VERSION}.`);
@@ -29,9 +50,23 @@ export const useAuraState = () => {
                     }
                     
                     if (loadedState) {
-                        dispatch({ type: 'RESTORE_STATE_FROM_MEMRISTOR', payload: loadedState });
-                        // Dispatch a separate action to log the restoration event reliably.
-                        dispatch({ type: 'SYSCALL', payload: { call: 'ADD_HISTORY_ENTRY', args: { from: 'system', text: 'SYSTEM: State restored from Memristor.' } } });
+                        const systemMessage: HistoryEntry = {
+                            id: self.crypto.randomUUID(),
+                            from: 'system',
+                            text: 'SYSTEM: State restored from Memristor.',
+                            timestamp: Date.now()
+                        };
+            
+                        const stateToImport: AuraState = {
+                            ...loadedState,
+                            history: [...loadedState.history, systemMessage]
+                        };
+            
+                        // Persist this state *before* updating the UI to prevent race conditions
+                        await HAL.Memristor.saveState(stateToImport);
+                        
+                        // Now dispatch the fully prepared and saved state to the UI
+                        dispatch({ type: 'IMPORT_STATE', payload: stateToImport });
                     }
                 }
                 setMemoryStatus('ready');
@@ -42,18 +77,33 @@ export const useAuraState = () => {
         };
 
         initializeState();
-    }, []);
+
+    }, []); // Empty dependency array ensures this runs only once
+    
+    // Effect for triggering a seamless reboot when required
+    useEffect(() => {
+        if (state.kernelState.rebootRequired) {
+            console.log("Seamless reboot triggered...");
+            // Clean the flag before saving to prevent a loop
+            const stateToSave = { ...state, kernelState: { ...state.kernelState, rebootRequired: false } };
+            sessionStorage.setItem(CONTINUATION_SNAPSHOT_KEY, JSON.stringify(stateToSave));
+            window.location.reload();
+        }
+    }, [state.kernelState.rebootRequired]);
 
     // Effect for saving state to Memristor whenever it changes
     useEffect(() => {
-        if (memoryStatus === 'ready') {
-            setMemoryStatus('saving');
-            HAL.Memristor.saveState(state).then(() => {
-                setMemoryStatus('ready');
-            }).catch(() => {
-                setMemoryStatus('error');
-            });
+        // Don't save during initialization or if a reboot is pending.
+        if (memoryStatus !== 'ready' || state.kernelState.rebootRequired) {
+            return;
         }
+
+        setMemoryStatus('saving');
+        HAL.Memristor.saveState(state).then(() => {
+            setMemoryStatus('ready');
+        }).catch(() => {
+            setMemoryStatus('error');
+        });
     }, [state, memoryStatus]);
 
     const clearMemoryAndState = useCallback(async () => {

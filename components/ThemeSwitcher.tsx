@@ -1,6 +1,6 @@
 // components/ThemeSwitcher.tsx
 import React from 'react';
-import { useAuraDispatch, useCoreState, useLocalization } from '../context/AuraContext';
+import { useAuraDispatch, useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 const themes = [
     { id: 'ui-1', nameKey: 'theme_cyberpunk' },
@@ -27,7 +27,7 @@ export const ThemeSwitcher = () => {
 
     return (
         <div className="localization-panel"> {/* Reusing style for consistency */}
-            <label htmlFor="theme-switcher">{t('themeSwitcher_label')}</label>
+            <label htmlFor="theme-switcher">{t('themeSwitcher')}</label>
             <div className="theme-switcher-container">
                 <select id="theme-switcher" value={theme} onChange={handleThemeChange}>
                     {themes.map(themeOption => (

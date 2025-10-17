@@ -1,5 +1,6 @@
+// components/CodeEvolutionPanel.tsx
 import React from 'react';
-import { useLocalization } from '../context/AuraContext';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const CodeEvolutionPanel = () => {
     const { t } = useLocalization();

@@ -1,6 +1,6 @@
 // components/WisdomIngestionPanel.tsx
 import React, { useState, useCallback, DragEvent } from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { ProposedAxiom } from '../types';
 
 export const WisdomIngestionPanel = React.memo(() => {

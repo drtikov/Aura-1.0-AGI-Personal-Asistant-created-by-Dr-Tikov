@@ -1,5 +1,6 @@
+// components/GranularCortexPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 import { SensoryEngram, SensoryPrimitive } from '../types';
 
 // FIX: Wrapped component in React.memo to correctly handle the `key` prop in a list.

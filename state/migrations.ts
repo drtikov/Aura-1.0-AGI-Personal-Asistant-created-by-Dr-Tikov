@@ -38,7 +38,7 @@ const migrateV2toV3 = (oldState: V2AuraState): AuraState => {
         ...newInitialState, // Start with a fresh v3 state to get all new fields/defaults
         ...oldState, // Spread the old state to carry over all unchanged data
         version: 3, // CRITICAL: Update the version number
-        internalState: restOfInternalState, // Use the internal state without positivityScore
+        internalState: restOfInternalState as InternalState, // Use the internal state without positivityScore
         userModel: {
             ...oldState.userModel,
         },

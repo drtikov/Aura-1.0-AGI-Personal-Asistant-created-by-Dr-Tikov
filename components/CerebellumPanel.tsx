@@ -1,5 +1,6 @@
+// components/CerebellumPanel.tsx
 import React from 'react';
-import { usePlanningState, useLocalization } from '../context/AuraContext';
+import { usePlanningState, useLocalization } from '../context/AuraContext.tsx';
 
 export const CerebellumPanel = React.memo(() => {
     const { cerebellumState } = usePlanningState();

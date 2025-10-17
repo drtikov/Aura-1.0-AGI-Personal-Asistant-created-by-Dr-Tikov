@@ -1,9 +1,10 @@
 import React, { useState, useRef, useCallback, DragEvent, useEffect } from 'react';
-import { Modal } from './Modal';
-import { Accordion } from './Accordion';
-import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext';
-import { GunaState } from '../types';
-import { useModal } from '../context/ModalContext';
+import { Modal } from './Modal.tsx';
+import { Accordion } from './Accordion.tsx';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext.tsx';
+import { GunaState } from '../types.ts';
+import { useModal } from '../context/ModalContext.tsx';
 
 type AspectRatio = "1:1" | "16:9" | "9:16" | "4:3" | "3:4";
 type CameraAngle = "none" | "eye-level" | "low" | "high" | "worms-eye" | "birds-eye" | "dutch";
@@ -140,7 +141,6 @@ const styleGroups: StyleGroup[] = [
     {
         labelKey: 'imageGen_style_group_scifi',
         styles: [
-// FIX: Changed labelKey to use 'imageGen_style_steampunk' to resolve a duplicate key issue in localization.ts, as indicated by the comment.
             { id: 'steampunk', labelKey: 'imageGen_style_steampunk' },
             { id: 'dieselpunk', labelKey: 'imageGen_style_dieselpunk' },
             { id: 'biopunk', labelKey: 'imageGen_style_biopunk' },
@@ -150,7 +150,6 @@ const styleGroups: StyleGroup[] = [
             { id: 'nanopunk', labelKey: 'imageGen_style_nanopunk' },
         ]
     },
-
     {
         labelKey: 'imageGen_style_group_unconventional',
         styles: [
@@ -184,9 +183,24 @@ const styleGroups: StyleGroup[] = [
     },
 ];
 
+const dataURLtoFile = (dataurl: string, filename: string): File | null => {
+    const arr = dataurl.split(',');
+    if (arr.length < 2) return null;
+    const mimeMatch = arr[0].match(/:(.*?);/);
+    if (!mimeMatch) return null;
+    const mime = mimeMatch[1];
+    const bstr = atob(arr[1]);
+    let n = bstr.length;
+    const u8arr = new Uint8Array(n);
+    while (n--) {
+        u8arr[n] = bstr.charCodeAt(n);
+    }
+    return new File([u8arr], filename, { type: mime });
+};
+
 export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpen: boolean; onClose: () => void; initialPrompt?: string }) => {
     const { t } = useLocalization();
-    const { generateImage, addToast, setAttachedFile, handleGenerateDreamPrompt } = useAuraDispatch();
+    const { geminiAPI, addToast, setAttachedFile, handleGenerateDreamPrompt } = useAuraDispatch();
     const { internalState } = useCoreState();
     const modal = useModal();
 
@@ -199,25 +213,24 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
     const [isDragging, setIsDragging] = useState(false);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
-    // Basic Controls State
-    const [negativePrompt, setNegativePrompt] = useState('');
-    const [aspectRatio, setAspectRatio] = useState<AspectRatio>('1:1');
-    const [style, setStyle] = useState('none');
-    
     // Advanced Controls State
-    const [numberOfImages, setNumberOfImages] = useState(1);
-    const [referenceImage, setReferenceImage] = useState<File | null>(null);
-    const [referenceImagePreview, setReferenceImagePreview] = useState<string | null>(null);
+    const [negativePrompt, setNegativePrompt] = useState('');
+    const [style, setStyle] = useState('none');
+    const [aspectRatio, setAspectRatio] = useState<AspectRatio>('1:1');
     const [isMixing, setIsMixing] = useState(false);
     const [promptB, setPromptB] = useState('');
     const [mixRatio, setMixRatio] = useState(0.5);
     const [styleStrength, setStyleStrength] = useState(50);
+    const [referenceImage, setReferenceImage] = useState<File | null>(null);
+    const [referenceImageUrl, setReferenceImageUrl] = useState<string | null>(null);
+
+    // Director's Toolkit State
     const [cameraAngle, setCameraAngle] = useState<CameraAngle>('none');
     const [shotType, setShotType] = useState<ShotType>('none');
     const [lens, setLens] = useState<LensPreset>('none');
     const [lightingStyle, setLightingStyle] = useState<LightingStyle>('none');
     const [atmosphere, setAtmosphere] = useState<Atmosphere>('none');
-
+    
     // Aura Integration State
     const [useAuraMood, setUseAuraMood] = useState(false);
     const [showMoodTweaks, setShowMoodTweaks] = useState(false);
@@ -229,18 +242,18 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
 
     const resetState = useCallback(() => {
         setPrompt('');
-        setGeneratedImages([]);
         setNegativePrompt('');
-        setAspectRatio('1:1');
         setStyle('none');
-        setNumberOfImages(1);
-        setReferenceImage(null);
-        setReferenceImagePreview(null);
-        if (fileInputRef.current) fileInputRef.current.value = '';
+        setAspectRatio('1:1');
+        setGeneratedImages([]);
         setIsMixing(false);
         setPromptB('');
         setMixRatio(0.5);
         setStyleStrength(50);
+        setReferenceImage(null);
+        if (referenceImageUrl) URL.revokeObjectURL(referenceImageUrl);
+        setReferenceImageUrl(null);
+        if (fileInputRef.current) fileInputRef.current.value = '';
         setCameraAngle('none');
         setShotType('none');
         setLens('none');
@@ -248,7 +261,7 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
         setAtmosphere('none');
         setUseAuraMood(false);
         setShowMoodTweaks(false);
-    }, []);
+    }, [referenceImageUrl]);
 
     const resetMoodToCurrent = useCallback(() => {
         setMoodGuna(internalState.gunaState);
@@ -257,7 +270,7 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
         setMoodLove(internalState.loveSignal);
         setMoodWisdom(internalState.wisdomSignal);
     }, [internalState]);
-
+    
     useEffect(() => {
         if (isOpen) {
             setPrompt(initialPrompt || '');
@@ -270,32 +283,24 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
     const handleFileSelect = (file: File | null) => {
         if (file && file.type.startsWith('image/')) {
             setReferenceImage(file);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                setReferenceImagePreview(reader.result as string);
-            };
-            reader.readAsDataURL(file);
+            if (referenceImageUrl) URL.revokeObjectURL(referenceImageUrl);
+            setReferenceImageUrl(URL.createObjectURL(file));
         } else if (file) {
             addToast('Please upload a valid image file.', 'warning');
         }
     };
     
-    const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }, []);
-    const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }, []);
-    const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); handleFileSelect(e.dataTransfer.files?.[0] || null); }, []);
-    const handleRemoveReferenceImage = useCallback((e: React.MouseEvent) => { e.stopPropagation(); setReferenceImage(null); setReferenceImagePreview(null); if (fileInputRef.current) { fileInputRef.current.value = ''; } }, []);
-    
     const constructFinalPrompt = () => {
         let finalPrompt = prompt;
         const additions: string[] = [];
-        
+    
         if (style !== 'none') additions.push(`in the style of ${style.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
         if (atmosphere !== 'none') additions.push(`with a ${atmosphere} atmosphere`);
-        if (lightingStyle !== 'none') additions.push(`with ${lightingStyle.replace('-', ' ')} lighting`);
+        if (lightingStyle !== 'none') additions.push(`${lightingStyle.replace('-', ' ')} lighting`);
         if (cameraAngle !== 'none') additions.push(`${cameraAngle.replace('-', ' ')} angle shot`);
         if (shotType !== 'none') additions.push(`${shotType.replace('-', ' ')}`);
         if (lens !== 'none') additions.push(`using a ${lens} lens`);
-        
+    
         if (useAuraMood) {
             if (moodGuna === GunaState.SATTVA) additions.push('embodying clarity, harmony, and purity');
             if (moodGuna === GunaState.RAJAS) additions.push('filled with dynamic energy, passion, and action');
@@ -305,9 +310,9 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
             if (moodLove > 0.75) additions.push('evoking a feeling of warmth, connection, and love');
             if (moodWisdom > 0.75) additions.push('with a sense of deep insight and wisdom');
         }
-
+    
         if (additions.length > 0) finalPrompt += `, ${additions.join(', ')}`;
-        
+    
         return finalPrompt;
     };
 
@@ -320,7 +325,25 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
         setGeneratedImages([]);
         try {
             const finalPrompt = constructFinalPrompt();
-            const images = await generateImage(finalPrompt, negativePrompt, aspectRatio, style, numberOfImages, referenceImage, isMixing, promptB, mixRatio, styleStrength, cameraAngle, shotType, lens, lightingStyle, atmosphere, useAuraMood);
+            const images = await geminiAPI.generateImage(
+                finalPrompt,
+                negativePrompt,
+                aspectRatio,
+                style,
+                1,
+                referenceImage,
+                isMixing,
+                promptB,
+                mixRatio,
+                styleStrength,
+                cameraAngle,
+                shotType,
+                lens,
+                lightingStyle,
+                atmosphere,
+                useAuraMood,
+                useAuraMood ? { guna: moodGuna, novelty: moodNovelty, harmony: moodHarmony, love: moodLove, wisdom: moodWisdom } : undefined
+            );
             setGeneratedImages(images);
             addToast(t('toast_imageGenSuccess'), 'success');
         } catch (error) {
@@ -331,29 +354,15 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
         }
     };
     
-    const handleGenerateDream = async () => {
-        setIsGenerating(true);
-        const dreamPrompt = await handleGenerateDreamPrompt();
-        if (dreamPrompt) {
-            setPrompt(dreamPrompt);
+    const handleUseInChat = async (imageUrl: string) => {
+        const file = dataURLtoFile(imageUrl, "generated-image.png");
+        if (file) {
+            const previewUrl = URL.createObjectURL(file);
+            setAttachedFile({ file, previewUrl, type: 'image' });
+            onClose();
+        } else {
+            addToast("Failed to prepare image for chat.", "error");
         }
-        setIsGenerating(false);
-    };
-
-    const handleResetMood = () => {
-        resetMoodToCurrent();
-        addToast(t('toast_moodReset'), 'info');
-    };
-
-    const handleEditImage = (imageUrl: string) => {
-        onClose(); // Close this modal
-        modal.open('imageEditing', { initialImage: imageUrl }); // Open the other
-    };
-
-    const handleUseInChat = (imageUrl: string) => {
-        // This is a placeholder. A real implementation would convert the data URL to a File object.
-        addToast('Using image in chat is a mock.', 'info');
-        onClose();
     };
 
     const handleDownload = (imageUrl: string) => {
@@ -365,61 +374,29 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
         document.body.removeChild(link);
     };
 
+    const handleEdit = (imageUrl: string) => {
+        modal.open('imageEditing', { initialImage: imageUrl });
+        onClose(); // Close the generation modal
+    };
+    
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('imageGen_title')} className="image-generation-modal">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('imageGen')} className="image-generation-modal">
             <div className="image-gen-layout">
                 <div className="image-gen-controls">
-                    {/* Main Controls */}
+                    {/* All controls go here */}
                     <div className="image-gen-control-group">
-                        <label htmlFor="img-prompt">{isMixing ? t('imageGen_promptA') : t('imageGen_prompt')}</label>
-                        <textarea id="img-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t('imageGen_prompt_placeholder')} disabled={isGenerating} rows={isMixing ? 3 : 5} />
-                    </div>
-                     <div className="image-gen-control-group toggle-group" style={{ marginBottom: isMixing ? '1rem' : '-1rem' }}>
-                        <label htmlFor="mixing-toggle" className="toggle-switch-label">{t('imageGen_promptMixing')}</label>
-                        <label className="toggle-switch">
-                            <input type="checkbox" id="mixing-toggle" checked={isMixing} onChange={e => setIsMixing(e.target.checked)} disabled={isGenerating} />
-                            <span className="toggle-slider"></span>
-                        </label>
+                        <label htmlFor="img-prompt">{t('imageGen_prompt')}</label>
+                        <textarea id="img-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t('imageGen_prompt_placeholder')} disabled={isGenerating} rows={4}/>
                     </div>
 
-                    {isMixing && (
-                        <>
-                            <div className="image-gen-control-group">
-                                <label htmlFor="img-prompt-b">Prompt B</label>
-                                <textarea id="img-prompt-b" value={promptB} onChange={e => setPromptB(e.target.value)} placeholder="e.g., 'A tranquil forest scene at sunrise'" disabled={isGenerating} rows={3} />
-                            </div>
-                             <div className="image-gen-control-group">
-                                <label htmlFor="mix-ratio">Mix Ratio (A ←→ B): {(mixRatio * 100).toFixed(0)}%</label>
-                                <input type="range" id="mix-ratio" min="0" max="1" step="0.01" value={mixRatio} onChange={e => setMixRatio(Number(e.target.value))} disabled={isGenerating} />
-                            </div>
-                        </>
-                    )}
-                    
-                    <div className="image-gen-control-group">
-                        <label htmlFor="neg-prompt">{t('imageGen_negativePrompt')}</label>
-                        <textarea id="neg-prompt" value={negativePrompt} onChange={e => setNegativePrompt(e.target.value)} placeholder={t('imageGen_negativePrompt_placeholder')} disabled={isGenerating} rows={2}/>
-                    </div>
-                    <div className="image-gen-control-group">
-                        <label>Aspect Ratio</label>
-                        <div className="aspect-ratio-buttons">
-                            {(['1:1', '16:9', '9:16', '4:3', '3:4'] as AspectRatio[]).map(ar => (
-                                <button key={ar} className={aspectRatio === ar ? 'active' : ''} onClick={() => setAspectRatio(ar)} disabled={isGenerating}>{ar}</button>
-                            ))}
-                        </div>
-                    </div>
-                    <div className="image-gen-control-group">
-                        <label>Number of Images: {numberOfImages}</label>
-                        <input type="range" min="1" max="4" step="1" value={numberOfImages} onChange={e => setNumberOfImages(Number(e.target.value))} disabled={isGenerating} />
-                    </div>
-
-                    <Accordion title={t('imageGen_directorsToolkit')}>
-                        <div className="image-gen-control-group">
+                     <Accordion title={t('imageGen_directorsToolkit')} defaultOpen={true}>
+                         <div className="image-gen-control-group">
                             <label htmlFor="camera-angle">{t('imageGen_cameraAngle')}</label>
                             <select id="camera-angle" value={cameraAngle} onChange={e => setCameraAngle(e.target.value as CameraAngle)} disabled={isGenerating}>
                                 {cameraAngles.map(a => <option key={a.id} value={a.id}>{t(a.labelKey)}</option>)}
                             </select>
                         </div>
-                        <div className="image-gen-control-group">
+                         <div className="image-gen-control-group">
                             <label htmlFor="shot-type">{t('imageGen_shotType')}</label>
                             <select id="shot-type" value={shotType} onChange={e => setShotType(e.target.value as ShotType)} disabled={isGenerating}>
                                 {shotTypes.map(s => <option key={s.id} value={s.id}>{t(s.labelKey)}</option>)}
@@ -433,19 +410,7 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
                         </div>
                     </Accordion>
                     
-                    <Accordion title={t('imageGen_artisticControls')}>
-                         <div className="image-gen-control-group">
-                            <label htmlFor="lighting-style">{t('imageGen_lighting')}</label>
-                            <select id="lighting-style" value={lightingStyle} onChange={e => setLightingStyle(e.target.value as LightingStyle)} disabled={isGenerating}>
-                                {lightingStyles.map(l => <option key={l.id} value={l.id}>{t(l.labelKey)}</option>)}
-                            </select>
-                        </div>
-                         <div className="image-gen-control-group">
-                            <label htmlFor="atmosphere">{t('imageGen_atmosphere')}</label>
-                            <select id="atmosphere" value={atmosphere} onChange={e => setAtmosphere(e.target.value as Atmosphere)} disabled={isGenerating}>
-                                {atmospheres.map(a => <option key={a.id} value={a.id}>{t(a.labelKey)}</option>)}
-                            </select>
-                        </div>
+                     <Accordion title={t('imageGen_artisticControls')}>
                         <div className="image-gen-control-group">
                             <label htmlFor="style">{t('imageGen_artisticStyle')}</label>
                             <select id="style" value={style} onChange={e => setStyle(e.target.value)} disabled={isGenerating}>
@@ -457,69 +422,47 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
                                 ))}
                             </select>
                         </div>
+                        <div className="image-gen-control-group">
+                            <label htmlFor="lighting-style">{t('imageGen_lighting')}</label>
+                            <select id="lighting-style" value={lightingStyle} onChange={e => setLightingStyle(e.target.value as LightingStyle)} disabled={isGenerating}>
+                                {lightingStyles.map(l => <option key={l.id} value={l.id}>{t(l.labelKey)}</option>)}
+                            </select>
+                        </div>
                          <div className="image-gen-control-group">
-                            <label htmlFor="style-strength">{t('imageGen_styleStrength')}: {styleStrength}%</label>
-                            <input type="range" id="style-strength" min="1" max="100" value={styleStrength} onChange={e => setStyleStrength(Number(e.target.value))} disabled={isGenerating || style === 'none'} />
+                            <label htmlFor="atmosphere">{t('imageGen_atmosphere')}</label>
+                             <select id="atmosphere" value={atmosphere} onChange={e => setAtmosphere(e.target.value as Atmosphere)} disabled={isGenerating}>
+                                {atmospheres.map(a => <option key={a.id} value={a.id}>{t(a.labelKey)}</option>)}
+                            </select>
+                        </div>
+                        <div className="image-gen-control-group">
+                            <label htmlFor="neg-prompt">{t('imageGen_negativePrompt')}</label>
+                            <textarea id="neg-prompt" value={negativePrompt} onChange={e => setNegativePrompt(e.target.value)} placeholder={t('imageGen_negativePrompt_placeholder')} disabled={isGenerating} rows={2}/>
                         </div>
                     </Accordion>
                     
-                     <Accordion title={t('imageGen_auraIntegration')}>
-                        <div className="image-gen-control-group toggle-group">
-                            <label htmlFor="aura-mood-toggle" className="toggle-switch-label">{t('imageGen_useAuraMood')}</label>
-                            <label className="toggle-switch">
-                                <input type="checkbox" id="aura-mood-toggle" checked={useAuraMood} onChange={e => {
-                                    setUseAuraMood(e.target.checked);
-                                    setShowMoodTweaks(e.target.checked);
-                                }} disabled={isGenerating} />
-                                <span className="toggle-slider"></span>
-                            </label>
-                        </div>
-
-                        {useAuraMood && (
-                            <div className={`image-gen-control-group mood-tweaks-submenu ${showMoodTweaks ? 'open' : ''}`}>
-                                <div className="mood-tweaks-header">
-                                    <h4>{t('imageGen_tweakMood')}</h4>
-                                    <button onClick={handleResetMood} className="control-button reset-mood-button">{t('imageGen_resetMood')}</button>
-                                </div>
-                                <div className="image-gen-control-group"> <label htmlFor="mood-guna">Guna State</label> <select id="mood-guna" value={moodGuna} onChange={e => setMoodGuna(e.target.value as GunaState)} disabled={isGenerating}> {Object.values(GunaState).map(guna => <option key={guna} value={guna}>{guna}</option>)} </select> </div>
-                                <div className="image-gen-control-group"> <label htmlFor="mood-novelty">Novelty ({(moodNovelty * 100).toFixed(0)}%)</label> <input type="range" id="mood-novelty" min="0" max="1" step="0.01" value={moodNovelty} onChange={e => setMoodNovelty(Number(e.target.value))} disabled={isGenerating} /> </div>
-                                <div className="image-gen-control-group"> <label htmlFor="mood-harmony">Harmony ({(moodHarmony * 100).toFixed(0)}%)</label> <input type="range" id="mood-harmony" min="0" max="1" step="0.01" value={moodHarmony} onChange={e => setMoodHarmony(Number(e.target.value))} disabled={isGenerating} /> </div>
-                                <div className="image-gen-control-group"> <label htmlFor="mood-love">Love ({(moodLove * 100).toFixed(0)}%)</label> <input type="range" id="mood-love" min="0" max="1" step="0.01" value={moodLove} onChange={e => setMoodLove(Number(e.target.value))} disabled={isGenerating} /> </div>
-                                <div className="image-gen-control-group"> <label htmlFor="mood-wisdom">Wisdom ({(moodWisdom * 100).toFixed(0)}%)</label> <input type="range" id="mood-wisdom" min="0" max="1" step="0.01" value={moodWisdom} onChange={e => setMoodWisdom(Number(e.target.value))} disabled={isGenerating} /> </div>
-                            </div>
-                        )}
-                        
-                        <div className="image-gen-control-group special-action-group" style={{borderTop: 'none', paddingTop: '0'}}>
-                            <button className="control-button" onClick={handleGenerateDream} disabled={isGenerating}>
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M12 3C7.12 3 3.14 5.86 1.2 10.15c-.2.45-.2.96 0 1.41C3.14 15.84 7.12 18.7 12 18.7s8.86-2.86 10.8-7.15c.2-.45.2-.96 0-1.41C20.86 5.86 16.88 3 12 3zm0 13.7c-3.19 0-5.93-2.22-7.25-5.35C5.87 8.32 8.52 6.3 12 6.3s6.13 2.02 7.25 5.05c-1.32 3.13-4.06 5.35-7.25 5.35zm0-8.85c-1.93 0-3.5 1.57-3.5 3.5s1.57 3.5 3.5 3.5 3.5-1.57 3.5-3.5-1.57-3.5-3.5-3.5z"/></svg>
-                                {t('imageGen_generateFromDream')}
-                            </button>
-                        </div>
-                    </Accordion>
-
                     <button className="image-generator-button" onClick={handleGenerate} disabled={isGenerating}>
                         {isGenerating ? t('imageGen_generating') : t('imageGen_generate')}
                     </button>
                 </div>
-                
-                <div 
-                    className={`image-gen-preview ${isDragging ? 'dropzone-active' : ''}`}
-                    onDragOver={handleDragOver} onDragLeave={handleDragLeave} onDrop={handleDrop} >
+                <div className="image-gen-preview">
                     {isGenerating ? (
-                        <div className="loading-overlay active"> <div className="spinner-small"></div> <span>{t('imageGen_generating')}</span> </div>
+                        <div className="loading-overlay active">
+                            <div className="spinner-small"></div>
+                            <span>{t('imageGen_generating')}</span>
+                        </div>
                     ) : generatedImages.length > 0 ? (
                         <div className="image-results-grid">
-                            {generatedImages.map((imgSrc, index) => (
+                            {generatedImages.map((src, index) => (
                                 <div key={index} className="generated-image-item">
-                                    <img src={imgSrc} alt={`Generated image ${index + 1}`} />
+                                    <img src={src} alt={`Generated image ${index + 1}`} />
                                     <div className="image-item-actions">
-                                        <button onClick={() => handleEditImage(imgSrc)} title={t('imageGen_edit')}>
-                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-                                        </button>
-                                        <button onClick={() => handleDownload(imgSrc)} title={t('imageGen_download')}>
+                                        <button onClick={() => handleDownload(src)} title={t('imageGen_download')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                                         </button>
-                                        <button onClick={() => handleUseInChat(imgSrc)} title={t('imageGen_use_in_chat')}>
+                                        <button onClick={() => handleEdit(src)} title={t('imageGen_edit')}>
+                                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34a.9959.9959 0 00-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
+                                        </button>
+                                        <button onClick={() => handleUseInChat(src)} title={t('imageGen_useInChat')}>
                                             <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>
                                         </button>
                                     </div>
@@ -527,17 +470,7 @@ export const ImageGenerationModal = ({ isOpen, onClose, initialPrompt }: { isOpe
                             ))}
                         </div>
                     ) : (
-                        <div className="reference-image-placeholder" onClick={() => fileInputRef.current?.click()}>
-                            <input type="file" ref={fileInputRef} onChange={(e) => handleFileSelect(e.target.files?.[0] || null)} accept="image/*" style={{ display: 'none' }} />
-                            {referenceImagePreview ? (
-                                <div className="reference-image-preview">
-                                    <img src={referenceImagePreview} alt="Reference" />
-                                    <button onClick={handleRemoveReferenceImage} className="remove-reference-btn">&times;</button>
-                                </div>
-                            ) : (
-                                <p>{t('imageGen_uploadOrDrop')}</p>
-                            )}
-                        </div>
+                        <p>{t('imageGen_placeholder')}</p>
                     )}
                 </div>
             </div>

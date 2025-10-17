@@ -1,8 +1,10 @@
 import React, { useState, useRef, useCallback, DragEvent, useEffect } from 'react';
-import { Modal } from './Modal';
-import { Accordion } from './Accordion';
-import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext';
-import { GunaState } from '../types';
+import { Modal } from './Modal.tsx';
+import { Accordion } from './Accordion.tsx';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext.tsx';
+import { GunaState } from '../types.ts';
+import { useModal } from '../context/ModalContext.tsx';
 
 // Helper to convert a data URL to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File | null => {
@@ -343,11 +345,11 @@ export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: b
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('imageEdit_title')} className="image-generation-modal">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('imageEdit')} className="image-generation-modal">
             <div className="image-gen-layout">
                 <div className="image-gen-controls">
                     <div className="image-gen-control-group">
-                        <label htmlFor="edit-prompt">{t('imageEdit_prompt_label')}</label>
+                        <label htmlFor="edit-prompt">{t('imageEdit_prompt')}</label>
                         <textarea id="edit-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t('imageEdit_prompt_placeholder')} disabled={isGenerating} rows={4} />
                     </div>
 

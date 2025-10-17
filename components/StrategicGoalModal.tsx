@@ -1,8 +1,7 @@
-
-
+// components/StrategicGoalModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }: { isOpen: boolean; onSetGoal: (goal: string) => void; onClose: () => void; isProcessing: boolean; }) => {
     const [goal, setGoal] = useState('');
@@ -32,7 +31,7 @@ export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }:
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={t('strategicGoal_title')}
+            title={t('strategicGoal')}
             footer={footer}
             className="strategic-goal-modal"
         >

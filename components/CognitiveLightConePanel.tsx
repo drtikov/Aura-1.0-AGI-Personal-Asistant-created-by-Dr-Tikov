@@ -1,5 +1,6 @@
+// components/CognitiveLightConePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const CognitiveLightConePanel = React.memo(() => {
     const { cognitiveLightCone: state } = useCoreState();

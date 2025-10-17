@@ -1,6 +1,6 @@
 // components/NoosphereInterfacePanel.tsx
 import React from 'react';
-import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { Resonance } from '../types';
 
 export const NoosphereInterfacePanel = () => {
@@ -34,7 +34,7 @@ export const NoosphereInterfacePanel = () => {
                                 {resonance.status}
                             </span>
                         </div>
-                        <div className="state-item" style={{padding: '0.25rem 0 0 0'}}>
+                        <div className="state-item" style={{ padding: '0.25rem 0 0 0' }}>
                             <label>{t('noosphere_resonanceStrength')}</label>
                             <div className="state-bar-container">
                                 <div 

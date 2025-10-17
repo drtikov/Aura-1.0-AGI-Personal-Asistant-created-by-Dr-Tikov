@@ -1,23 +1,15 @@
 // components/MotorCortexPanel.tsx
 import React, { useState } from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { CognitivePrimitive } from '../types';
 
 export const MotorCortexPanel = () => {
     const { motorCortexState } = useArchitectureState();
-    const { handleGenerateCognitiveSequence, syscall } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
 
-    const [directive, setDirective] = useState('');
     const { status, actionQueue, executionIndex, lastError } = motorCortexState;
-
-    const handleSubmit = (e: React.FormEvent) => {
-        e.preventDefault();
-        if (directive.trim()) {
-            handleGenerateCognitiveSequence(directive.trim());
-            setDirective('');
-        }
-    };
     
     return (
         <div className="side-panel motor-cortex-panel">

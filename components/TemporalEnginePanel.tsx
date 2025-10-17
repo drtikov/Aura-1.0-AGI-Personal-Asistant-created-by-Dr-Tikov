@@ -1,6 +1,6 @@
 // components/TemporalEnginePanel.tsx
 import React from 'react';
-import { useSystemState, useLocalization } from '../context/AuraContext';
+import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 import { SEDLDirective } from '../types';
 
 export const TemporalEnginePanel = () => {

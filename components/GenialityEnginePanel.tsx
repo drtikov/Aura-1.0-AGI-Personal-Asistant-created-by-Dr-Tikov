@@ -1,5 +1,6 @@
+// components/GenialityEnginePanel.tsx
 import React from 'react';
-import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { GenialityImprovementProposal } from '../types';
 
 const RadialBar = ({ percentage, color, label, size = 40, stroke = 4 }: { percentage: number, color: string, label: string, size?: number, stroke?: number }) => {

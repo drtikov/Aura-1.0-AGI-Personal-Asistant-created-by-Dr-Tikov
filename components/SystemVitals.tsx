@@ -1,5 +1,6 @@
 import React from 'react';
-import { useSystemState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 
 export const SystemVitals = React.memo(() => {
     const { resourceMonitor: monitor } = useSystemState();

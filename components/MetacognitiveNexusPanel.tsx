@@ -1,7 +1,8 @@
 // components/MetacognitiveNexusPanel.tsx
 import React from 'react';
 import { MetacognitiveLink } from '../types';
-import { useSystemState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 
 const formatKey = (key: string) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
 

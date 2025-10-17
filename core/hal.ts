@@ -1,11 +1,12 @@
 // core/hal.ts
 
 import { GoogleGenAI, GenerateContentResponse, Modality, Type, FunctionDeclaration } from "@google/genai";
+// FIX: Import missing AuraState type.
 import { AuraState } from '../types';
 
 let ai: GoogleGenAI | null = null;
 
-const getAI = (): GoogleGenAI | null => {
+const getAI = (): GoogleGenAI => {
     if (ai) return ai;
     if (process.env.API_KEY) {
         try {
@@ -13,11 +14,11 @@ const getAI = (): GoogleGenAI | null => {
             return ai;
         } catch (error) {
             console.error("HAL: Failed to initialize GoogleGenAI:", error);
-            return null;
+            throw new Error("Failed to initialize Gemini API. Check API Key.");
         }
     }
     console.error("HAL: API_KEY environment variable not set.");
-    return null;
+    throw new Error("API_KEY environment variable not set.");
 };
 
 // --- Memristor (IndexedDB) Module ---
@@ -98,25 +99,23 @@ const Memristor = {
 // --- Gemini API Module ---
 const Gemini = {
     generateContent: async (
-        contents: any[], 
+        contents: any, 
         systemInstruction: string,
-        tools?: FunctionDeclaration[]
+        tools?: {functionDeclarations: FunctionDeclaration[]}[]
     ): Promise<GenerateContentResponse> => {
         const ai = getAI();
-        if (!ai) throw new Error("Gemini API not initialized");
         
         return await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: contents,
             config: {
                 systemInstruction,
-                ...(tools && tools.length > 0 && { tools: [{ functionDeclarations: tools }] })
+                ...(tools && tools.length > 0 && { tools: tools })
             }
         });
     },
     generateContentWithSchema: async (prompt: string, schema: any): Promise<GenerateContentResponse> => {
         const ai = getAI();
-        if (!ai) throw new Error("Gemini API not initialized");
         return await ai.models.generateContent({
             model: 'gemini-2.5-flash',
             contents: prompt,
@@ -125,7 +124,6 @@ const Gemini = {
     },
     generateImages: async (prompt: string, config: any): Promise<any> => {
         const ai = getAI();
-        if (!ai) throw new Error("Gemini API not initialized");
         return await ai.models.generateImages({
             model: 'imagen-4.0-generate-001',
             prompt,
@@ -134,7 +132,6 @@ const Gemini = {
     },
     editImage: async (base64ImageData: string, mimeType: string, prompt: string): Promise<any> => {
         const ai = getAI();
-        if (!ai) throw new Error("Gemini API not initialized");
         return await ai.models.generateContent({
             // FIX: Updated model name to 'gemini-2.5-flash-image' as per API guidelines.
             model: 'gemini-2.5-flash-image',
@@ -149,7 +146,6 @@ const Gemini = {
     },
     generateVideos: async (prompt: string): Promise<any> => {
         const ai = getAI();
-        if (!ai) throw new Error("Gemini API not initialized");
         return await ai.models.generateVideos({
             model: 'veo-2.0-generate-001',
             prompt,
@@ -158,7 +154,6 @@ const Gemini = {
     },
     getVideosOperation: async (operation: any): Promise<any> => {
         const ai = getAI();
-        if (!ai) throw new Error("Gemini API not initialized");
         return await ai.operations.getVideosOperation({ operation });
     },
     fetchVideoData: async (downloadLink: string): Promise<Blob> => {
@@ -173,7 +168,7 @@ const Clipboard = {
 };
 
 const FileSystem = {
-    createObjectURL: (blob: Blob): string => URL.createObjectURL(blob),
+    createObjectURL: (blob: Blob | MediaSource): string => URL.createObjectURL(blob),
     revokeObjectURL: (url: string): void => URL.revokeObjectURL(url),
     readFileAsBase64: (file: File): Promise<string> => {
         return new Promise<string>((resolve, reject) => {

@@ -1,7 +1,7 @@
-
+// components/CognitiveForgePanel.tsx
 import React from 'react';
 import { SynthesizedSkill, SimulationLogEntry, SynthesisCandidate } from '../types';
-import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const CognitiveForgePanel = React.memo(() => {
     const { cognitiveForgeState: state } = useArchitectureState();
@@ -32,7 +32,7 @@ export const CognitiveForgePanel = React.memo(() => {
                     className={`control-button pause-button ${state.isTuningPaused ? 'paused' : ''}`}
                     onClick={handleTogglePause}
                 >
-                    {state.isTuningPaused ? t('btn_resume') : t('btn_pause')} {t('cognitiveForge_tuning')}
+                    {state.isTuningPaused ? t('resume') : t('pause')} {t('cognitiveForge_tuning')}
                 </button>
             </div>
             

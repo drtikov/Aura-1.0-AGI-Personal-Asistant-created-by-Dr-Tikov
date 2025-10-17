@@ -1,5 +1,6 @@
+// components/CoprocessorArchitectureSwitcher.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization, useArchitectureState } from '../context/AuraContext';
+import { useAuraDispatch, useLocalization, useArchitectureState } from '../context/AuraContext.tsx';
 import { CoprocessorArchitecture } from '../types';
 
 export const CoprocessorArchitectureSwitcher = () => {

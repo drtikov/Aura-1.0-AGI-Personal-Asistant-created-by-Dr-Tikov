@@ -1,7 +1,8 @@
 // components/InternalScientistPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
-import { DiagnosticFinding, InternalScientistExperiment, InternalScientistHypothesis } from '../types';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+// FIX: Imported missing types
+import { DiagnosticFinding, InternalScientistExperiment, InternalScientistHypothesis, SelfProgrammingCandidate, CreateFileCandidate, ModifyFileCandidate } from '../types';
 
 const timeAgo = (timestamp: number, t: (key: string, options?: any) => string) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -26,9 +27,14 @@ const HypothesisCard = ({ hypothesis }: { hypothesis: InternalScientistHypothesi
 
 // FIX: Added a type guard to correctly display code information from the SelfProgrammingCandidate union type.
 const ExperimentCard = ({ experiment }: { experiment: InternalScientistExperiment }) => {
-    const codeInfo = experiment.design.type === 'MODIFY' 
-        ? `// Target: ${experiment.design.targetFile}\n${experiment.design.codeSnippet}`
-        : `// New File: ${experiment.design.newFile.path}\n${experiment.design.newFile.content}`;
+    let codeInfo = 'Unknown code change';
+    if (experiment.design.proposalType === 'self_programming_modify') {
+        const modifyCandidate = experiment.design as ModifyFileCandidate;
+        codeInfo = `// Target: ${modifyCandidate.targetFile}\n${modifyCandidate.codeSnippet}`;
+    } else if (experiment.design.proposalType === 'self_programming_create') {
+        const createCandidate = experiment.design as CreateFileCandidate;
+        codeInfo = `// New File: ${createCandidate.newFile.path}\n${createCandidate.newFile.content}`;
+    }
 
     return (
         <div className="gde-status" style={{ borderLeftColor: 'var(--secondary-color)'}}>

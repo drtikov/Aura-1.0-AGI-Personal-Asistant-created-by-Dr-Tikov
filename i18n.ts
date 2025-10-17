@@ -1,7 +1,7 @@
 // i18n.ts
 import i18next from 'i18next';
 // FIX: Corrected import path for translations to resolve module error.
-import { translations } from './localization';
+import { translations } from './localization.ts';
 
 /**
  * Initializes and configures the i18next instance for the application.

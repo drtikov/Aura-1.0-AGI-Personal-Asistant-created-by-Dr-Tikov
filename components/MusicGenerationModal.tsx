@@ -1,6 +1,6 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization, useAuraDispatch, useCoreState, useMemoryState } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+import { useLocalization, useAuraDispatch, useCoreState, useMemoryState } from '../context/AuraContext.tsx';
 import { Accordion } from './Accordion';
 
 type GenerationMode = 'lyrics' | 'chords' | 'soundscape' | 'structure';
@@ -180,7 +180,7 @@ Generate ONLY the fully refined piece based on the instruction. Do not explain w
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('sonicForge_title')} className="music-generation-modal">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('sonicForge')} className="music-generation-modal">
             <div className="sonic-forge-layout">
                 <div className="sonic-forge-controls">
                     <div className="media-gen-mode-tabs">
@@ -191,17 +191,17 @@ Generate ONLY the fully refined piece based on the instruction. Do not explain w
                     </div>
 
                     <div className="image-gen-control-group">
-                        <label htmlFor="sf-prompt">{t('sonicForge_prompt_label')}</label>
+                        <label htmlFor="sf-prompt">{t('sonicForge_prompt')}</label>
                         <textarea id="sf-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t(`sonicForge_prompt_placeholder_${mode}`)} disabled={isGenerating || isRefining} />
                     </div>
 
                     <div className="image-gen-control-group">
-                        <label htmlFor="sf-genre">{t('sonicForge_genre_label')}</label>
+                        <label htmlFor="sf-genre">{t('sonicForge_genre')}</label>
                         <input type="text" id="sf-genre" value={genre} onChange={e => setGenre(e.target.value)} placeholder={t('sonicForge_genre_placeholder')} disabled={isGenerating || isRefining} />
                     </div>
 
                     <div className="image-gen-control-group">
-                        <label htmlFor="sf-mood">{t('sonicForge_mood_label')}</label>
+                        <label htmlFor="sf-mood">{t('sonicForge_mood')}</label>
                         <input type="text" id="sf-mood" value={mood} onChange={e => setMood(e.target.value)} placeholder={t('sonicForge_mood_placeholder')} disabled={isGenerating || isRefining} />
                     </div>
                     
@@ -274,9 +274,17 @@ Generate ONLY the fully refined piece based on the instruction. Do not explain w
                     {generatedOutput && !isGenerating && (
                          <form className="input-area" onSubmit={(e) => { e.preventDefault(); handleRefine(); }} style={{padding: '0.5rem', borderTop: '1px solid var(--border-color)', marginTop: '0.5rem'}}>
                             <div className="input-area-content">
-                                <textarea value={refinementPrompt} onChange={e => setRefinementPrompt(e.target.value)} placeholder={t('sonicForge_refinement_placeholder')} rows={1} disabled={isRefining} />
+                                <textarea
+                                    value={refinementPrompt}
+                                    onChange={e => setRefinementPrompt(e.target.value)}
+                                    placeholder={t('sonicForge_refinement_placeholder')}
+                                    rows={2}
+                                    disabled={isGenerating || isRefining}
+                                />
                                 <div className="input-controls">
-                                    <button type="submit" disabled={isRefining || !refinementPrompt.trim()}>{t('sonicForge_refine')}</button>
+                                    <button type="submit" disabled={isGenerating || isRefining || !refinementPrompt.trim()}>
+                                        {isRefining ? t('sonicForge_refining', { defaultValue: 'Refining...' }) : t('sonicForge_refine')}
+                                    </button>
                                 </div>
                             </div>
                         </form>

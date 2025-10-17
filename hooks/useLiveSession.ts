@@ -52,9 +52,11 @@ export const useLiveSession = (
         }
         if (inputAudioContext.current && inputAudioContext.current.state !== 'closed') {
             inputAudioContext.current.close();
+            inputAudioContext.current = null;
         }
         if (outputAudioContext.current && outputAudioContext.current.state !== 'closed') {
             outputAudioContext.current.close();
+            outputAudioContext.current = null;
         }
         
         audioSources.current.forEach(source => source.stop());
@@ -104,8 +106,13 @@ export const useLiveSession = (
 
                         scriptProcessor.current.onaudioprocess = (audioProcessingEvent) => {
                             const inputData = audioProcessingEvent.inputBuffer.getChannelData(0);
+                             const l = inputData.length;
+                            const int16 = new Int16Array(l);
+                            for (let i = 0; i < l; i++) {
+                                int16[i] = inputData[i] * 32768;
+                            }
                             const pcmBlob: Blob = {
-                                data: encode(new Uint8Array(new Int16Array(inputData.map(x => x * 32768)).buffer)),
+                                data: encode(new Uint8Array(int16.buffer)),
                                 mimeType: 'audio/pcm;rate=16000',
                             };
                             if (sessionPromise.current) {

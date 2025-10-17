@@ -1,5 +1,8 @@
+
+
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks to resolve module not found error.
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const LimitationsPanel = React.memo(() => {
     const { limitations } = useCoreState();

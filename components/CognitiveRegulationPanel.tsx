@@ -1,5 +1,6 @@
+// components/CognitiveRegulationPanel.tsx
 import React from 'react';
-import { useLogsState, useLocalization } from '../context/AuraContext';
+import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
 import { StateAdjustment } from '../types';
 
 export const CognitiveRegulationPanel = React.memo(() => {

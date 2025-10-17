@@ -1,6 +1,6 @@
-
+// components/CodeIngestionPanel.tsx
 import React, { useState } from 'react';
-import { useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { HAL } from '../core/hal';
 
 export const CodeIngestionPanel = React.memo(() => {
@@ -29,7 +29,7 @@ export const CodeIngestionPanel = React.memo(() => {
                 {t('liveCodeIngestion_description')}
             </p>
             <div className="flex flex-col gap-2">
-                <label htmlFor="ingest-path" className="text-sm font-bold text-cyan-400">{t('liveCodeIngestion_path_label')}</label>
+                <label htmlFor="ingest-path" className="text-sm font-bold text-cyan-400">{t('liveCodeIngestion_path')}</label>
                 <input
                     id="ingest-path"
                     type="text"
@@ -40,7 +40,7 @@ export const CodeIngestionPanel = React.memo(() => {
                 />
             </div>
              <div className="flex flex-col gap-2 flex-grow">
-                <label htmlFor="ingest-code" className="text-sm font-bold text-cyan-400">{t('liveCodeIngestion_code_label')}</label>
+                <label htmlFor="ingest-code" className="text-sm font-bold text-cyan-400">{t('liveCodeIngestion_code')}</label>
                 <textarea
                     id="ingest-code"
                     value={code}

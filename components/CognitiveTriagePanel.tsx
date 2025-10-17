@@ -1,5 +1,6 @@
+// components/CognitiveTriagePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 
 export const CognitiveTriagePanel = React.memo(() => {
     const { cognitiveTriageState } = useArchitectureState();
@@ -10,7 +11,9 @@ export const CognitiveTriagePanel = React.memo(() => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
         const minutes = Math.floor(seconds / 60);
-        return t('timeAgoMinutes', { count: minutes });
+        if (minutes < 60) return t('timeAgoMinutes', { count: minutes });
+        const hours = Math.floor(minutes / 60);
+        return t('timeAgoHours', { count: hours });
     };
 
     return (
@@ -25,7 +28,7 @@ export const CognitiveTriagePanel = React.memo(() => {
                                 {entry.decision === 'fast' ? '⚡' : '🧠'} {entry.percept.intent}
                             </span>
                             <span className={`mod-log-status status-${entry.decision}`}>
-                                {entry.decision.toUpperCase()} STREAM
+                                {entry.decision.toUpperCase()} PATH
                             </span>
                         </div>
                         <p className="mod-log-description" style={{fontStyle: 'italic'}}>

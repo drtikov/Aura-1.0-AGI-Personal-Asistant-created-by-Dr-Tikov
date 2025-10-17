@@ -1,6 +1,6 @@
 // components/HOVAPanel.tsx
 import React from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { HOVAEvolutionLogEntry } from '../types';
 
 export const HOVAPanel = () => {

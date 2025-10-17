@@ -1,7 +1,11 @@
+// components/PersonalityPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Updated import to use PersonaActivation instead of the collided Persona type.
-import { PersonalityState, PersonaActivation } from '../types';
+import { PersonalityState, PersonaActivation, Persona } from '../types';
+import { useModal } from '../context/ModalContext';
+import { personas } from '../state/personas';
+
 
 interface TraitBarProps {
     label: string;
@@ -40,6 +44,8 @@ const TraitBar = React.memo(({ label, value, color }: TraitBarProps) => {
 export const PersonalityPanel = React.memo(() => {
     const { personalityState } = useCoreState();
     const { t } = useLocalization();
+    const modal = useModal();
+    const { personaJournals } = personalityState;
 
     const traits: { key: keyof Pick<PersonalityState, 'openness' | 'conscientiousness' | 'extraversion' | 'agreeableness' | 'neuroticism'>; labelKey: string; color: string }[] = [
         { key: 'openness', labelKey: 'personality_openness', color: 'var(--mode-creativity)' },
@@ -48,6 +54,11 @@ export const PersonalityPanel = React.memo(() => {
         { key: 'agreeableness', labelKey: 'personality_agreeableness', color: 'var(--state-love)' },
         { key: 'neuroticism', labelKey: 'personality_neuroticism', color: 'var(--state-uncertainty)' },
     ];
+
+    const handlePersonaClick = (persona: Persona) => {
+        const entries = personaJournals[persona.id] || [];
+        modal.open('personaJournal', { persona, entries });
+    };
 
     return (
         <div className="side-panel personality-panel">
@@ -65,21 +76,40 @@ export const PersonalityPanel = React.memo(() => {
             
              <div className="panel-subsection-title" style={{marginTop: '1rem'}}>{t('personality_personas')}</div>
             <div className="personas-container">
-                {/* FIX: Updated type annotation to PersonaActivation. */}
-                {personalityState.personas && Object.entries(personalityState.personas).map(([id, persona]: [string, PersonaActivation]) => (
-                    <div key={id} className={`persona-item ${personalityState.dominantPersona === id ? 'dominant' : ''}`}>
-                        <div className="persona-header">
-                            <span className="persona-name">{t(`personality_${id}_name`)}</span>
-                            {personalityState.dominantPersona === id && <span className="dominant-badge">{t('personality_dominant')}</span>}
-                        </div>
-                        <div className="state-item" style={{ padding: 0, marginTop: '0.25rem' }}>
-                            <div className="state-bar-container">
-                                <div className="state-bar" style={{ width: `${persona.activation * 100}%`, backgroundColor: 'var(--primary-color)' }}></div>
+                {personas.map((persona: Persona) => {
+                    const personaData = personalityState.personas[persona.id] as PersonaActivation | undefined;
+                    const journalEntries = personaJournals[persona.id];
+                    const hasJournalEntries = journalEntries && journalEntries.length > 0;
+
+                    return (
+                        <div 
+                            key={persona.id} 
+                            className={`persona-item ${personalityState.dominantPersona === persona.id ? 'dominant' : ''}`}
+                            onClick={() => handlePersonaClick(persona)}
+                            style={{ cursor: 'pointer' }}
+                        >
+                            <div className="persona-header">
+                                <span className="persona-name">{t(`personality_${persona.id}_name`)}</span>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                    {hasJournalEntries && (
+                                        <span className="accordion-summary has-notifications" title={`${journalEntries.length} learned principles`}>
+                                            {journalEntries.length}
+                                        </span>
+                                    )}
+                                    {personalityState.dominantPersona === persona.id && <span className="dominant-badge">{t('personality_dominant')}</span>}
+                                </div>
                             </div>
+                            {personaData && (
+                                <div className="state-item" style={{ padding: 0, marginTop: '0.25rem' }}>
+                                    <div className="state-bar-container">
+                                        <div className="state-bar" style={{ width: `${personaData.activation * 100}%`, backgroundColor: 'var(--primary-color)' }}></div>
+                                    </div>
+                                </div>
+                            )}
+                            <p className="persona-desc">{t(`personality_${persona.id}_desc`)}</p>
                         </div>
-                        <p className="persona-desc">{t(`personality_${id}_desc`)}</p>
-                    </div>
-                ))}
+                    );
+                })}
             </div>
 
             <div className="state-item" style={{marginTop: '1rem'}}>

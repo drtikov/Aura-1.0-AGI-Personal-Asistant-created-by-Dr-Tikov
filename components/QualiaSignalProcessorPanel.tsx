@@ -1,6 +1,6 @@
 // components/QualiaSignalProcessorPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { QualiaSignalProcessorState } from '../types';
 
 interface AffectivePrimitiveBarProps {
@@ -9,7 +9,6 @@ interface AffectivePrimitiveBarProps {
     color: string;
 }
 
-// FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list, resolving the type error.
 const AffectivePrimitiveBar = React.memo(({ label, value, color }: AffectivePrimitiveBarProps) => (
     <div className="hormone-item">
         <label>{label}</label>

@@ -1,7 +1,9 @@
 
 
+
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks to resolve module not found error.
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 
 export const SelfModificationPanel = React.memo(({ onRollback }: { onRollback: (snapshotId: string) => void; }) => {
     const { systemSnapshots: snapshots, modificationLog: modLog } = useArchitectureState();

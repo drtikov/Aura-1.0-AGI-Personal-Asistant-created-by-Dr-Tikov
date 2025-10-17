@@ -1,6 +1,11 @@
+
+
+
+
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+// FIX: Corrected import path for hooks to resolve module not found error.
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const SearchModal = ({ isOpen, onSearch, onClose, isProcessing }: { isOpen: boolean; onSearch: (query: string) => void; onClose: () => void; isProcessing: boolean; }) => {
     const [query, setQuery] = useState('');
@@ -25,7 +30,7 @@ export const SearchModal = ({ isOpen, onSearch, onClose, isProcessing }: { isOpe
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
-            title={t('searchModal_title')} 
+            title={t('searchModal')} 
             footer={footer}
             className="search-modal"
         >

@@ -1,5 +1,6 @@
+// components/ArchitecturePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 
 export const ArchitecturePanel = React.memo(() => {
     const { t } = useLocalization();

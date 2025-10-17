@@ -1,3 +1,4 @@
+// state/reducers/planning.ts
 import { AuraState, Action, GoalTree } from '../../types';
 
 const updateParentProgress = (tree: GoalTree, childId: string): GoalTree => {
@@ -36,6 +37,14 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'TELOS/DECOMPOSE_AND_SET_TREE': {
+            const { tree, rootId } = args;
+            return {
+                goalTree: tree,
+                activeStrategicGoalId: rootId,
+            };
+        }
+
         case 'BUILD_GOAL_TREE':
             return {
                 goalTree: args.tree,
@@ -43,13 +52,14 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
             };
 
         case 'UPDATE_GOAL_STATUS': {
-            const { id, status } = args;
+            const { id, status, failureReason } = args;
             const goal = state.goalTree[id];
             if (!goal || goal.status === status) {
                 return {};
             }
 
-            const updatedGoal = { ...goal, status, progress: status === 'completed' ? 1 : goal.progress };
+            const progress = status === 'completed' ? 1 : goal.progress;
+            const updatedGoal = { ...goal, status, progress, failureReason: failureReason || null };
             let newTree = { ...state.goalTree, [id]: updatedGoal };
 
             if (status === 'completed') {
@@ -58,6 +68,19 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
             
             return {
                 goalTree: newTree,
+            };
+        }
+
+        case 'UPDATE_GOAL_RESULT': {
+            const { id, historyId } = args;
+            const goal = state.goalTree[id];
+            if (!goal) return {};
+            const updatedGoal = { ...goal, resultHistoryId: historyId };
+            return {
+                goalTree: {
+                    ...state.goalTree,
+                    [id]: updatedGoal,
+                }
             };
         }
 

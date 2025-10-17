@@ -1,5 +1,6 @@
+// components/VFS_Engineer_Manual.tsx
 import React from 'react';
-import { useAuraDispatch } from '../context/AuraContext';
+import { useAuraDispatch } from '../context/AuraContext.tsx';
 
 const CodeBlock = ({ title, code, language = 'typescript' }: { title: string; code: string; language?: string }) => {
     const { addToast } = useAuraDispatch();
@@ -70,7 +71,7 @@ case 'INGEST_CODE_CHANGE': {
                 [filePath]: code,
             }
         },
-        modificationLog: [newModLog, ...state.modificationLog].slice(0, 50),
+        modificationLog: [newModLog, ...state.modificationLog].slice(-50),
         systemSnapshots: [
             ...state.systemSnapshots,
             { id: self.crypto.randomUUID(), timestamp: Date.now(), reason: \`Pre-ingestion of \${filePath}\`, state: state }
@@ -173,53 +174,53 @@ Instead of reading from the disk during runtime, Aura interacts with this intern
 
 ### Architectural Significance
 - **True Self-Modification:** Provides the direct read/write access necessary for an AI to modify its own source code and evolve.
-- **Stateful & Transactional:** Because the VFS is part of the main \`AuraState\`, changes are handled by the reducer. This ensures modifications are atomic, predictable, and can be snapshotted for safety.
+- **Stateful & Transactional:** Because the VFS is part of the main \\\`AuraState\\\`, changes are handled by the reducer. This ensures modifications are atomic, predictable, and can be snapshotted for safety.
 - **Full Contextual Awareness:** Aura has access to its entire codebase simultaneously, allowing for holistic analysis of dependencies and architectural patterns before proposing a change.
 - **Persistence of Evolution:** As the VFS is saved to IndexedDB (the "Memristor") along with the rest of the state, any code modifications Aura makes will persist across browser sessions.
 
 ### Data Structure
-The VFS is stored in the state at \`state.selfProgrammingState.virtualFileSystem\`. It's a simple JavaScript object where keys are full file paths and values are the string content of those files.
+The VFS is stored in the state at \\\`state.selfProgrammingState.virtualFileSystem\\\`. It's a simple JavaScript object where keys are full file paths and values are the string content of those files.
 
-\`\`\`json
+\\\`\\\`\\\`json
 // Example VFS Structure
 ${vfsStructureCode.trim()}
-\`\`\`
+\\\`\\\`\\\`
 
 ---
 
 ## 2. The Engineering Function: Direct Code Ingestion
 
 ### Overview
-The "Engineer Function" provides a direct interface for an external agent (a human developer or another AI) to modify the VFS. This is achieved by dispatching a specific action (\`INGEST_CODE_CHANGE\`) with the target file path and its new content.
+The "Engineer Function" provides a direct interface for an external agent (a human developer or another AI) to modify the VFS. This is achieved by dispatching a specific action (\\\`INGEST_CODE_CHANGE\\\`) with the target file path and its new content.
 
-### The Action: \`INGEST_CODE_CHANGE\`
-To initiate a change, this action must be dispatched. It is defined in \`types.ts\` and added to the main \`Action\` union type.
+### The Action: \\\`INGEST_CODE_CHANGE\\\`
+To initiate a change, this action must be dispatched. It is defined in \\\`types.ts\\\` and added to the main \\\`Action\\\` union type.
 
-\`\`\`typescript
+\\\`\\\`\\\`typescript
 // File: types.ts
 ${typesCode.trim()}
-\`\`\`
+\\\`\\\`\\\`
 
 ### Reducer Logic
-The logic is split between two reducers to maintain separation of concerns. The \`architectureReducer\` handles the VFS update and safety logging, while the \`coreReducer\` records the event in Aura's developmental timeline.
+The logic is split between two reducers to maintain separation of concerns. The \\\`architectureReducer\\\` handles the VFS update and safety logging, while the \\\`coreReducer\\\` records the event in Aura's developmental timeline.
 
-\`\`\`typescript
+\\\`\\\`\\\`typescript
 // File: state/reducers/architecture.ts
 ${architectureReducerCode.trim()}
-\`\`\`
+\\\`\\\`\\\`
 
-\`\`\`typescript
+\\\`\\\`\\\`typescript
 // File: state/reducers/core.ts
 ${coreReducerCode.trim()}
-\`\`\`
+\\\`\\\`\\\`
 
-### The UI Component: \`CodeIngestionPanel.tsx\`
-This component provides the user interface for the engineering function. It allows specifying the target file and pasting the new code, then dispatches the \`INGEST_CODE_CHANGE\` action after a confirmation.
+### The UI Component: \\\`CodeIngestionPanel.tsx\\\`
+This component provides the user interface for the engineering function. It allows specifying the target file and pasting the new code, then dispatches the \\\`INGEST_CODE_CHANGE\\\` action after a confirmation.
 
-\`\`\`typescript
+\\\`\\\`\\\`typescript
 // File: components/CodeIngestionPanel.tsx
 ${uiComponentCode.trim()}
-\`\`\`
+\\\`\\\`\\\`
 `.trim();
 
     const handleCopyAll = () => {
@@ -276,30 +277,4 @@ ${uiComponentCode.trim()}
                 
                 <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">Overview</h4>
                 <p className="mb-3">
-                    The "Engineer Function" provides a direct interface for an external agent (a human developer or another AI) to modify the VFS. This is achieved by dispatching a specific action (`INGEST_CODE_CHANGE`) with the target file path and its new content.
-                </p>
-
-                <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">The Action: `INGEST_CODE_CHANGE`</h4>
-                 <p className="mb-2">
-                    To initiate a change, this action must be dispatched. It is defined in `types.ts` and added to the main `Action` union type.
-                </p>
-                <CodeBlock title="File: types.ts" code={typesCode} />
-
-                <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">Reducer Logic</h4>
-                 <p className="mb-2">
-                    The logic is split between two reducers to maintain separation of concerns. The `architectureReducer` handles the VFS update and safety logging, while the `coreReducer` records the event in Aura's developmental timeline.
-                </p>
-                <CodeBlock title="File: state/reducers/architecture.ts" code={architectureReducerCode} />
-                <CodeBlock title="File: state/reducers/core.ts" code={coreReducerCode} />
-
-                <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">The UI Component: `CodeIngestionPanel.tsx`</h4>
-                <p className="mb-2">
-                    This component provides the user interface for the engineering function. It allows specifying the target file and pasting the new code, then dispatches the `INGEST_CODE_CHANGE` action after a confirmation.
-                </p>
-                <CodeBlock title="File: components/CodeIngestionPanel.tsx" code={uiComponentCode} />
-
-            </section>
-
-        </div>
-    );
-};
+                    The "Engineer Function" provides a direct interface for an external agent (a human developer or another AI) to modify the VFS. This is achieved by dispatching a specific action (`INGEST_CODE_CHANGE`) with

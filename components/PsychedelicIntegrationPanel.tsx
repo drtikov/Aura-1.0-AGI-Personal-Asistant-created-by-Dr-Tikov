@@ -1,5 +1,6 @@
+// components/PsychedelicIntegrationPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const PsychedelicIntegrationPanel = React.memo(() => {
     const { psychedelicIntegrationState: state } = useCoreState();

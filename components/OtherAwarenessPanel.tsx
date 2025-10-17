@@ -1,5 +1,6 @@
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks to resolve module not found error.
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { Sparkline } from './Sparkline';
 // FIX: Import PersonalityPortrait for type casting.
 import { PersonalityPortrait } from '../types';
@@ -17,22 +18,23 @@ export const OtherAwarenessPanel = React.memo(() => {
     return (
         <div className="side-panel other-awareness-panel">
             <div className="other-awareness-content">
-                <div className="panel-subsection-title">{t('personality_portrait_title')}</div>
+                <div className="panel-subsection-title">{t('personality_portrait')}</div>
                 <p className="reason-text" style={{ fontStyle: 'italic', marginBottom: '1rem' }}>
                     {personalityPortrait.summary}
                 </p>
                 {topTraits.length > 0 && (
                     <div className="hormone-signals">
-                        {topTraits.map(([trait, data]) => (
-                            <div key={trait} className="hormone-item">
-                                <label style={{ textTransform: 'capitalize' }}>{trait}</label>
-                                {/* FIX: Cast the trait data to access its properties safely. */}
-                                <div className="state-bar-container" title={(data as PersonalityPortrait['traits'][string]).evidence.join('\n')}>
-                                    {/* FIX: Cast the trait data to access its properties safely. */}
-                                    <div className="state-bar" style={{ width: `${(data as PersonalityPortrait['traits'][string]).score * 100}%`, backgroundColor: 'var(--primary-color)' }}></div>
+                        {topTraits.map(([trait, data]) => {
+                            const typedData = data as PersonalityPortrait['traits'][string];
+                            return (
+                                <div key={trait} className="hormone-item">
+                                    <label style={{ textTransform: 'capitalize' }}>{trait}</label>
+                                    <div className="state-bar-container" title={typedData.evidence.join('\n')}>
+                                        <div className="state-bar" style={{ width: `${typedData.score * 100}%`, backgroundColor: 'var(--primary-color)' }}></div>
+                                    </div>
                                 </div>
-                            </div>
-                        ))}
+                            );
+                        })}
                     </div>
                 )}
 

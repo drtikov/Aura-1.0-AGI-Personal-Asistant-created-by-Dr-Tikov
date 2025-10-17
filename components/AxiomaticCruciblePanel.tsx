@@ -1,16 +1,20 @@
 // components/AxiomaticCruciblePanel.tsx
 import React from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { CandidateAxiom } from '../types';
 
 export const AxiomaticCruciblePanel = () => {
     const { axiomaticCrucibleState } = useArchitectureState();
     const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
-    const { status, log, candidateAxioms } = axiomaticCrucibleState;
+    const { status, log, candidateAxioms, mode } = axiomaticCrucibleState;
 
     const handleStartCycle = () => {
         syscall('CRUCIBLE/START_CYCLE', {});
+    };
+
+    const handleStartGrandUnification = () => {
+        syscall('CRUCIBLE/START_GRAND_UNIFICATION_CYCLE', {});
     };
 
     return (
@@ -18,16 +22,24 @@ export const AxiomaticCruciblePanel = () => {
             <p className="reason-text">{t('crucible_description')}</p>
             <div className="awareness-item">
                 <label>{t('cogArchPanel_status')}</label>
-                <strong>{status}</strong>
+                <strong>{status} {status === 'running' && `(${mode} mode)`}</strong>
             </div>
 
-            <div className="button-grid" style={{ margin: '1rem 0' }}>
+            <div className="button-grid" style={{ margin: '1rem 0', gridTemplateColumns: '1fr 1fr' }}>
                 <button 
                     className="control-button" 
                     onClick={handleStartCycle} 
                     disabled={status === 'running'}
                 >
                     {status === 'running' ? t('crucible_running') : t('crucible_beginCycle')}
+                </button>
+                 <button 
+                    className="control-button mode-psi" 
+                    onClick={handleStartGrandUnification} 
+                    disabled={status === 'running'}
+                    title="A highly speculative attempt to find unifying principles across all of Aura's knowledge."
+                >
+                    Grand Unification
                 </button>
             </div>
 

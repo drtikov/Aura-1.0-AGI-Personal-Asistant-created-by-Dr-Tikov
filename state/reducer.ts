@@ -1,5 +1,5 @@
 // state/reducer.ts
-import { AuraState, Action, EventBusMessage } from '../types';
+import { AuraState, Action, EventBusMessage, HistoryEntry } from '../types';
 import { getInitialState } from './initialState';
 import { coreReducer } from './reducers/core';
 import { memoryReducer } from './reducers/memory';
@@ -35,6 +35,14 @@ import { kernelReducer } from './reducers/kernel';
 import { personaReducer } from './reducers/persona';
 import { brainstormReducer } from './reducers/brainstorm';
 import { liveSessionReducer } from './reducers/liveSession';
+import { cognitiveTriageReducer } from './reducers/cognitiveTriage';
+import { praxisCoreReducer } from './reducers/praxisCore';
+import { subsumptionLogReducer } from './reducers/subsumptionLog';
+import { strategicCoreReducer } from './reducers/strategicCore';
+import { mycelialReducer } from './reducers/mycelial';
+import { semanticWeaverReducer } from './reducers/semanticWeaver';
+import { atpCoprocessorReducer } from './reducers/atpCoprocessor';
+import { prometheusReducer } from './reducers/prometheus';
 
 const reducers = [
     coreReducer,
@@ -71,15 +79,22 @@ const reducers = [
     personaReducer,
     brainstormReducer,
     liveSessionReducer,
+    cognitiveTriageReducer,
+    praxisCoreReducer,
+    subsumptionLogReducer,
+    strategicCoreReducer,
+    mycelialReducer,
+    semanticWeaverReducer,
+    atpCoprocessorReducer,
+    prometheusReducer,
 ];
 
-// FIX: Implemented the full reducer function to resolve the "must return a value" error from a truncated file.
 export const auraReducer = (state: AuraState, action: Action): AuraState => {
     // Handle global actions that bypass slice reducers
     if (action.type === 'RESET_STATE') {
         return getInitialState();
     }
-    if (action.type === 'IMPORT_STATE' || action.type === 'RESTORE_STATE_FROM_MEMRISTOR') {
+    if (action.type === 'IMPORT_STATE') {
         return action.payload;
     }
 
@@ -87,7 +102,8 @@ export const auraReducer = (state: AuraState, action: Action): AuraState => {
     let nextState = state;
     for (const reducer of reducers) {
         // Reducers now return partial state, so we merge them.
-        nextState = { ...nextState, ...reducer(nextState, action) };
+        const partialState = reducer(nextState, action);
+        nextState = { ...nextState, ...partialState };
     }
     
     // Post-processing / interceptors can go here
@@ -110,6 +126,27 @@ export const auraReducer = (state: AuraState, action: Action): AuraState => {
          nextState = {
             ...nextState,
             eventBus: [message, ...nextState.eventBus].slice(0, 50),
+        };
+    }
+    
+    // Handle Prometheus Engine state changes
+    if (action.type === 'SYSCALL' && action.payload.call === 'PROMETHEUS/SET_STATE') {
+        nextState = {
+            ...nextState,
+            prometheusState: {
+                ...nextState.prometheusState,
+                ...action.payload.args,
+            },
+        };
+    }
+    if (action.type === 'SYSCALL' && action.payload.call === 'PROMETHEUS/LOG') {
+        const newLogEntry = { timestamp: Date.now(), message: action.payload.args.message };
+        nextState = {
+            ...nextState,
+            prometheusState: {
+                ...nextState.prometheusState,
+                log: [newLogEntry, ...nextState.prometheusState.log].slice(0, 20),
+            },
         };
     }
 

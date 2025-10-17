@@ -1,6 +1,7 @@
+// components/TelosModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const TelosModal = ({ isOpen, onSetTelos, onClose, currentTelos }: { isOpen: boolean; onSetTelos: (telos: string) => void; onClose: () => void; currentTelos: string; }) => {
     const [telos, setTelos] = useState(currentTelos);
@@ -29,7 +30,7 @@ export const TelosModal = ({ isOpen, onSetTelos, onClose, currentTelos }: { isOp
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
-            title={t('telos_modal_title')} 
+            title={t('telos_modal')} 
             footer={footer}
             className="telos-modal"
         >

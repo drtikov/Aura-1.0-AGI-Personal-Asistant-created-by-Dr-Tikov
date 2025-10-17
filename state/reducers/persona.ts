@@ -2,13 +2,26 @@
 import { AuraState, Action } from '../../types';
 
 export const personaReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    if (action.type !== 'SYSCALL') {
-        return {};
-    }
+    if (action.type !== 'SYSCALL') return {};
     const { call, args } = action.payload;
 
     switch (call) {
-        // Actions related to persona state will go here in the future
+        case 'PERSONA/ADD_JOURNAL_ENTRY': {
+            const { personaId, entry } = args;
+            if (!entry || !personaId) return {};
+            const currentJournal = state.personalityState.personaJournals[personaId] || [];
+            // Add new entry and keep the last 10 entries
+            const newJournal = [entry, ...currentJournal].slice(0, 10);
+            return {
+                personalityState: {
+                    ...state.personalityState,
+                    personaJournals: {
+                        ...state.personalityState.personaJournals,
+                        [personaId]: newJournal,
+                    }
+                }
+            };
+        }
         default:
             return {};
     }

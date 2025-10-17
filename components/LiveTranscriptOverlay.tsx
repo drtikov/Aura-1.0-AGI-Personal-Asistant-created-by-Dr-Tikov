@@ -1,6 +1,7 @@
 // components/LiveTranscriptOverlay.tsx
 import React from 'react';
-import { useCoreState, useAuraDispatch } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useCoreState, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const LiveTranscriptOverlay = () => {
     const { liveSessionState } = useCoreState();

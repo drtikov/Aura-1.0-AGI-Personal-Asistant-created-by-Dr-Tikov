@@ -1,5 +1,6 @@
+// components/CommandLogPanel.tsx
 import React from 'react';
-import { useLogsState, useLocalization } from '../context/AuraContext';
+import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
 import { CommandLogEntry } from '../types';
 
 export const CommandLogPanel = React.memo(() => {

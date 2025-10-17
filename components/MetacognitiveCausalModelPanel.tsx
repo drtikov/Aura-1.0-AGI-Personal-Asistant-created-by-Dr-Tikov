@@ -1,7 +1,8 @@
 // components/MetacognitiveCausalModelPanel.tsx
 import React from 'react';
 import { MetacognitiveLink } from '../types';
-import { useSystemState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 
 const formatKey = (key: string) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
 
@@ -18,6 +19,9 @@ export const MetacognitiveCausalModelPanel = React.memo(() => {
 
     return (
         <div className="side-panel">
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('metaCausal_description')}
+            </p>
             {links.length === 0 ? (
                 <div className="kg-placeholder">{t('metaCausal_placeholder')}</div>
             ) : (

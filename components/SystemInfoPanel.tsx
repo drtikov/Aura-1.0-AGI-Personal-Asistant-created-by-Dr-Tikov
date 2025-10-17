@@ -1,7 +1,6 @@
-
-
+// components/SystemInfoPanel.tsx
 import React from 'react';
-import { useLocalization, useCoreState } from '../context/AuraContext';
+import { useLocalization, useCoreState } from '../context/AuraContext.tsx';
 import { AuraConfig, CURRENT_STATE_VERSION } from '../constants';
 
 const InfoItem = ({ label, value }: { label: string, value: string | number }) => (

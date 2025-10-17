@@ -1,5 +1,6 @@
+// components/ChroniclePanel.tsx
 import React from 'react';
-import { useMemoryState, useLocalization } from '../context/AuraContext';
+import { useMemoryState, useLocalization } from '../context/AuraContext.tsx';
 import { Accordion } from './Accordion';
 import { Summary } from '../types';
 

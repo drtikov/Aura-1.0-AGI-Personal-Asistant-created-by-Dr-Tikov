@@ -1,5 +1,6 @@
 import React from 'react';
-import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const NarrativeSummaryPanel = React.memo(() => {
     const { narrativeSummary } = useCoreState();
@@ -16,8 +17,7 @@ export const NarrativeSummaryPanel = React.memo(() => {
     
     return (
         <div className="standalone-panel">
-            <div className="panel-subsection-title" style={{ marginTop: 0, marginBottom: '0.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <span>{t('narrativeSummary_title')}</span>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '0.5rem' }}>
                 <button 
                     className="copy-snippet-button" 
                     onClick={handleCopy}

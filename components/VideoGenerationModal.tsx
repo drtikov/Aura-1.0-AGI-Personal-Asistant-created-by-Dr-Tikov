@@ -1,11 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 // FIX: Completed the truncated `VideoGenerationModal.tsx` file with a functional component to resolve export and syntax errors.
 export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
     const { t } = useLocalization();
-    const { generateVideo, addToast } = useAuraDispatch();
+    const { geminiAPI, addToast } = useAuraDispatch();
     const [prompt, setPrompt] = useState('');
     const [isGenerating, setIsGenerating] = useState(false);
     const [generatedVideoUrl, setGeneratedVideoUrl] = useState<string | null>(null);
@@ -24,7 +24,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
             const onProgress = (message: string) => {
                 setProgressMessage(message);
             };
-            const videoUrl = await generateVideo(prompt, onProgress);
+            const videoUrl = await geminiAPI.generateVideo(prompt, onProgress);
             if (videoUrl) {
                 setGeneratedVideoUrl(videoUrl);
                 addToast(t('toast_videoGenSuccess'), 'success');
@@ -61,7 +61,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('videoGen_title')} className="video-generation-modal">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('videoGen')} className="video-generation-modal">
             <div className="video-gen-layout">
                 <div className="video-gen-controls">
                     <div className="image-gen-control-group">

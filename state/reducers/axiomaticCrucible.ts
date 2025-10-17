@@ -17,6 +17,16 @@ export const axiomaticCrucibleReducer = (state: AuraState, action: Action): Part
                 }
             };
         
+        case 'CRUCIBLE/START_GRAND_UNIFICATION_CYCLE':
+            return {
+                axiomaticCrucibleState: {
+                    ...state.axiomaticCrucibleState,
+                    status: 'running',
+                    mode: 'grand_unification',
+                    log: ['Grand Unification Cycle initiated. Engaging Perelman Persona...'],
+                }
+            };
+        
         case 'CRUCIBLE/ADD_LOG':
             return {
                 axiomaticCrucibleState: {
@@ -44,6 +54,7 @@ export const axiomaticCrucibleReducer = (state: AuraState, action: Action): Part
                 axiomaticCrucibleState: {
                     ...state.axiomaticCrucibleState,
                     status: 'idle',
+                    mode: 'normal',
                     log: [...state.axiomaticCrucibleState.log, 'Cycle complete. Awaiting next command.'],
                 }
             };

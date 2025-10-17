@@ -1,6 +1,6 @@
 // components/NoeticMultiversePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { MultiverseBranch } from '../types';
 
 export const NoeticMultiversePanel = React.memo(() => {

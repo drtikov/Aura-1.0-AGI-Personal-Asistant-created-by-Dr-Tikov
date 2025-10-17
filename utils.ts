@@ -1,5 +1,6 @@
 // utils.ts
 import { MDNAVector } from './types';
+import { GenerateContentResponse } from "@google/genai";
 
 /**
  * Clamps a number between a minimum and maximum value.
@@ -71,6 +72,31 @@ export const findClosestVectors = (targetVector: MDNAVector, space: Record<strin
     }));
     return similarities.sort((a, b) => b.similarity - a.similarity).slice(0, n);
 };
+
+/**
+ * Safely extracts and concatenates all text parts from a GenerateContentResponse.
+ * This avoids using the `.text` accessor which can log warnings about non-text parts.
+ * @param response The GenerateContentResponse from the Gemini API.
+ * @returns A string containing all concatenated text parts.
+ */
+export function getText(response: GenerateContentResponse): string {
+    if (!response.candidates || response.candidates.length === 0) {
+        return "";
+    }
+    const candidate = response.candidates[0];
+    if (!candidate.content || !candidate.content.parts) {
+        return "";
+    }
+    
+    let text = '';
+    for (const part of candidate.content.parts) {
+        if (part.text) {
+            text += part.text;
+        }
+    }
+    return text;
+}
+
 
 // --- Gemini Live API Audio Helpers ---
 

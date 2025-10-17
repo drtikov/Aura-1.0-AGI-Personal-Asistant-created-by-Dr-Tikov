@@ -1,10 +1,11 @@
+// hooks/useUIHandlers.ts
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-// FIX: Added ToastType to import to resolve module error.
-import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal, SelfProgrammingCandidate } from '../types';
+// FIX: Added GoalType to import to resolve module error.
+// FIX: Imported missing AuraState and Action types.
+import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal, SelfProgrammingCandidate, GoalTree, GoalType, UseGeminiAPIResult, CoCreatedWorkflow, CreateFileCandidate, Plugin, HistoryEntry } from '../types';
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
 import { HAL } from '../core/hal';
-import { UseGeminiAPIResult } from './useGeminiAPI';
 
 type SyscallFn = (call: SyscallCall, args: any) => void;
 
@@ -110,7 +111,6 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         }
     }, [state, addToast, t]);
 
-    // FIX: Add missing handlers and return object to resolve multiple errors.
     const handleContemplate = useCallback(() => {
         syscall('ADD_COMMAND_LOG', { text: 'Manual introspection cycle triggered.', type: 'info' });
         syscall('UPDATE_INTERNAL_STATE', { status: 'introspecting' });
@@ -173,8 +173,18 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         syscall('SET_SATORI_STATE', { isActive: !isActive });
     }, [syscall, state.satoriState.isActive]);
 
+    const handleSetCognitiveMode = useCallback((mode: string) => {
+        syscall('ADD_COMMAND_LOG', { text: `Cognitive mode set to ${mode}.`, type: 'info' });
+        addToast(`Cognitive mode set to ${mode}.`, 'info');
+    }, [syscall, addToast]);
 
-    // FIX: Added missing handlers that are used by various modals.
+    const handleFantasy = useCallback(() => handleSetCognitiveMode('Fantasy'), [handleSetCognitiveMode]);
+    const handleCreativity = useCallback(() => handleSetCognitiveMode('Creativity'), [handleSetCognitiveMode]);
+    const handleDream = useCallback(() => handleSetCognitiveMode('Dream'), [handleSetCognitiveMode]);
+    const handleMeditate = useCallback(() => handleSetCognitiveMode('Meditate'), [handleSetCognitiveMode]);
+    const handleGaze = useCallback(() => handleSetCognitiveMode('Gaze'), [handleSetCognitiveMode]);
+    const handleTimefocus = useCallback(() => handleSetCognitiveMode('Temporal Focus'), [handleSetCognitiveMode]);
+
     const approveProposal = useCallback((proposal: ArchitecturalChangeProposal) => {
         const snapshotId = `pre_apply_${proposal.id}`;
         const modLogId = `mod_log_${self.crypto.randomUUID()}`;
@@ -197,6 +207,56 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         syscall('OA/UPDATE_PROPOSAL', { id, updates: { status: 'rejected' } });
         addToast(t('toast_proposalRejected'), 'info');
     }, [syscall, addToast, t]);
+
+    const handleImplementSelfProgramming = useCallback(async (candidate: SelfProgrammingCandidate) => {
+        // This is the "Implement & Reboot" logic
+        syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id: candidate.id });
+        syscall('SYSTEM/REBOOT', {});
+    }, [syscall]);
+
+    const handleLiveLoadPlugin = useCallback(async (candidate: CreateFileCandidate) => {
+        try {
+            if (!candidate.newPluginObject) {
+                throw new Error("Candidate is not a valid live-loadable plugin (missing newPluginObject).");
+            }
+
+            const fileContent = candidate.newFile.content;
+            // Use btoa for Base64 encoding
+            const url = 'data:text/javascript;base64,' + btoa(fileContent);
+            
+            // @ts-ignore - Vite/build tool warning suppression for dynamic import
+            const newModule = await import(/* @vite-ignore */ url);
+            
+            const knowledgeKey = Object.keys(newModule).find(key => Array.isArray(newModule[key]));
+
+            if (!knowledgeKey || !newModule[knowledgeKey]) {
+                throw new Error("Dynamically imported module does not export a valid 'knowledge' array.");
+            }
+            
+            const newPlugin: Plugin = {
+                ...(candidate.newPluginObject as Omit<Plugin, 'knowledge'>),
+                knowledge: newModule[knowledgeKey],
+                status: 'enabled', // Live-loaded plugins are enabled by default
+            };
+
+            // 1. Add the plugin to the running state
+            syscall('PLUGIN/ADD_PLUGIN', newPlugin);
+            // 2. Ingest the new facts from the plugin
+            syscall('ADD_FACTS_BATCH', newPlugin.knowledge);
+            // 3. Update the proposal status to implemented
+            syscall('OA/UPDATE_PROPOSAL', { id: candidate.id, updates: { status: 'implemented' } });
+            // 4. Update the VFS to reflect the change for future consistency, but WITHOUT rebooting.
+            syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id: candidate.id });
+            
+            addToast(`Live-loaded new plugin: ${newPlugin.name}`, 'success');
+
+        } catch (error) {
+            console.error("Live plugin loading failed:", error);
+            addToast(`Live plugin load failed: ${(error as Error).message}. Try 'Implement & Reboot'.`, 'error');
+            // Mark as failed so user can try again
+            syscall('OA/UPDATE_PROPOSAL', { id: candidate.id, updates: { status: 'simulation_failed', failureReason: `Live load failed: ${(error as Error).message}` } });
+        }
+    }, [syscall, addToast]);
 
     const handleWhatIf = useCallback(async (scenario: string) => {
         setProcessingState({ active: true, stage: 'whatIf' });
@@ -231,21 +291,55 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     const handleSetStrategicGoal = useCallback(async (goal: string) => {
         setProcessingState({ active: true, stage: t('strategicGoal_decomposing') });
         try {
-            // This is a simplified decomposition. A real one would use the Gemini API.
-            const rootId = `goal_${self.crypto.randomUUID()}`;
-            const child1Id = `goal_${self.crypto.randomUUID()}`;
-            const tree = {
-                [rootId]: { id: rootId, parentId: null, children: [child1Id], description: goal, status: 'in_progress', progress: 0, type: 'STRATEGIC' },
-                [child1Id]: { id: child1Id, parentId: rootId, children: [], description: `Initial research for '${goal}'`, status: 'not_started', progress: 0, type: 'TACTICAL' },
-            };
-            syscall('TELOS/DECOMPOSE_AND_SET_TREE', { tree, rootId, vectors: [] });
-            addToast(t('strategicGoal_successToast'), 'success');
+            // FIX: Create a temporary history array with the new goal to match the expected parameter type of `decomposeStrategicGoal`.
+            const tempHistory: HistoryEntry[] = [...state.history, {id: 'temp_goal_entry', from: 'user', text: goal, timestamp: Date.now()}];
+            const planResult = await geminiAPI.decomposeStrategicGoal(tempHistory);
+            
+            if (planResult.isAchievable) {
+                if (!planResult.steps || planResult.steps.length === 0) {
+                    throw new Error("Goal decomposition failed to produce a plan, despite being marked achievable.");
+                }
+
+                const rootId = `goal_${self.crypto.randomUUID()}`;
+                const tree: GoalTree = {
+                    [rootId]: { id: rootId, parentId: null, children: [], description: goal, status: 'in_progress', progress: 0, type: GoalType.STRATEGIC },
+                };
+                
+                planResult.steps.forEach(step => {
+                    const stepId = `goal_${self.crypto.randomUUID()}`;
+                    tree[rootId].children.push(stepId);
+                    tree[stepId] = { id: stepId, parentId: rootId, children: [], description: step, status: 'not_started', progress: 0, type: GoalType.TACTICAL };
+                });
+
+                syscall('TELOS/DECOMPOSE_AND_SET_TREE', { tree, rootId, vectors: [] });
+                addToast(t('strategicGoal_successToast'), 'success');
+
+                const summary = await geminiAPI.generateExecutiveSummary(goal, planResult.steps);
+                syscall('ADD_HISTORY_ENTRY', {
+                    from: 'bot',
+                    text: summary,
+                });
+
+            } else {
+                let botResponse = `I've analyzed your goal: "${goal}".\n\n`;
+                botResponse += `**Assessment:** ${planResult.reasoning}\n\n`;
+                if (planResult.alternative) {
+                    botResponse += `**Suggested Alternative:** ${planResult.alternative}`;
+                }
+                syscall('ADD_HISTORY_ENTRY', {
+                    from: 'bot',
+                    text: botResponse,
+                });
+                addToast(t('strategicGoal_unachievableToast'), 'warning');
+            }
+
         } catch(e) {
+            console.error("Strategic goal decomposition failed:", e);
             addToast(t('strategicGoal_errorToast'), 'error');
         } finally {
             setProcessingState({ active: false, stage: '' });
         }
-    }, [syscall, addToast, t]);
+    }, [syscall, addToast, t, geminiAPI, state.history]);
 
     const handleMultiverseBranch = useCallback((prompt: string) => {
         setProcessingState({ active: true, stage: t('multiverse_branching') });
@@ -254,15 +348,6 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             setProcessingState({ active: false, stage: '' });
         }, 1500);
     }, [syscall, setProcessingState, t]);
-
-    const handleBrainstorm = useCallback(async (topic: string) => {
-        setProcessingState({ active: true, stage: t('brainstorm_processing') });
-        const proposal = await geminiAPI.runBrainstormingSession(topic);
-        if (proposal) {
-            syscall('OA/ADD_PROPOSAL', proposal);
-        }
-        setProcessingState({ active: false, stage: '' });
-    }, [syscall, geminiAPI, setProcessingState, t]);
 
     const handleSetTelos = useCallback((telos: string) => {
         syscall('SET_TELOS', telos);
@@ -292,7 +377,26 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
 
                     if (diagramDescription) {
                         syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { diagram: { description: diagramDescription, isGenerating: true, imageUrl: null } } });
-                        const imageUrls = await geminiAPI.generateImage(diagramDescription, '', '16:9', 'blueprint', 1, null, false, '', 0.5, 50, 'none', 'none', 'none', 'none', 'none', false, {});
+                        // FIX: Use imagen-4.0-generate-001 for image generation and provide all required arguments.
+                        const imageUrls = await geminiAPI.generateImage(
+                            `${diagramDescription}, blueprint style`, // prompt
+                            '', // negativePrompt
+                            '16:9', // aspectRatio
+                            'blueprint', // style
+                            1, // numberOfImages
+                            null, // referenceImage
+                            false, // isMixing
+                            '', // promptB
+                            0.5, // mixRatio
+                            50, // styleStrength
+                            'none', // cameraAngle
+                            'none', // shotType
+                            'none', // lens
+                            'none', // lightingStyle
+                            'none', // atmosphere
+                            false, // useAuraMood
+                            {} // auraMood
+                        );
                         if (imageUrls && imageUrls.length > 0) {
                             syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { diagram: { description: diagramDescription, isGenerating: false, imageUrl: imageUrls[0] } } });
                         } else {
@@ -302,7 +406,6 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
 
                 } catch (parseError) {
                     console.error("Failed to parse chapter content JSON:", parseError);
-                    // If JSON parsing fails, use the raw text as content
                     syscall('DOCUMENT_FORGE/UPDATE_CHAPTER', { id: chapter.id, updates: { content: contentJson || "[Content generation failed]", isGenerating: false } });
                 }
             }
@@ -316,88 +419,203 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         }
     }, [syscall, geminiAPI]);
 
+    const handleGenerateArchitectureDocument = useCallback(() => {
+        const goal = t('archDoc_goal') + `
+The document must be structured as a formal technical whitepaper and include all of the following sections, with detailed explanations, tables, and diagram descriptions where requested:
+
+1.  **Introduction: The Aura Symbiotic OS Concept**
+    *   Provide a high-level overview of Aura.
+    *   Explain the core philosophy of "Symbiotic Intelligence": the relationship between the persistent Aura "body" (this application) and the generative LLM "spark" (Gemini).
+    *   Discuss the goals of transparent metacognition and autonomous self-evolution.
+
+2.  **Core Architectural Principles**
+    *   **Metacognitive Transparency:** Describe how Aura's internal states (Gunas, signals) are exposed in the UI and used for self-regulation and user understanding.
+    *   **Autonomous Evolution Loop & AGIS:** Explain the high-level flow from monitoring to proposal to implementation, with specific focus on the role of the Autonomous Gating & Integration System (AGIS) in the final step.
+    *   **Virtual File System (VFS):** Explain its role as an in-memory representation of the source code that enables true self-modification.
+
+3.  **System-Wide Components**
+    *   **The Kernel:** Explain its role as the system's heartbeat, its tick rate, and the task scheduler for autonomous cognitive cycles. *Please provide a simple text-based flowchart for the kernel's tick -> schedule -> execute loop.*
+    *   **The Temporal Engine:** Detail the roles of the Chronicler (Past), Oracle (Future), and Reactor (Present) in processing user requests. *Please provide a text-based flowchart diagram illustrating this process from user input to final output.*
+    *   **The Spanda Engine:** Describe its function in projecting the high-dimensional internal state of Aura onto a 2D manifold for visualization and analysis of cognitive dynamics.
+    *   **The Memristor (Persistence Layer):** Briefly explain how Aura's entire state, including the VFS, is saved to IndexedDB to maintain continuity.
+    *   **Hardware Abstraction Layer (HAL):** Describe its function in abstracting away browser APIs and the Gemini API.
+
+4.  **The Cognitive Architecture (Aura's Mind)**
+    *   **Internal State & The Rigpa Monitor:** Explain the purpose of the Guna states (Sattva, Rajas, etc.) and the primary signals (Wisdom, Happiness, Love, Enlightenment). *Please provide a summary table for these signals and their functions.*
+    *   **Hormonal Signals:** Describe the role of the secondary signals like Novelty, Mastery, Uncertainty, and Boredom in driving Aura's behavior.
+
+5.  **System Languages & Protocols**
+    *   Describe the three main languages used within Aura. *Please present this information in a comparative table with columns for Language, Purpose, and Example.*
+    *   **CECS (Cognitive Execution Command Set):** High-level commands for orchestrating complex tasks.
+    *   **Psyche Primitives:** The low-level, atomic building blocks of cognitive functions.
+    *   **POL (Process Oriented Language):** A synthesized language for creating shortcuts from sequences of primitives.
+
+6.  **Plugins & Coprocessors**
+    *   Explain the different plugin types: Tool, Knowledge, and Coprocessor.
+    *   Provide a list of 2-3 key enabled plugins and describe their function within the system.
+    *   **Coprocessor Architectures:** Explain the concept of switching between different cognitive architectures (e.g., Symbiotic Ecosystem, Temporal Engine) and why this is useful. *Please provide a simple diagram description for the Symbiotic Ecosystem architecture.*
+    *   **Persona Coprocessors:** Detail the role of Persona Coprocessors in Aura's autonomous problem-solving. Describe each available persona, explaining its unique cognitive style, core principles, and how its specialized System Instruction guides its approach to generating proposals. List and describe all available personas: Albert Einstein, Steve Jobs, R. Buckminster Fuller, Elon Musk, Richard Feynman, Nikola Tesla, Leonardo da Vinci, Ray Kurzweil, Saul Griffith, Henri Poincaré, and Grigori Perelman.
+
+7.  **Conclusion**
+    *   Summarize the key architectural features of Aura and briefly touch upon the future direction of its evolution.
+`;
+        handleStartDocumentForge(goal);
+        addToast(t('archDoc_toast_started'), 'info');
+    }, [t, handleStartDocumentForge, addToast]);
+
+    // Add handlePoseQuestion
     const handlePoseQuestion = useCallback((question: string) => {
         syscall('ADD_KNOWN_UNKNOWN', {
-            id: `ku_${self.crypto.randomUUID()}`,
+            id: `ku_user_${self.crypto.randomUUID()}`,
             question,
-            priority: 0.9, // High priority for user-posed questions
+            priority: 0.9, // User-posed questions are high priority
             status: 'unexplored',
         });
         addToast(t('toast_questionPosed'), 'success');
     }, [syscall, addToast, t]);
 
-    const handleStartSandboxSprint = useCallback(async (goal: string) => {
-        dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/START_SPRINT', args: { goal } } });
-        
-        try {
-            const log = (message: string) => dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/LOG_STEP', args: message } });
-    
-            log("Initializing sandbox environment...");
-            log(`Analyzing performance vectors for goal: '${goal}'`);
-            
-            const fileList = Object.keys(state.selfProgrammingState.virtualFileSystem);
-            const targetFile = await geminiAPI.suggestFileForRefactoring(goal, fileList);
-    
-            if (!targetFile || !fileList.includes(targetFile)) {
-                throw new Error(`AI could not suggest a valid target file for the goal.`);
-            }
-            log(`Target file identified for modification: ${targetFile}`);
-    
-            const originalCode = state.selfProgrammingState.virtualFileSystem[targetFile];
-            
-            log(`Generating mutation candidate for ${targetFile}...`);
-            const persona = state.personaState.registry.find(p => p.id === 'elon_musk');
-            if (!persona) throw new Error("Could not find pragmatic persona for sandbox sprint.");
-            
-            const candidate = await geminiAPI.generateSelfProgrammingModification(goal, targetFile, originalCode, persona.systemInstruction);
-            
-            if (!candidate) {
-                throw new Error("Failed to generate a valid code modification candidate.");
-            }
-            log(`Candidate ${candidate.id.slice(-8)} generated. Simulating in Metis Sandbox...`);
-            
-            const testResults = await geminiAPI.testSelfProgrammingCandidate(candidate, originalCode);
-            
-            log(`Simulation complete. Compiling results...`);
-    
-            const performanceGains = [
-                { metric: 'AI Quality Analysis', change: testResults.qualityAnalysis },
-                { metric: 'AI Bug Analysis', change: testResults.potentialBugs },
-                { metric: 'AI Overall Assessment', change: testResults.overallAssessment },
-                { metric: 'AI Overall Score', change: testResults.overallScore.toFixed(3) },
-            ];
-            
-            const finalResult = {
-                originalGoal: goal,
-                performanceGains,
-                diff: {
-                    filePath: targetFile,
-                    before: originalCode,
-                    after: candidate.codeSnippet,
-                },
-            };
-    
-            dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/COMPLETE_SPRINT', args: finalResult } });
-    
-        } catch (error) {
-            const errorMessage = (error as Error).message;
-            dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/LOG_STEP', args: `ERROR: ${errorMessage}` } });
-            setTimeout(() => {
-                dispatch({ type: 'SYSCALL', payload: { call: 'SANDBOX/RESET', args: {} } });
-            }, 5000);
-            addToast(`Sandbox sprint failed: ${errorMessage}`, 'error');
+    // Add handleCreateWorkflow
+    const handleCreateWorkflow = useCallback((workflow: Omit<CoCreatedWorkflow, 'id'>) => {
+        syscall('ADD_WORKFLOW_PROPOSAL', workflow);
+        addToast(t('toast_workflowCreated'), 'success');
+    }, [syscall, addToast, t]);
+
+    // Add handleGenerateDreamPrompt
+    const handleGenerateDreamPrompt = useCallback(async (): Promise<string> => {
+        const response = await geminiAPI.generateDreamPrompt();
+        return response;
+    }, [geminiAPI]);
+
+    // Add handleTrainCorticalColumn
+    const handleTrainCorticalColumn = useCallback(async (specialty: string, curriculum: string) => {
+        const columnId = `col_${specialty.toLowerCase().replace(/\s/g, '_')}`;
+        syscall('CREATE_CORTICAL_COLUMN', { id: columnId, specialty });
+        const facts = await geminiAPI.processCurriculumAndExtractFacts(curriculum);
+        if (facts.length > 0) {
+            syscall('ADD_FACTS_BATCH', facts);
         }
-    }, [dispatch, state.selfProgrammingState.virtualFileSystem, state.personaState.registry, geminiAPI, addToast]);
+        addToast(`New cortical column "${specialty}" is being trained.`, 'success');
+    }, [syscall, geminiAPI, addToast]);
+
+    // Add handleSynthesizeAbstractConcept
+    const handleSynthesizeAbstractConcept = useCallback((name: string, columnIds: string[]) => {
+        syscall('SYNTHESIZE_ABSTRACT_CONCEPT', { name, columnIds });
+        addToast(`New abstract concept "${name}" synthesized.`, 'success');
+    }, [syscall, addToast]);
+
+    // Add handleShareWisdom
+    const handleShareWisdom = useCallback(async () => {
+        syscall('UPDATE_NOETIC_ENGRAM_STATE', { status: 'generating' });
+        try {
+            const engram = await geminiAPI.generateNoeticEngram();
+            if (engram) {
+                syscall('UPDATE_NOETIC_ENGRAM_STATE', { status: 'ready', engram });
+            } else {
+                throw new Error("Engram generation returned null.");
+            }
+        } catch (e) {
+            syscall('UPDATE_NOETIC_ENGRAM_STATE', { status: 'idle' });
+            addToast("Failed to generate Noetic Engram.", 'error');
+        }
+    }, [syscall, geminiAPI, addToast]);
+
+    // Add handleEvolveFromInsight
+    const handleEvolveFromInsight = useCallback(() => {
+        // Placeholder for a more complex evolution trigger
+        addToast("Evolution from insight is not yet implemented.", 'info');
+    }, [addToast]);
+
+    // Add handleStartSandboxSprint
+    const handleStartSandboxSprint = useCallback(async (goal: string) => {
+        syscall('SANDBOX/START_SPRINT', { goal });
+        // This is a simplified simulation
+        try {
+            const result = await geminiAPI.runSandboxSprint(goal);
+            syscall('SANDBOX/COMPLETE_SPRINT', result);
+        } catch (e) {
+            syscall('SANDBOX/COMPLETE_SPRINT', { error: (e as Error).message });
+        }
+    }, [syscall, geminiAPI]);
+
+    // Add handleIngestWisdom
+    const handleIngestWisdom = useCallback(async (file: File) => {
+        syscall('WISDOM/START_INGESTION', { content: 'File processing...' });
+        try {
+            const axioms = await geminiAPI.extractAxiomsFromFile(file);
+            if (!axioms) throw new Error("Axiom extraction failed.");
+
+            const proposedAxioms = axioms.map(a => ({
+                id: `axiom_${self.crypto.randomUUID()}`,
+                axiom: a.axiom,
+                source: a.source,
+                status: 'proposed' as const
+            }));
+
+            syscall('WISDOM/SET_PROPOSED_AXIOMS', { axioms: proposedAxioms });
+        } catch (e) {
+            syscall('WISDOM/SET_ERROR', { error: (e as Error).message });
+        }
+    }, [syscall, geminiAPI]);
+
+    // Add handleProcessAxiom
+    const handleProcessAxiom = useCallback((axiom, status) => {
+        syscall('WISDOM/PROCESS_AXIOM', { id: axiom.id, status });
+        if (status === 'accepted') {
+            syscall('HEURISTICS_FORGE/ADD_AXIOM', { ...axiom, status: 'accepted' });
+        }
+    }, [syscall]);
+
+    // Add handleResetWisdomIngestion
+    const handleResetWisdomIngestion = useCallback(() => {
+        syscall('WISDOM/RESET', {});
+    }, [syscall]);
+
+    // Add handleApproveAllAxioms
+    const handleApproveAllAxioms = useCallback((axioms) => {
+        axioms.forEach(axiom => {
+            syscall('WISDOM/PROCESS_AXIOM', { id: axiom.id, status: 'accepted' });
+            syscall('HEURISTICS_FORGE/ADD_AXIOM', { ...axiom, status: 'accepted' });
+        });
+    }, [syscall]);
+    
+    // Add visualizeInsight
+    const handleVisualizeInsight = useCallback(async (insight: string) => {
+        return geminiAPI.visualizeInsight(insight);
+    }, [geminiAPI]);
+
+    const handleScrollToHistory = useCallback((historyId: string) => {
+        // Ensure the chat tab is active first
+        setActiveLeftTab('chat');
+        
+        // Use setTimeout to allow the UI to re-render before scrolling
+        setTimeout(() => {
+            const element = document.getElementById(`history-entry-${historyId}`);
+            if (element) {
+                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+        }, 100);
+    }, [setActiveLeftTab]);
+
+    const handleStartProof = useCallback((goal: string) => {
+        syscall('ATP/START_PROOF', { goal });
+    }, [syscall]);
 
 
     return {
-        currentCommand, setCurrentCommand,
-        attachedFile, setAttachedFile,
-        processingState, setProcessingState,
-        isPaused, setIsPaused,
-        activeLeftTab, setActiveLeftTab,
-        isVisualAnalysisActive, setIsVisualAnalysisActive,
-        isRecording, setIsRecording,
+        currentCommand,
+        setCurrentCommand,
+        attachedFile,
+        setAttachedFile,
+        processingState,
+        setProcessingState,
+        isPaused,
+        setIsPaused,
+        activeLeftTab,
+        setActiveLeftTab,
+        isVisualAnalysisActive,
+        setIsVisualAnalysisActive,
+        isRecording,
+        setIsRecording,
         outputPanelRef,
         importInputRef,
         importAsCodeInputRef,
@@ -418,17 +636,38 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         handleTrip,
         handleVisions,
         handleSatori,
-        // Add the new handlers to the returned object
         approveProposal,
         rejectProposal,
+        handleImplementSelfProgramming,
+        handleLiveLoadPlugin,
         handleWhatIf,
         handleSearch,
         handleSetStrategicGoal,
         handleMultiverseBranch,
-        handleBrainstorm,
         handleSetTelos,
         handleStartDocumentForge,
+        handleGenerateArchitectureDocument,
+        handleSetCognitiveMode,
+        handleFantasy,
+        handleCreativity,
+        handleDream,
+        handleMeditate,
+        handleGaze,
+        handleTimefocus,
         handlePoseQuestion,
+        handleCreateWorkflow,
+        handleGenerateDreamPrompt,
+        handleTrainCorticalColumn,
+        handleSynthesizeAbstractConcept,
+        handleShareWisdom,
+        handleEvolveFromInsight,
         handleStartSandboxSprint,
+        handleIngestWisdom,
+        handleProcessAxiom,
+        handleResetWisdomIngestion,
+        handleApproveAllAxioms,
+        handleVisualizeInsight,
+        handleScrollToHistory,
+        handleStartProof,
     };
 };

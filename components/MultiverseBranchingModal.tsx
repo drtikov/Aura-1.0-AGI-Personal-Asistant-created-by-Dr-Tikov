@@ -1,6 +1,7 @@
+// components/MultiverseBranchingModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const MultiverseBranchingModal = ({ isOpen, onBranch, onClose, isProcessing }: { isOpen: boolean; onBranch: (prompt: string) => void; onClose: () => void; isProcessing: boolean; }) => {
     const [prompt, setPrompt] = useState('');

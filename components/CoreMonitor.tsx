@@ -1,10 +1,11 @@
+// components/CoreMonitor.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { GunaState } from '../types';
+import { GunaState } from '../types.ts';
 import { Sparkline } from './Sparkline';
 import { Gauge } from './Gauge';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { SystemVitals } from './SystemVitals';
 
 export const CoreMonitor = React.memo(() => {
@@ -74,7 +75,7 @@ export const CoreMonitor = React.memo(() => {
             </div>
             
             <div className="state-trajectory">
-                <h4 className="trajectory-header">{t('trajectoryTitle')}</h4>
+                <h4 className="trajectory-header">{t('trajectory')}</h4>
                 <div className="sparkline-grid">
                     <div className="sparkline-item">
                         <div className="sparkline-labels"><span>{t('gaugeWisdom')}</span><span>{t('gaugeHappiness')}</span></div>

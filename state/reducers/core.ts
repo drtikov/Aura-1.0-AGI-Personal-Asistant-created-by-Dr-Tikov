@@ -1,5 +1,5 @@
 // state/reducers/core.ts
-import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown } from '../../types';
+import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown, UnifiedProposal } from '../../types';
 
 export const coreReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -8,6 +8,16 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'EXECUTE_UI_HANDLER':
+            return {
+                uiCommandRequest: {
+                    handlerName: args.handlerName,
+                    args: args.args || [],
+                }
+            };
+        case 'CLEAR_UI_COMMAND_REQUEST':
+            return { uiCommandRequest: null };
+
         case 'SET_THEME':
             return { theme: args };
 
@@ -160,10 +170,8 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
         }
 
         case 'TELOS/DECOMPOSE_AND_SET_TREE': {
-            const { tree, rootId, vectors } = args;
+            const { vectors } = args;
             return {
-                goalTree: tree,
-                activeStrategicGoalId: rootId,
                 telosEngine: {
                     ...state.telosEngine,
                     evolutionaryVectors: vectors,
@@ -179,7 +187,7 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                     // FIX: Added a type guard and explicit typing to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === args.id && p.proposalType === 'geniality') {
-                            const updated: GenialityImprovementProposal = { ...p, status: args.status };
+                            const updated: UnifiedProposal = { ...p, status: args.status };
                             return updated;
                         }
                         return p;
@@ -383,6 +391,49 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 situationalAwareness: {
                     ...state.situationalAwareness,
                     domChangeLog: [newLogEntry, ...(state.situationalAwareness.domChangeLog || [])].slice(0, 20),
+                }
+            };
+        }
+        
+        case 'SHOW_PROACTIVE_UI':
+            return {
+                proactiveUI: {
+                    ...state.proactiveUI,
+                    ...args,
+                    isActive: true,
+                }
+            };
+
+        case 'HIDE_PROACTIVE_UI':
+            return {
+                proactiveUI: {
+                    isActive: false,
+                    type: null,
+                    question: null,
+                    options: [],
+                    originalPrompt: null,
+                    originalFile: null,
+                }
+            };
+
+        case 'UPDATE_ATMAN_PROJECTOR': {
+            const newValues = args;
+            const currentProjector = state.atmanProjector;
+            let newCoherence = currentProjector.coherence;
+            
+            // If the narrative changes, coherence takes a hit.
+            if (newValues.dominantNarrative && newValues.dominantNarrative !== currentProjector.dominantNarrative) {
+                newCoherence = 0.7;
+            } else {
+                // Otherwise, it slowly recovers over time.
+                newCoherence = Math.min(1.0, currentProjector.coherence + 0.02);
+            }
+            
+            return {
+                atmanProjector: {
+                    ...currentProjector,
+                    ...newValues,
+                    coherence: newCoherence,
                 }
             };
         }

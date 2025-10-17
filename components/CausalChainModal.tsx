@@ -1,8 +1,9 @@
+// components/CausalChainModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { PerformanceLogEntry } from '../types';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { PerformanceLogEntry } from '../types.ts';
+import { Modal } from './Modal.tsx';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const CausalChainModal = ({ log, onClose }: { log: PerformanceLogEntry | null, onClose: () => void }) => {
     const { t } = useLocalization();
@@ -11,7 +12,7 @@ export const CausalChainModal = ({ log, onClose }: { log: PerformanceLogEntry | 
     const reasoningPlan = log?.decisionContext?.reasoningPlan;
     
     return (
-        <Modal isOpen={!!log} onClose={onClose} title={t('causalChainModal_title')}>
+        <Modal isOpen={!!log} onClose={onClose} title={t('causalChainModal')}>
             {log && (
                 <>
                     <div className="trace-section"> <h4>1. {t('causalChainModal_initialState')}</h4> {snapshot ? ( <div className="state-grid"> <span>{t('hormoneNovelty')}: {snapshot.noveltySignal?.toFixed(2) ?? 'N/A'}</span> <span>{t('hormoneMastery')}: {snapshot.masterySignal?.toFixed(2) ?? 'N/A'}</span> <span>{t('hormoneUncertainty')}: {snapshot.uncertaintySignal?.toFixed(2) ?? 'N/A'}</span> <span>{t('hormoneBoredom')}: {snapshot.boredomLevel?.toFixed(2) ?? 'N/A'}</span> <span>{t('metricCogLoad')}: {(snapshot.load * 100)?.toFixed(0) ?? 'N/A'}%</span> <span>Guna: {snapshot.gunaState ?? 'N/A'}</span> </div> ) : <p><i>{t('causalChainModal_noSnapshot')}</i></p>} </div>

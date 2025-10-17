@@ -1,6 +1,6 @@
 // components/EvolutionarySandboxPanel.tsx
 import React, { useState, useEffect } from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { HAL } from '../core/hal';
 
 const DiffViewer = ({ diff }: { diff: { before: string, after: string } }) => {
@@ -49,7 +49,7 @@ export const EvolutionarySandboxPanel = () => {
         <>
             <p className="reason-text">{t('sandbox_description')}</p>
             <div className="image-gen-control-group">
-                <label htmlFor="sprint-goal">{t('sandbox_goal_label')}</label>
+                <label htmlFor="sprint-goal">{t('sandbox_goal')}</label>
                 <input
                     id="sprint-goal"
                     type="text"
@@ -70,7 +70,7 @@ export const EvolutionarySandboxPanel = () => {
                 <h4>{t('sandbox_sprint_running')}</h4>
                 <div className="spinner-small" />
             </div>
-            <p className="reason-text"><strong>{t('sandbox_goal_label')}:</strong> {sprintGoal}</p>
+            <p className="reason-text"><strong>{t('sandbox_goal')}:</strong> {sprintGoal}</p>
             <div className="command-log-list" style={{ maxHeight: '250px', overflowY: 'auto' }}>
                 {log.map(entry => (
                     <div key={entry.timestamp} className="command-log-item log-type-info">

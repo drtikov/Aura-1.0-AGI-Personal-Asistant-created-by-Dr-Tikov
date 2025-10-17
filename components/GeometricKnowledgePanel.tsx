@@ -1,6 +1,6 @@
 // components/GeometricKnowledgePanel.tsx
 import React, { useMemo, useState } from 'react';
-import { useMemoryState, useLocalization } from '../context/AuraContext';
+import { useMemoryState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Import ConnectionData to explicitly type the value from Object.entries.
 import { MDNAVector, ConnectionData } from '../types';
 

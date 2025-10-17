@@ -1,6 +1,7 @@
 // components/KoniocortexSentinelPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 import { Percept } from '../types';
 
 export const KoniocortexSentinelPanel = React.memo(() => {

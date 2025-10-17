@@ -1,5 +1,6 @@
 // core/kernel.ts
 import React from 'react';
+// FIX: Import missing types Action, SyscallCall, and SyscallPayload
 import { Action, SyscallCall, SyscallPayload } from '../types';
 
 /**

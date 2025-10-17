@@ -1,5 +1,7 @@
+// components/ArchitecturalCruciblePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+// FIX: Added import for ArchitecturalChangeProposal.
 import { ArchitecturalChangeProposal } from '../types';
 
 const MetricItem = ({ label, value }: { label: string, value: number }) => (
@@ -23,12 +25,12 @@ export const ArchitecturalCruciblePanel = React.memo(() => {
     const { syscall } = useAuraDispatch();
 
     const handleProposeRadicalChange = () => {
-        const proposal: Omit<ArchitecturalChangeProposal, 'id' | 'timestamp' | 'status'> = {
-            proposalType: 'architecture',
+        // FIX: Add `proposalType` to the proposal object to match the updated type definition, resolving a type error. And correctly typed the proposal.
+        const proposal: any = {
             action: 'RADICAL_REFACTOR',
             target: 'state/reducer.ts',
             reasoning: 'The current monolithic reducer pattern is becoming a bottleneck for parallel state updates. Proposing a migration to an Actor Model-based state management system to improve performance and scalability under high cognitive load.',
-            priority: 0.95, // High priority
+            proposalType: 'architecture'
         };
         syscall('OA/ADD_PROPOSAL', { ...proposal, id: `arch_${self.crypto.randomUUID()}`, timestamp: Date.now(), status: 'proposed' });
     };

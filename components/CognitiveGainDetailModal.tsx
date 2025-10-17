@@ -1,8 +1,9 @@
+// components/CognitiveGainDetailModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { CognitiveGainLogEntry } from '../types';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { CognitiveGainLogEntry } from '../types.ts';
+import { Modal } from './Modal.tsx';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const CognitiveGainDetailModal = ({ log, onClose }: { log: CognitiveGainLogEntry | null; onClose: () => void }) => {
     const { t } = useLocalization();
@@ -10,7 +11,7 @@ export const CognitiveGainDetailModal = ({ log, onClose }: { log: CognitiveGainL
     const formatMetric = (metric: string, value: number) => { if (metric.toLowerCase().includes('latency')) return `${value.toFixed(0)}ms`; if (metric.toLowerCase().includes('rate') || metric.toLowerCase().includes('accuracy')) return `${(value * 100).toFixed(1)}%`; return value.toFixed(2); }
     
     return (
-        <Modal isOpen={!!log} onClose={onClose} title={t('cogGainDetailModal_title')}>
+        <Modal isOpen={!!log} onClose={onClose} title={t('cogGainDetailModal')}>
             {log && (
                 <>
                     <div className="trace-section"> <h4>{t('cogGainDetailModal_eventDetails')}</h4> <p><strong>{t('cogGainDetailModal_type')}:</strong> {log.eventType}</p> <p><strong>{t('cogGainDetailModal_description')}:</strong> {log.description}</p> <p><strong>{t('cogGainDetailModal_timestamp')}:</strong> {new Date(log.timestamp).toLocaleString()}</p> <p><strong>{t('cogGainDetailModal_compositeGain')}:</strong> <span className={log.compositeGain > 0 ? 'success' : 'failure'}>{log.compositeGain.toFixed(2)}</span></p> </div>

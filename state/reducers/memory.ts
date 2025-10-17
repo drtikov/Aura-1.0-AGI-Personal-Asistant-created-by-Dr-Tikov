@@ -1,6 +1,6 @@
 // state/reducers/memory.ts
 import { AuraState, Action, MDNASpace, ConceptConnections, KnowledgeFact, Episode } from '../../types';
-import { createRandomVector } from '../../utils';
+import { createRandomVector, cosineSimilarity } from '../../utils';
 import { MDNA_DIMENSIONS, HEBBIAN_LEARNING_RATE, CONNECTION_DECAY_RATE, PRUNING_THRESHOLD } from '../../constants';
 
 export const memoryReducer = (state: AuraState, action: Action): Partial<AuraState> => {
@@ -10,6 +10,50 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'MEMORY/SYNAPTIC_PROBE': {
+            const concepts = Object.keys(state.mdnaSpace);
+            if (concepts.length < 10) return {}; // Not enough concepts to make interesting connections
+
+            const MAX_ATTEMPTS = 10;
+            for (let i = 0; i < MAX_ATTEMPTS; i++) {
+                const indexA = Math.floor(Math.random() * concepts.length);
+                let indexB = Math.floor(Math.random() * concepts.length);
+                if (indexA === indexB) continue;
+
+                const conceptA = concepts[indexA];
+                const conceptB = concepts[indexB];
+                
+                const linkKey = [conceptA, conceptB].sort().join('--');
+                if (state.conceptConnections[linkKey]) continue; // Link already exists
+
+                const vectorA = state.mdnaSpace[conceptA];
+                const vectorB = state.mdnaSpace[conceptB];
+                
+                if (vectorA && vectorB) {
+                    const similarity = cosineSimilarity(vectorA, vectorB);
+                    if (similarity < 0.2) { // Only connect distant concepts
+                        const newConnection = { weight: 0.01 }; // Very weak initial connection
+                        const logMessage = {
+                            timestamp: Date.now(),
+                            message: `Probing new connection: ${conceptA} ↔ ${conceptB}`
+                        };
+
+                        return {
+                            conceptConnections: {
+                                ...state.conceptConnections,
+                                [linkKey]: newConnection,
+                            },
+                            synapticMatrix: {
+                                ...state.synapticMatrix,
+                                probeLog: [logMessage, ...state.synapticMatrix.probeLog].slice(0, 10)
+                            }
+                        };
+                    }
+                }
+            }
+            return {}; // Failed to find a suitable pair after several attempts
+        }
+        
         // --- Variant J: Neuro-Dynamic Memory ---
         case 'MEMORY/REINFORCE': {
             const { memoryType, memoryId } = args;

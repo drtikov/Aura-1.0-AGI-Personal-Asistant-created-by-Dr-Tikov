@@ -91,7 +91,6 @@ export const granularCortexReducer = (state: AuraState, action: Action): Partial
                     ...state.worldModelState,
                     predictionError: {
                         ...state.worldModelState.predictionError,
-                        timestamp: Date.now(),
                         magnitude: error.magnitude,
                         source: 'sensory_input',
                         failedPrediction: `Predicted ${predictedEngram?.modality || 'nothing'}, got ${actualEngram.modality}.`,

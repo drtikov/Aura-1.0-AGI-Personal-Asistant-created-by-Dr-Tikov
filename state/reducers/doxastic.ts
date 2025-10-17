@@ -8,6 +8,14 @@ export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraS
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'DOXASTIC/ADD_UNVERIFIED_HYPOTHESIS':
+            return {
+                doxasticEngineState: {
+                    ...state.doxasticEngineState,
+                    unverifiedHypotheses: [args, ...state.doxasticEngineState.unverifiedHypotheses],
+                }
+            };
+            
         case 'DOXASTIC/ADD_HYPOTHESIS':
             return {
                 doxasticEngineState: {

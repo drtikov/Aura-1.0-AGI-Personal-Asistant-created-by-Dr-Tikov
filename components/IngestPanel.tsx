@@ -1,5 +1,8 @@
+
+
 import React, { useState, useRef } from 'react';
-import { useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks to resolve module not found error.
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const IngestPanel = ({ onIngest, onCancel }: { onIngest: (text: string) => void, onCancel: () => void }) => {
     const [text, setText] = useState('');

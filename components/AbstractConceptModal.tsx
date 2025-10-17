@@ -1,7 +1,7 @@
-
+// components/AbstractConceptModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization, useAuraDispatch, useArchitectureState } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+import { useLocalization, useAuraDispatch, useArchitectureState } from '../context/AuraContext.tsx';
 
 export const AbstractConceptModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
     const [name, setName] = useState('');
@@ -45,7 +45,7 @@ export const AbstractConceptModal = ({ isOpen, onClose }: { isOpen: boolean; onC
         <Modal 
             isOpen={isOpen} 
             onClose={onClose} 
-            title={t('abstractConcept_title')} 
+            title={t('abstractConcept')} 
             footer={footer}
             className="abstract-concept-modal"
         >

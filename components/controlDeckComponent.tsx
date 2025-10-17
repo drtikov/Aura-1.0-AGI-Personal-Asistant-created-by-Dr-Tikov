@@ -1,2 +1,4 @@
 // components/controlDeckComponent.tsx
-// This file is a duplicate and has been emptied to resolve build errors. The canonical version is in the parent components/ directory.
+// This file is a duplicate with incorrect casing. The canonical version is ControlDeckComponent.tsx.
+// FIX: Emptied file to resolve module casing conflicts with ControlDeckComponent.tsx.
+export {};

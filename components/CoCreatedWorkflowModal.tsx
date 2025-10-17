@@ -1,8 +1,8 @@
-
+// components/CoCreatedWorkflowModal.tsx
 import React, { useState } from 'react';
-import { Modal } from './Modal';
-import { useLocalization, useAuraDispatch } from '../context/AuraContext';
-import { CoCreatedWorkflow } from '../types';
+import { Modal } from './Modal.tsx';
+import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+import { CoCreatedWorkflow } from '../types.ts';
 
 interface CoCreatedWorkflowModalProps {
     isOpen: boolean;
@@ -46,7 +46,7 @@ export const CoCreatedWorkflowModal = ({ isOpen, onClose }: CoCreatedWorkflowMod
     );
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('workflow_modal_title')} footer={footer}>
+        <Modal isOpen={isOpen} onClose={onClose} title={t('workflow_modal')} footer={footer}>
             <div className="image-gen-control-group">
                 <label htmlFor="wf-name">{t('workflow_modal_name')}</label>
                 <input id="wf-name" type="text" value={name} onChange={e => setName(e.target.value)} />
@@ -72,4 +72,3 @@ export const CoCreatedWorkflowModal = ({ isOpen, onClose }: CoCreatedWorkflowMod
         </Modal>
     );
 };
-      

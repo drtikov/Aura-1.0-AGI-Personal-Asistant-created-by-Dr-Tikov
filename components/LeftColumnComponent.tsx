@@ -1,10 +1,12 @@
+// components/LeftColumnComponent.tsx
 import React from 'react';
-import { useLogsState, useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext';
+import { useLogsState, useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext.tsx';
 import { useModal } from '../context/ModalContext';
 import { CoreMonitor } from './CoreMonitor';
 import { LoadingOverlay } from './LoadingOverlay';
 import { SafeMarkdown } from './SafeMarkdown';
 import { WorkingMemoryPanel } from './WorkingMemoryPanel';
+import { ProactiveUIPanel } from './ProactiveUIPanel'; // Import the new component
 // FIX: Corrected import path for types to resolve module error.
 import { HistoryEntry, PerformanceLogEntry, InternalState } from '../types';
 
@@ -30,12 +32,103 @@ const getChromaStyle = (state?: InternalState): React.CSSProperties => {
     return { '--chroma-gradient': gradient } as React.CSSProperties;
 };
 
+// --- Tool Result Components ---
+const SymbolicMathResult = ({ result }: { result: any }) => {
+    const { t } = useLocalization();
+    if (!result || !result.final_result || !result.steps) {
+        return <pre><code>{JSON.stringify(result, null, 2)}</code></pre>;
+    }
+
+    return (
+        <div className="symbolic-math-result">
+            <div className="tool-name">Symbolic Math</div>
+            <div className="final-result">{result.final_result}</div>
+            <details>
+                <summary>{t('symbolic_math_view_steps')}</summary>
+                <ol className="math-steps">
+                    {result.steps.map((step: any, index: number) => (
+                        <li key={index}>
+                            <span className="step-desc">{step.description}</span>
+                            <span className="step-eq">{step.equation}</span>
+                        </li>
+                    ))}
+                </ol>
+            </details>
+        </div>
+    );
+};
+
+const ProofAssistantResult = ({ result }: { result: any }) => {
+    const { t } = useLocalization();
+    if (!result || typeof result.isValid === 'undefined') {
+         return <pre><code>{JSON.stringify(result, null, 2)}</code></pre>;
+    }
+
+    return (
+        <div className="proof-assistant-result">
+            <div className="tool-name">Formal Proof Assistant</div>
+            <div className={`final-result ${result.isValid && result.isComplete ? 'valid' : 'invalid'}`}>
+                <span>{result.isValid && result.isComplete ? t('proof_valid') : t('proof_invalid')}</span>
+            </div>
+            <p className="explanation">{result.explanation}</p>
+            
+            {result.steps && result.steps.length > 0 && (
+                 <details>
+                    <summary>{t('proof_viewSteps')}</summary>
+                    <ol className="proof-steps">
+                        {result.steps.map((step: any) => (
+                            <li key={step.step}>
+                                <span className="step-statement">{step.statement}</span>
+                                <span className="step-justification">{step.justification}</span>
+                            </li>
+                        ))}
+                    </ol>
+                </details>
+            )}
+
+            {result.suggestedNextStep && (
+                <div className="suggested-step">
+                    <strong>{t('proof_suggestion')}</strong>
+                    <p>{result.suggestedNextStep}</p>
+                </div>
+            )}
+        </div>
+    );
+};
+
+const MathKnowledgeResult = ({ result }: { result: any }) => {
+    const { t } = useLocalization();
+    if (!result || !result.summary) {
+        return <pre><code>{JSON.stringify(result, null, 2)}</code></pre>;
+    }
+
+    return (
+        <div className="math-knowledge-result">
+            <div className="tool-name">Mathematical Knowledge Retrieval</div>
+            <div className="summary-content">
+                <SafeMarkdown text={result.summary} />
+            </div>
+            {result.sources && result.sources.length > 0 && (
+                <div className="sources-container">
+                    <h4>Sources:</h4>
+                    <ul>
+                        {result.sources.map((source: any, i: number) => (
+                            <li key={i}><a href={source.uri} target="_blank" rel="noopener noreferrer">{i + 1}. {source.title}</a></li>
+                        ))}
+                    </ul>
+                </div>
+            )}
+        </div>
+    );
+};
+
+
 export const LeftColumnComponent = () => {
     const { history, performanceLogs } = useLogsState();
-    const { internalState } = useCoreState();
+    const { internalState, proactiveUI } = useCoreState();
     const {
         activeLeftTab, setActiveLeftTab, outputPanelRef, currentCommand, setCurrentCommand,
-        attachedFile, handleRemoveAttachment, fileInputRef, handleFileChange, handleMicClick,
+        attachedFile, handleRemoveAttachment, fileInputRef, handleFileChange,
         isRecording, processingState, handleSendCommand, dispatch, handleFeedback
     } = useAuraDispatch();
     const modal = useModal();
@@ -64,10 +157,18 @@ export const LeftColumnComponent = () => {
                             <div key={entry.id} id={`history-entry-${entry.id}`} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
                                 <div className="entry-content" style={getChromaStyle(entry.internalStateSnapshot)}>
                                     {entry.from === 'tool' ? (
-                                        <>
-                                            <div className="tool-name">{entry.text}</div>
-                                            {entry.args && <pre><code>{JSON.stringify(entry.args, null, 2)}</code></pre>}
-                                        </>
+                                        entry.text === 'symbolic_math' && entry.args ? (
+                                            <SymbolicMathResult result={entry.args} />
+                                        ) : entry.text === 'formal_proof_assistant' && entry.args ? (
+                                            <ProofAssistantResult result={entry.args} />
+                                        ) : entry.text === 'math_knowledge_retrieval' && entry.args ? (
+                                            <MathKnowledgeResult result={entry.args} />
+                                        ) : (
+                                            <>
+                                                <div className="tool-name">{entry.text}</div>
+                                                {entry.args && <pre><code>{JSON.stringify(entry.args, null, 2)}</code></pre>}
+                                            </>
+                                        )
                                     ) : (
                                         entry.text && <SafeMarkdown text={entry.text} />
                                     )}
@@ -110,26 +211,29 @@ export const LeftColumnComponent = () => {
                         ))}
                     </div>
                     <WorkingMemoryPanel />
-                    <form className="input-area" onSubmit={(e) => { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); }}>
-                         <LoadingOverlay isActive={processingState.active} text={processingState.stage} />
-                        {attachedFile && (
-                            <div className="file-attachment-preview">
-                                {attachedFile.type === 'image' && <img src={attachedFile.previewUrl} alt="attachment" />}
-                                {attachedFile.type === 'audio' && <audio src={attachedFile.previewUrl} controls />}
-                                {attachedFile.type === 'video' && <video src={attachedFile.previewUrl} controls autoPlay muted loop />}
-                                <button onClick={handleRemoveAttachment}>&times;</button>
+                    {proactiveUI.isActive ? (
+                        <ProactiveUIPanel />
+                    ) : (
+                        <form className="input-area" onSubmit={(e) => { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); }}>
+                            <LoadingOverlay isActive={processingState.active} text={processingState.stage} />
+                            {attachedFile && (
+                                <div className="file-attachment-preview">
+                                    {attachedFile.type === 'image' && <img src={attachedFile.previewUrl} alt="attachment" />}
+                                    {attachedFile.type === 'audio' && <audio src={attachedFile.previewUrl} controls />}
+                                    {attachedFile.type === 'video' && <video src={attachedFile.previewUrl} controls autoPlay muted loop />}
+                                    <button onClick={handleRemoveAttachment}>&times;</button>
+                                </div>
+                            )}
+                            <div className="input-area-content">
+                                <textarea value={currentCommand} onChange={(e) => setCurrentCommand(e.target.value)} placeholder={t('inputPlaceholder')} rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); } }} disabled={processingState.active} />
+                                <div className="input-controls">
+                                    <button type="button" onClick={() => fileInputRef.current?.click()} disabled={processingState.active} title={t('inputAttachFile')} aria-label={t('inputAttachFile')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></button>
+                                    <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
+                                    <button type="submit" disabled={processingState.active || (!currentCommand.trim() && !attachedFile)}>{t('inputSend')}</button>
+                                </div>
                             </div>
-                        )}
-                        <div className="input-area-content">
-                            <textarea value={currentCommand} onChange={(e) => setCurrentCommand(e.target.value)} placeholder={t('inputPlaceholder')} rows={1} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendCommand(currentCommand, attachedFile?.file); } }} disabled={processingState.active} />
-                            <div className="input-controls">
-                                <button type="button" onClick={() => fileInputRef.current?.click()} disabled={processingState.active} title={t('inputAttachFile')} aria-label={t('inputAttachFile')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5c0-1.38 1.12-2.5 2.5-2.5s2.5 1.12 2.5 2.5v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5c0 1.38 1.12 2.5 2.5 2.5s2.5-1.12 2.5-2.5V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z"/></svg></button>
-                                <input type="file" ref={fileInputRef} onChange={handleFileChange} style={{ display: 'none' }} />
-                                <button type="button" onClick={handleMicClick} className={`mic-button ${isRecording ? 'recording' : ''}`} disabled={processingState.active} title={isRecording ? t('inputStopRecording') : t('inputStartRecording')} aria-label={isRecording ? t('inputStopRecording') : t('inputStartRecording')}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 14c1.66 0 2.99-1.34 2.99-3L15 5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5.3-3c0 3-2.54 5.1-5.3 5.1S6.7 14 6.7 11H5c0 3.41 2.72 6.23 6 6.72V21h2v-3.28c3.28-.48 6-3.3 6-6.72h-1.7z"/></svg></button>
-                                <button type="submit" disabled={processingState.active || (!currentCommand.trim() && !attachedFile)}>{t('inputSend')}</button>
-                            </div>
-                        </div>
-                    </form>
+                        </form>
+                    )}
                 </div>
             )}
 

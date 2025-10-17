@@ -1,8 +1,8 @@
 // context/AuraContext.tsx
 import React, { createContext, useContext } from 'react';
-import { useAura } from '../hooks/useAura';
 import {
     AuraState,
+    UseAuraResult,
     InternalState,
     UserModel,
     CoreIdentity,
@@ -103,10 +103,20 @@ import {
     PersonaState,
     BrainstormState,
     ChronicleState,
+    ProactiveUIState,
+    PraxisCoreState,
+    SubsumptionLogState,
+    StrategicCoreState,
+    MycelialState,
+    SemanticWeaverState,
+    HalState,
+    PrometheusState,
+    AutonomousReviewBoardState,
+    ATPCoprocessorState,
 } from '../types';
 
 // --- Context for the main dispatcher ---
-export const AuraDispatchContext = createContext<ReturnType<typeof useAura> | null>(null);
+export const AuraDispatchContext = createContext<UseAuraResult | null>(null);
 export const useAuraDispatch = () => {
     const context = useContext(AuraDispatchContext);
     if (!context) throw new Error('useAuraDispatch must be used within an AuraDispatchContext.Provider');
@@ -138,8 +148,9 @@ type CoreState = Pick<AuraState,
     | 'psionicDesynchronizationState' | 'satoriState' | 'doxasticEngineState' | 'qualiaSignalProcessorState' 
     | 'sensoryIntegration' | 'narrativeSummary' | 'socialCognitionState' | 'metaphoricalMapState' | 'atmanProjector'
     | 'internalScientistState' | 'metisSandboxState' | 'spandaState' | 'personaState' | 'brainstormState'
-    // FIX: Add liveSessionState to CoreState
-    | 'liveSessionState'
+    // FIX: Add liveSessionState and semanticWeaverState to CoreState
+    | 'liveSessionState' | 'proactiveUI' | 'strategicCoreState' | 'mycelialState' | 'semanticWeaverState'
+    | 'modalRequest' | 'uiCommandRequest' | 'prometheusState' | 'metisSandboxState'
 >;
 export const [CoreStateContext, useCoreState] = createStateContext<CoreState>('CoreStateContext');
 
@@ -155,6 +166,9 @@ type ArchitectureState = Pick<AuraState,
     | 'granularCortexState' | 'koniocortexSentinelState' | 'cognitiveTriageState' | 'psycheState' | 'motorCortexState' 
     | 'praxisResonatorState' | 'ontogeneticArchitectState' | 'embodiedCognitionState' | 'evolutionarySandboxState'
     | 'hovaState' | 'documentForgeState' | 'wisdomIngestionState' | 'axiomaticCrucibleState'
+    | 'atpCoprocessorState'
+    // FIX: Added 'praxisCoreState' to the ArchitectureState type to provide it to relevant components.
+    | 'praxisCoreState'
 >;
 export const [ArchitectureStateContext, useArchitectureState] = createStateContext<ArchitectureState>('ArchitectureStateContext');
 
@@ -167,7 +181,7 @@ type EngineState = Pick<AuraState, 'proactiveEngineState' | 'ethicalGovernorStat
 export const [EngineStateContext, useEngineState] = createStateContext<EngineState>('EngineStateContext');
 
 // Logs State
-type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 'cognitiveModeLog' | 'cognitiveGainLog' | 'cognitiveRegulationLog'>;
+type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 'cognitiveModeLog' | 'cognitiveGainLog' | 'cognitiveRegulationLog' | 'subsumptionLogState'>;
 export const [LogsStateContext, useLogsState] = createStateContext<LogsState>('LogsStateContext');
 
 // System State

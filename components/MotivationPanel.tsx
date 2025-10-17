@@ -1,5 +1,8 @@
+
+
 import React from 'react';
-import { useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks to resolve module not found error.
+import { useLocalization } from '../context/AuraContext.tsx';
 
 // This component is deprecated and will be removed. 
 // It is replaced by the StrategicPlannerPanel for the new Hierarchical Planning Engine.

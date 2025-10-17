@@ -1,5 +1,5 @@
 // state/reducers/system.ts
-import { AuraState, Action, CGLPlan, POLCommand, AGISDecision, MetacognitiveLink, CognitiveTask } from '../../types';
+import { AuraState, Action, AGISDecision, MetacognitiveLink, CognitiveTask, ModificationLogEntry, KernelPatchProposal } from '../../types';
 
 export const systemReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -142,6 +142,86 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
             
+        case 'KERNEL/BEGIN_SANDBOX_TEST': {
+            const patchId = args.patchId as string;
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === patchId) as KernelPatchProposal | undefined;
+            if (!proposal) return {};
+
+            return {
+                kernelState: {
+                    ...state.kernelState,
+                    sandbox: {
+                        active: true,
+                        status: 'testing',
+                        currentPatchId: patchId,
+                        log: [{ timestamp: Date.now(), message: `Starting sandbox test for patch: ${proposal.changeDescription}` }],
+                    }
+                }
+            };
+        }
+
+        case 'KERNEL/CONCLUDE_SANDBOX_TEST': {
+            const { passed, reason } = args;
+            return {
+                kernelState: {
+                    ...state.kernelState,
+                    sandbox: {
+                        ...state.kernelState.sandbox,
+                        status: passed ? 'passed' : 'failed',
+                        log: [...state.kernelState.sandbox.log, { timestamp: Date.now(), message: `Test ${passed ? 'passed' : 'failed'}. Reason: ${reason}` }],
+                    }
+                }
+            };
+        }
+
+        case 'KERNEL/APPLY_PATCH': {
+            const patchId = state.kernelState.sandbox.currentPatchId;
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === patchId) as KernelPatchProposal | undefined;
+            if (!proposal || state.kernelState.sandbox.status !== 'passed') return {};
+
+            const { task, newFrequency } = proposal.patch.payload;
+            
+            const newLog: ModificationLogEntry = {
+                id: `mod_${self.crypto.randomUUID()}`,
+                timestamp: Date.now(),
+                description: `Autonomous kernel patch applied: ${proposal.changeDescription}`,
+                gainType: 'OPTIMIZATION',
+                validationStatus: 'validated',
+                isAutonomous: true,
+            };
+
+            const versionParts = state.kernelState.kernelVersion.split('.');
+            const newPatchVersion = parseInt(versionParts[2] || '0') + 1;
+            const newVersion = `${versionParts[0]}.${versionParts[1]}.${newPatchVersion}`;
+
+            return {
+                kernelState: {
+                    ...state.kernelState,
+                    kernelVersion: newVersion,
+                    taskFrequencies: {
+                        ...state.kernelState.taskFrequencies,
+                        [task]: newFrequency,
+                    },
+                    sandbox: {
+                        active: false,
+                        status: 'idle',
+                        currentPatchId: null,
+                        log: [],
+                    }
+                },
+                modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+            };
+        }
+        
+        case 'SYSTEM/REBOOT': {
+            return {
+                kernelState: {
+                    ...state.kernelState,
+                    rebootRequired: true,
+                }
+            };
+        }
+
         // --- AGIS SYSCALLS ---
         case 'AGIS/TOGGLE_PAUSE': {
             return {

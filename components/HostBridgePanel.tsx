@@ -1,6 +1,7 @@
 // components/HostBridgePanel.tsx
 import React from 'react';
-import { useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useLocalization } from '../context/AuraContext.tsx';
 import { HostBridge } from '../core/hostBridge';
 
 export const HostBridgePanel = React.memo(() => {

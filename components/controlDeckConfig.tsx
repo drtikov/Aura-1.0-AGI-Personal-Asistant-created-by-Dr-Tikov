@@ -1,42 +1,34 @@
 // components/controlDeckConfig.tsx
 import React from 'react';
-import { AuraState } from '../types';
-import { ArchitecturePanel } from './ArchitecturePanel';
-import { CausalSelfModelPanel } from './CausalSelfModelPanel';
-import { CognitiveArchitecturePanel } from './CognitiveArchitecturePanel';
-import { CognitiveGainPanel } from './CognitiveGainPanel';
-import { CognitiveModesPanel } from './CognitiveModesPanel';
-import { IngenuityPanel } from './IngenuityPanel';
-import { InnerDisciplinePanel } from './InnerDisciplinePanel';
-import { IntuitionEnginePanel } from './IntuitionEnginePanel';
-import { KnowledgeGraphPanel } from './KnowledgeGraphPanel';
+import { AuraState, UnifiedProposal } from '../types';
+import {
+    useAuraDispatch
+} from '../context/AuraContext';
+
+// Import all panel components
+import { CommandLogPanel } from './CommandLogPanel';
 import { LimitationsPanel } from './LimitationsPanel';
-import { MotivationPanel } from './MotivationPanel';
-import { OtherAwarenessPanel } from './OtherAwarenessPanel';
-import { ResourceMonitorPanel } from './ResourceMonitorPanel';
 import { SelfModificationPanel } from './SelfModificationPanel';
-import { EthicalGovernorPanel } from './EthicalGovernorPanel';
-import { ProactiveEnginePanel } from './ProactiveEnginePanel';
-import { ReflectiveInsightEnginePanel } from './ReflectiveInsightEnginePanel';
-import { EpisodicMemoryPanel } from './EpisodicMemoryPanel';
-import { MetacognitionPanel } from './MetacognitionPanel';
-import { CoreIdentityPanel } from './CoreIdentityPanel';
-import { StrategicPlannerPanel } from './StrategicPlannerPanel';
-import { UnifiedMemoryPanel } from './UnifiedMemoryPanel';
-import { CuriosityPanel } from './CuriosityPanel';
+import { CognitiveModesPanel } from './CognitiveModesPanel';
+import { CognitiveGainPanel } from './CognitiveGainPanel';
+import { CausalSelfModelPanel } from './CausalSelfModelPanel';
+import { OtherAwarenessPanel } from './OtherAwarenessPanel';
 import { SelfAwarenessPanel } from './SelfAwarenessPanel';
 import { WorldModelPanel } from './WorldModelPanel';
-import { CommandLogPanel } from './CommandLogPanel';
-import { MetacognitiveNexusPanel } from './MetacognitiveNexusPanel';
-import { MemoryCrystallizationViewer } from './MemoryCrystallizationViewer';
-import { MetacognitiveCausalModelPanel } from './MetacognitiveCausalModelPanel';
-import { CognitiveRegulationPanel } from './CognitiveRegulationPanel';
-import { AtmanProjectorPanel } from './AtmanProjectorPanel';
-import { DevelopmentalHistoryPanel } from './DevelopmentalHistoryPanel';
+import { UnifiedMemoryPanel } from './UnifiedMemoryPanel';
+import { CognitiveArchitecturePanel } from './CognitiveArchitecturePanel';
+import { StrategicPlannerPanel } from './StrategicPlannerPanel';
+import { InnerDisciplinePanel } from './InnerDisciplinePanel';
+import { ProactiveEnginePanel } from './ProactiveEnginePanel';
+import { EthicalGovernorPanel } from './EthicalGovernorPanel';
+import { IntuitionEnginePanel } from './IntuitionEnginePanel';
+import { IngenuityPanel } from './IngenuityPanel';
+import { ReflectiveInsightEnginePanel } from './ReflectiveInsightEnginePanel';
+import { SystemInfoPanel } from './SystemInfoPanel';
+import { CuriosityPanel } from './CuriosityPanel';
+import { CoreIdentityPanel } from './CoreIdentityPanel';
 import { TelosPanel } from './TelosPanel';
-import { BoundaryDetectionEngine } from '../types';
-import { EpistemicBoundaryPanel } from './EpistemicBoundaryPanel';
-import { AspirationalEnginePanel } from './AspirationalEnginePanel';
+import { DevelopmentalHistoryPanel } from './DevelopmentalHistoryPanel';
 import { NoosphereInterfacePanel } from './NoosphereInterfacePanel';
 import { DialecticEnginePanel } from './DialecticEnginePanel';
 import { CognitiveLightConePanel } from './CognitiveLightConePanel';
@@ -46,262 +38,225 @@ import { SymbiosisPanel } from './SymbiosisPanel';
 import { HumorAndIronyPanel } from './HumorAndIronyPanel';
 import { PersonalityPanel } from './PersonalityPanel';
 import { GankyilInsightsPanel } from './GankyilInsightsPanel';
-import { CodeEvolutionPanel } from './CodeEvolutionPanel';
 import { NoeticEngramPanel } from './NoeticEngramPanel';
 import { GenialityEnginePanel } from './GenialityEnginePanel';
-import { SynapticMatrixPanel } from './SynapticMatrixPanel';
 import { NoeticMultiversePanel } from './NoeticMultiversePanel';
 import { SelfAdaptationPanel } from './SelfAdaptationPanel';
-import { SystemInfoPanel } from './SystemInfoPanel';
 import { PsychedelicIntegrationPanel } from './PsychedelicIntegrationPanel';
 import { AffectiveModulatorPanel } from './AffectiveModulatorPanel';
 import { PsionicDesynchronizationPanel } from './PsionicDesynchronizationPanel';
 import { SatoriPanel } from './SatoriPanel';
+import { DoxasticEnginePanel } from './DoxasticEnginePanel';
+import { MetaphoricalMapPanel } from './MetaphoricalMapPanel';
+import { ArchitecturalSelfModelPanel } from './ArchitecturalSelfModelPanel';
+import { HeuristicsForgePanel } from './HeuristicsForgePanel';
+import { SomaticCruciblePanel } from './SomaticCruciblePanel';
+import { EidolonEnvironmentPanel } from './EidolonEnvironmentPanel';
+import { ArchitecturalCruciblePanel } from './ArchitecturalCruciblePanel';
+import { SynapticMatrixPanel } from './SynapticMatrixPanel';
 import { RicciFlowManifoldPanel } from './RicciFlowManifoldPanel';
 import { SelfProgrammingPanel } from './SelfProgrammingPanel';
 import { NeuralAcceleratorPanel } from './NeuralAcceleratorPanel';
-import { AdvancedControlsModal } from './AdvancedControlsModal';
-import { CoprocessorArchitectureSwitcher } from './CoprocessorArchitectureSwitcher';
-import { EventBusPanel } from './EventBusPanel';
-import { SensoryIntegrationPanel } from './SensoryIntegrationPanel';
-import { DoxasticEnginePanel } from './DoxasticEnginePanel';
-import { SubsumptionLogPanel } from './SubsumptionLogPanel';
-import { QualiaSignalProcessorPanel } from './QualiaSignalProcessorPanel';
-import { VFS_Engineer_Manual } from './VFS_Engineer_Manual';
-import { CodeIngestionPanel } from './CodeIngestionPanel';
-import { SystemVitals } from './SystemVitals';
 import { NeuroCortexPanel } from './NeuroCortexPanel';
 import { GranularCortexPanel } from './GranularCortexPanel';
 import { KoniocortexSentinelPanel } from './KoniocortexSentinelPanel';
-import { PremotorPlannerPanel } from './PremotorPlannerPanel';
 import { CognitiveTriagePanel } from './CognitiveTriagePanel';
-import { BasalGangliaPanel } from './BasalGangliaPanel';
-import { CerebellumPanel } from './CerebellumPanel';
 import { PsychePanel } from './PsychePanel';
 import { MotorCortexPanel } from './MotorCortexPanel';
 import { PraxisResonatorPanel } from './PraxisResonatorPanel';
-import { VFSExplorerPanel } from './VFSExplorerPanel';
+import { OntogeneticArchitectState } from '../types';
+import { CognitiveForgePanel } from './CognitiveForgePanel';
+import { MetacognitiveCausalModelPanel } from './MetacognitiveCausalModelPanel';
+import { CognitiveRegulationPanel } from './CognitiveRegulationPanel';
+import { PremotorPlannerPanel } from './PremotorPlannerPanel';
+import { BasalGangliaPanel } from './BasalGangliaPanel';
+import { CerebellumPanel } from './CerebellumPanel';
 import { SocialCognitionPanel } from './SocialCognitionPanel';
 import { EmbodiedCognitionPanel } from './EmbodiedCognitionPanel';
 import { ReinforcementLearningPanel } from './ReinforcementLearningPanel';
-import { MetaphoricalMapPanel } from './MetaphoricalMapPanel';
 import { HOVAPanel } from './HOVAPanel';
-import { DocumentForgePanel } from './DocumentForgePanel';
 import { InternalScientistPanel } from './InternalScientistPanel';
 import { MetisSandboxPanel } from './MetisSandboxPanel';
 import { WisdomIngestionPanel } from './WisdomIngestionPanel';
-import { ArchitecturalCruciblePanel } from './ArchitecturalCruciblePanel';
-import { HeuristicsForgePanel } from './HeuristicsForgePanel';
-import { EidolonEnvironmentPanel } from './EidolonEnvironmentPanel';
-import { SomaticCruciblePanel } from './SomaticCruciblePanel';
-import { ArchitecturalSelfModelPanel } from './ArchitecturalSelfModelPanel';
-import { CognitiveForgePanel } from './CognitiveForgePanel';
-import { DzogchenViewPanel } from './DzogchenViewPanel';
-import { EvolutionarySandboxPanel } from './EvolutionarySandboxPanel';
-import { AutonomousReviewBoardPanel } from './AutonomousReviewBoardPanel';
 import { SpandaEnginePanel } from './SpandaEnginePanel';
 import { TemporalEnginePanel } from './TemporalEnginePanel';
 import { AxiomaticCruciblePanel } from './AxiomaticCruciblePanel';
 import { KernelTaskPanel } from './KernelTaskPanel';
 import { BrainstormingPanel } from './BrainstormingPanel';
+import { VFSExplorerPanel } from './VFSExplorerPanel';
+import { PraxisCorePanel } from './PraxisCorePanel';
+import { SubsumptionLogPanel } from './SubsumptionLogPanel';
+import { StrategicCorePanel } from './StrategicCorePanel';
+import { MycelialNetworkPanel } from './MycelialNetworkPanel';
+import { SemanticWeaverPanel } from './SemanticWeaverPanel';
+import { CoprocessorArchitectureSwitcher } from './CoprocessorArchitectureSwitcher';
+import { EventBusPanel } from './EventBusPanel';
+import { SensoryIntegrationPanel } from './SensoryIntegrationPanel';
 import { HostBridgePanel } from './HostBridgePanel';
+import { CodeIngestionPanel } from './CodeIngestionPanel';
+import { VFS_Engineer_Manual } from './VFS_Engineer_Manual';
+import { AtmanProjectorPanel } from './AtmanProjectorPanel';
+import { DzogchenViewPanel } from './DzogchenViewPanel';
+import { EpistemicBoundaryPanel } from './EpistemicBoundaryPanel';
 import { ConceptualRosettaStonePanel } from './ConceptualRosettaStonePanel';
 import { ChroniclePanel } from './ChroniclePanel';
-// FIX: Import the missing GeometricKnowledgePanel component.
-import { GeometricKnowledgePanel } from './GeometricKnowledgePanel';
+import { AutonomousReviewBoardPanel } from './AutonomousReviewBoardPanel';
+import { ProofLandscapeExplorer } from './ProofLandscapeExplorer';
+import { ATPCoprocessorPanel } from './ATP_CoprocessorPanel';
+import { PrometheusPanel } from './PrometheusPanel';
+import { DocumentForgePanel } from './DocumentForgePanel';
+// FIX: Imported missing QualiaSignalProcessorPanel.
+import { QualiaSignalProcessorPanel } from './QualiaSignalProcessorPanel';
+import { SystemVitals } from './SystemVitals';
 
-
-type StateSlices = {
-    architecture: Partial<AuraState['cognitiveArchitecture']>;
-    logs: Partial<AuraState>;
-    memory: Partial<AuraState>;
-    core: Partial<AuraState>;
-    engine: Partial<AuraState>;
-    planning: Partial<AuraState>;
-    system: Partial<AuraState>;
-};
 
 export interface PanelConfig {
     id: string;
     titleKey: string;
-    defaultOpen?: boolean;
     component?: React.ComponentType<any>;
     children?: PanelConfig[];
-    // FIX: Updated the type of `t` to allow for interpolation options, resolving a subtle type mismatch.
-    summary?: (state: StateSlices, t: (key: string, options?: any) => string) => string;
-    hasNotifications?: (state: StateSlices) => boolean;
+    defaultOpen?: boolean;
+    summary?: (states: any, t: (key: string) => string) => string | undefined;
+    hasNotifications?: (states: any) => boolean;
     props?: (handlers: any) => any;
 }
 
 export const mainControlDeckLayout: PanelConfig[] = [
     {
-        id: 'autonomous-systems',
-        titleKey: 'autonomousSystems',
+        id: 'self',
+        titleKey: 'selfAwareness',
         defaultOpen: true,
-        hasNotifications: (s) => (s.system as any).kernelState.runningTask !== null,
-        summary: (s, t) => {
-            const kernelState = (s.system as any).kernelState;
-            if (kernelState.runningTask) return t('summary_running');
-            if (kernelState.taskQueue.length > 0) return `${kernelState.taskQueue.length} ${t('summary_queued')}`;
-            return t('summary_idle');
-        },
         children: [
-            { id: 'kernel-tasks', titleKey: 'kernel_title', component: KernelTaskPanel },
+            { id: 'atmanProjector', titleKey: 'atmanProjector', component: AtmanProjectorPanel },
+            { id: 'dzogchenView', titleKey: 'dzogchenView', component: DzogchenViewPanel },
+            { id: 'coreIdentity', titleKey: 'coreIdentity', component: CoreIdentityPanel },
+            { id: 'selfAwareness', titleKey: 'selfAwareness', component: SelfAwarenessPanel },
+            { id: 'causalSelfModel', titleKey: 'causalSelfModel', component: CausalSelfModelPanel },
+            { id: 'rie', titleKey: 'reflectiveInsightEngine', component: ReflectiveInsightEnginePanel },
+            { id: 'devHistory', titleKey: 'developmentalHistory', component: DevelopmentalHistoryPanel },
         ]
     },
     {
-        id: 'awareness',
-        titleKey: 'awareness',
-        defaultOpen: true,
-        children: [
-            { id: 'self-awareness', titleKey: 'selfAwareness', component: SelfAwarenessPanel },
-            { id: 'other-awareness', titleKey: 'otherAwareness', component: OtherAwarenessPanel },
-            { id: 'situational-awareness', titleKey: 'situationalAwareness', component: SituationalAwarenessPanel },
-            { id: 'world-model', titleKey: 'worldModel', component: WorldModelPanel },
-        ],
-    },
-    {
-        id: 'planning-and-motivation',
-        titleKey: 'planningAndMotivation',
+        id: 'user',
+        titleKey: 'userAwareness',
         defaultOpen: false,
-        hasNotifications: (s) => (s.core as any).telosEngine.candidateTelos.length > 0 || (s.core as any).knownUnknowns.some((ku: any) => ku.status === 'unexplored'),
         children: [
-            { id: 'telos', titleKey: 'telos_aspirational_engine', component: TelosPanel, hasNotifications: (s) => (s.core as any).telosEngine.candidateTelos.length > 0 },
-            { id: 'epistemic-boundaries', titleKey: 'epistemicBoundaries', component: EpistemicBoundaryPanel, hasNotifications: (s) => (s.core as any).knownUnknowns.some((ku: any) => ku.status === 'unexplored') },
-            { id: 'strategic-planner', titleKey: 'strategicPlanner', component: StrategicPlannerPanel },
-            { id: 'discipline', titleKey: 'innerDiscipline', component: InnerDisciplinePanel },
+            { id: 'otherAwareness', titleKey: 'userAwareness', component: OtherAwarenessPanel },
+            { id: 'socialCognition', titleKey: 'socialCognition', component: SocialCognitionPanel },
+            { id: 'symbiosis', titleKey: 'symbiosis', component: SymbiosisPanel },
+            { id: 'humorAndIrony', titleKey: 'humorAndIrony', component: HumorAndIronyPanel },
+            { id: 'personality', titleKey: 'personality', component: PersonalityPanel },
         ]
     },
     {
-        id: 'unified-memory',
+        id: 'memory',
         titleKey: 'unifiedMemory',
         defaultOpen: false,
-        summary: (s, t) => {
-            const factCount = s.memory.knowledgeGraph.length;
-            const episodeCount = s.memory.episodicMemoryState.episodes.length;
-            return `${t('panelSummaryFacts', { count: factCount })} | ${t('panelSummaryEpisodes', { count: episodeCount })}`;
-        },
-        children: [
-            { id: 'chronicle', titleKey: 'chronicle_title', component: ChroniclePanel },
-            { id: 'episodic-memory', titleKey: 'episodicMemory', component: EpisodicMemoryPanel },
-            { id: 'geometric-knowledge', titleKey: 'geometricKnowledge', component: GeometricKnowledgePanel },
-            { id: 'crystallization', titleKey: 'memoryCrystallization', component: MemoryCrystallizationViewer },
-            { id: 'knowledge-graph', titleKey: 'knowledgeGraph', component: KnowledgeGraphPanel },
-        ]
+        component: UnifiedMemoryPanel,
     },
     {
-        id: 'architecture',
-        titleKey: 'architecture',
+        id: 'planning',
+        titleKey: 'planningAndGoals',
         defaultOpen: false,
         children: [
-            { id: 'cognitive-architecture', titleKey: 'cognitiveArchitecture', component: CognitiveArchitecturePanel },
-            { id: 'self-modification', titleKey: 'selfModification', component: SelfModificationPanel, props: (h) => ({ onRollback: (id: string) => h.syscall('ROLLBACK_SNAPSHOT', id) }) },
-            { id: 'coprocessor-switcher', titleKey: 'coprocessorSwitcher', component: CoprocessorArchitectureSwitcher },
+            { id: 'telos', titleKey: 'telosAndAspirations', component: TelosPanel },
+            { id: 'strategicPlanner', titleKey: 'strategicPlanner', component: StrategicPlannerPanel },
+            { id: 'innerDiscipline', titleKey: 'innerDiscipline', component: InnerDisciplinePanel },
+            { id: 'limitations', titleKey: 'limitations', component: LimitationsPanel },
         ]
     },
     {
         id: 'engines',
-        titleKey: 'engines',
+        titleKey: 'cognitiveEngines',
         defaultOpen: false,
         children: [
-            { id: 'proactive-engine', titleKey: 'proactiveEngine', component: ProactiveEnginePanel, props: (h) => ({ onSuggestionAction: (id: string, status: 'accepted' | 'rejected') => h.syscall('UPDATE_SUGGESTION_STATUS', { id, status }) })},
-            { id: 'intuition-engine', titleKey: 'intuitionEngine', component: IntuitionEnginePanel },
-            { id: 'ingenuity-engine', titleKey: 'ingenuityEngine', component: IngenuityPanel },
-            { id: 'ethical-governor', titleKey: 'ethicalGovernor', component: EthicalGovernorPanel },
-            { id: 'rie', titleKey: 'rie', component: ReflectiveInsightEnginePanel },
+            { id: 'curiosity', titleKey: 'curiosity', component: CuriosityPanel },
+            { id: 'proactive', titleKey: 'proactiveEngine', component: ProactiveEnginePanel, props: (h: any) => ({ onSuggestionAction: (id: string, action: 'accepted' | 'rejected') => h.syscall('UPDATE_SUGGESTION_STATUS', { id, status: action }) }) },
+            { id: 'ethical', titleKey: 'ethicalGovernor', component: EthicalGovernorPanel },
+            { id: 'intuition', titleKey: 'intuitionEngine', component: IntuitionEnginePanel },
+            { id: 'ingenuity', titleKey: 'ingenuityEngine', component: IngenuityPanel },
         ]
     },
     {
-        id: 'system',
-        titleKey: 'system',
+        id: 'logs',
+        titleKey: 'logsAndPerformance',
         defaultOpen: false,
         children: [
-            { id: 'system-info', titleKey: 'systemInfo', component: SystemInfoPanel },
-            { id: 'host-bridge', titleKey: 'hostBridge_title', component: HostBridgePanel },
-            { id: 'resource-monitor', titleKey: 'resourceMonitor', component: ResourceMonitorPanel },
-            { id: 'command-log', titleKey: 'commandLog', component: CommandLogPanel },
+            { id: 'cognitiveGain', titleKey: 'cognitiveGain', component: CognitiveGainPanel },
+            { id: 'cognitiveModes', titleKey: 'cognitiveModes', component: CognitiveModesPanel },
+            { id: 'commandLog', titleKey: 'commandLog', component: CommandLogPanel },
+        ]
+    },
+     {
+        id: 'system',
+        titleKey: 'systemInternals',
+        defaultOpen: false,
+        children: [
+            { id: 'systemInfo', titleKey: 'systemInformation', component: SystemInfoPanel },
+            { id: 'systemVitals', titleKey: 'resourceMonitor', component: SystemVitals },
         ]
     },
 ];
 
 export const advancedControlsLayout: PanelConfig[] = [
-    { id: 'spanda-engine', titleKey: 'spanda_engine', component: SpandaEnginePanel },
-    { id: 'temporal-engine', titleKey: 'temporal_engine', component: TemporalEnginePanel },
-    { id: 'axiomatic-crucible', titleKey: 'axiomatic_crucible', component: AxiomaticCruciblePanel },
-    { id: 'brainstorming-hub', titleKey: 'brainstorm_hub_title', component: BrainstormingPanel },
-    { id: 'rosetta-stone', titleKey: 'rosetta_title', component: ConceptualRosettaStonePanel },
-    { id: 'metacognitive-nexus', titleKey: 'metacognitiveNexus', component: MetacognitiveNexusPanel },
-    { id: 'metacognitive-causal-model', titleKey: 'metacognitiveCausalModel', component: MetacognitiveCausalModelPanel },
-    { id: 'praxis-resonator', titleKey: 'praxisResonator', component: PraxisResonatorPanel },
-    { id: 'noosphere-interface', titleKey: 'noosphereInterface', component: NoosphereInterfacePanel },
-    { id: 'core-identity', titleKey: 'coreIdentity', component: CoreIdentityPanel },
-    { id: 'personality', titleKey: 'personality', component: PersonalityPanel },
-    { id: 'causal-self-model', titleKey: 'causalSelfModel', component: CausalSelfModelPanel },
-    { id: 'cognitive-regulation', titleKey: 'cognitiveRegulation', component: CognitiveRegulationPanel },
-    { id: 'curiosity-drive', titleKey: 'curiosityDrive', component: CuriosityPanel },
-    { id: 'cognitive-gains', titleKey: 'cognitiveGains', component: CognitiveGainPanel },
-    { id: 'cognitive-modes', titleKey: 'cognitiveModes', component: CognitiveModesPanel },
-    { id: 'developmental-history', titleKey: 'developmentalHistory', component: DevelopmentalHistoryPanel },
-    {
-        id: 'epistemic-boundaries',
-        titleKey: 'epistemicBoundaries',
-        component: EpistemicBoundaryPanel,
-        hasNotifications: (s) => (s.core as any).knownUnknowns.some((ku: any) => ku.status === 'unexplored'),
-        summary: (s, t) => {
-            const count = (s.core as any).knownUnknowns.filter((ku: any) => ku.status === 'unexplored').length;
-            return count > 0 ? `${count} ${t('summary_new')}` : undefined;
-        }
-    },
-    { id: 'aspirational-engine', titleKey: 'aspirationalEngine', component: AspirationalEnginePanel },
-    { id: 'dialectic-engine', titleKey: 'dialecticEngine', component: DialecticEnginePanel },
-    { id: 'cognitive-light-cone', titleKey: 'cognitiveLightCone', component: CognitiveLightConePanel },
-    { id: 'phenomenology-engine', titleKey: 'phenomenologyEngine', component: PhenomenologyPanel },
-    { id: 'symbiosis-engine', titleKey: 'symbiosisEngine', component: SymbiosisPanel },
-    { id: 'humor-irony-engine', titleKey: 'humorAndIrony', component: HumorAndIronyPanel },
-    { id: 'gankyil-insights', titleKey: 'gankyilInsights', component: GankyilInsightsPanel },
-    { id: 'noetic-engram', titleKey: 'noeticEngram', component: NoeticEngramPanel },
-    { id: 'geniality-engine', titleKey: 'genialityEngine', component: GenialityEnginePanel },
-    { id: 'atman-projector', titleKey: 'atmanProjector', component: AtmanProjectorPanel },
-    { id: 'dzogchen-view', titleKey: 'dzogchenView', component: DzogchenViewPanel },
-    { id: 'noetic-multiverse', titleKey: 'noeticMultiverse', component: NoeticMultiversePanel },
-    { id: 'self-adaptation-engine', titleKey: 'selfAdaptationEngine', component: SelfAdaptationPanel },
-    { id: 'psychedelic-integration', titleKey: 'psychedelicIntegration', component: PsychedelicIntegrationPanel },
-    { id: 'affective-modulator', titleKey: 'affectiveModulator', component: AffectiveModulatorPanel },
-    { id: 'psionic-desynchronization', titleKey: 'psionicDesynchronization', component: PsionicDesynchronizationPanel },
-    { id: 'satori-engine', titleKey: 'satoriEngine', component: SatoriPanel },
-    { id: 'doxastic-engine', titleKey: 'doxasticEngine', component: DoxasticEnginePanel },
-    { id: 'qualia-processor', titleKey: 'qualiaProcessor', component: QualiaSignalProcessorPanel },
-    { id: 'sensory-hub', titleKey: 'sensoryHub', component: SensoryIntegrationPanel },
-    { id: 'social-cognition', titleKey: 'socialCognition', component: SocialCognitionPanel },
-    { id: 'metaphor-map', titleKey: 'metaphorMap', component: MetaphoricalMapPanel },
-    { id: 'internal-scientist', titleKey: 'internalScientist', component: InternalScientistPanel },
-    { id: 'synaptic-matrix', titleKey: 'synapticMatrix', component: SynapticMatrixPanel },
-    { id: 'ricci-flow-manifold', titleKey: 'ricciFlowManifold', component: RicciFlowManifoldPanel },
-    { id: 'cognitive-forge', titleKey: 'cognitiveForge', component: CognitiveForgePanel },
-    { id: 'self-programming-engine', titleKey: 'selfProgrammingEngine', component: SelfProgrammingPanel },
-    { id: 'architectural-self-model', titleKey: 'architecturalSelfModel', component: ArchitecturalSelfModelPanel },
-    { id: 'heuristics-forge', titleKey: 'heuristicsForge', component: HeuristicsForgePanel },
-    { id: 'somatic-crucible', titleKey: 'somaticCrucible', component: SomaticCruciblePanel },
-    { id: 'eidolon-environment', titleKey: 'eidolonEnvironment', component: EidolonEnvironmentPanel },
-    { id: 'architectural-crucible', titleKey: 'architecturalCrucible', component: ArchitecturalCruciblePanel },
-    { id: 'neural-accelerator', titleKey: 'neuralAccelerator', component: NeuralAcceleratorPanel },
-    { id: 'neuro-cortex', titleKey: 'neuroCortex', component: NeuroCortexPanel },
-    { id: 'granular-cortex', titleKey: 'granularCortex', component: GranularCortexPanel },
-    { id: 'koniocortex-sentinel', titleKey: 'koniocortexSentinel', component: KoniocortexSentinelPanel },
-    { id: 'cognitive-triage', titleKey: 'cognitiveTriage', component: CognitiveTriagePanel },
-    { id: 'premotor-planner', titleKey: 'premotorPlanner', component: PremotorPlannerPanel },
-    { id: 'basal-ganglia', titleKey: 'basalGanglia', component: BasalGangliaPanel },
+    { id: 'affectiveModulator', titleKey: 'affectiveModulator_title', component: AffectiveModulatorPanel },
+    { id: 'architecturalCrucible', titleKey: 'architecturalCrucible', component: ArchitecturalCruciblePanel },
+    { id: 'architecturalSelfModel', titleKey: 'architecturalSelfModel', component: ArchitecturalSelfModelPanel },
+    { id: 'atpCoprocessor', titleKey: 'atp_coprocessor', component: ATPCoprocessorPanel },
+    { id: 'autonomousReviewBoard', titleKey: 'autonomousReviewBoard', component: AutonomousReviewBoardPanel },
+    { id: 'axiomaticCrucible', titleKey: 'axiomaticCrucible', component: AxiomaticCruciblePanel },
+    { id: 'basalGanglia', titleKey: 'basalGanglia', component: BasalGangliaPanel },
+    { id: 'brainstorming', titleKey: 'brainstorming', component: BrainstormingPanel },
     { id: 'cerebellum', titleKey: 'cerebellum', component: CerebellumPanel },
-    { id: 'psyche-language', titleKey: 'psycheLanguage', component: PsychePanel },
-    { id: 'motor-cortex', titleKey: 'motorCortex', component: MotorCortexPanel },
-    { id: 'embodied-cognition', titleKey: 'embodiedCognition', component: EmbodiedCognitionPanel },
-    { id: 'reinforcement-learning', titleKey: 'reinforcementLearning', component: ReinforcementLearningPanel },
-    { id: 'evolutionary-sandbox', titleKey: 'evolutionarySandbox', component: EvolutionarySandboxPanel },
+    { id: 'cognitiveArchitecture', titleKey: 'cognitiveArchitecture', component: CognitiveArchitecturePanel },
+    { id: 'cognitiveForge', titleKey: 'cognitiveForge', component: CognitiveForgePanel },
+    { id: 'cognitiveRegulation', titleKey: 'cognitiveRegulation', component: CognitiveRegulationPanel },
+    { id: 'cognitiveTriage', titleKey: 'cognitiveTriage', component: CognitiveTriagePanel },
+    { id: 'conceptualRosettaStone', titleKey: 'conceptualRosettaStone', component: ConceptualRosettaStonePanel },
+    { id: 'coprocessorArchitecture', titleKey: 'coprocessorArchitecture', component: CoprocessorArchitectureSwitcher },
+    { id: 'doxasticEngine', titleKey: 'doxasticEngine', component: DoxasticEnginePanel },
+    { id: 'eidolonEnvironment', titleKey: 'eidolonEnvironment', component: EidolonEnvironmentPanel },
+    { id: 'embodiedCognition', titleKey: 'embodiedCognition', component: EmbodiedCognitionPanel },
+    { id: 'epistemicBoundary', titleKey: 'epistemicBoundary', component: EpistemicBoundaryPanel },
+    { id: 'eventBus', titleKey: 'eventBus', component: EventBusPanel },
+    { id: 'genialityEngine', titleKey: 'genialityEngine', component: GenialityEnginePanel },
+    { id: 'granularCortex', titleKey: 'granularCortex', component: GranularCortexPanel },
+    { id: 'heuristicsForge', titleKey: 'heuristicsForge', component: HeuristicsForgePanel },
+    { id: 'hostBridge', titleKey: 'hostBridge', component: HostBridgePanel },
     { id: 'hova', titleKey: 'hova', component: HOVAPanel },
-    { id: 'document-forge', titleKey: 'documentForge', component: DocumentForgePanel, hasNotifications: (s) => (s.architecture as any).documentForgeState.isActive },
-    { id: 'event-bus-log', titleKey: 'eventBusLog', component: EventBusPanel },
-    { id: 'subsumption-log', titleKey: 'subsumptionLog', component: SubsumptionLogPanel },
-    { id: 'vfs-explorer', titleKey: 'vfsExplorer', component: VFSExplorerPanel },
-    { id: 'vfs-engineer-manual', titleKey: 'vfsEngineerManual', component: VFS_Engineer_Manual },
-    { id: 'live-code-ingestion', titleKey: 'liveCodeIngestion', component: CodeIngestionPanel },
+    { id: 'internalScientist', titleKey: 'internalScientist', component: InternalScientistPanel },
+    { id: 'kernel', titleKey: 'kernel', component: KernelTaskPanel },
+    { id: 'koniocortexSentinel', titleKey: 'koniocortexSentinel', component: KoniocortexSentinelPanel },
+    { id: 'liveCodeIngestion', titleKey: 'liveCodeIngestion_title', component: CodeIngestionPanel },
+    { id: 'metisSandbox', titleKey: 'metisSandbox', component: MetisSandboxPanel },
+    { id: 'motorCortex', titleKey: 'motorCortex', component: MotorCortexPanel },
+    { id: 'mycelialNetwork', titleKey: 'mycelialNetwork', component: MycelialNetworkPanel },
+    { id: 'neuralAccelerator', titleKey: 'neuralAccelerator', component: NeuralAcceleratorPanel },
+    { id: 'neuroCortex', titleKey: 'neuroCortex', component: NeuroCortexPanel },
+    { id: 'noeticEngram', titleKey: 'noeticEngram', component: NoeticEngramPanel },
+    { id: 'noeticMultiverse', titleKey: 'noeticMultiverse', component: NoeticMultiversePanel },
+    { id: 'phenomenology', titleKey: 'phenomenology', component: PhenomenologyPanel },
+    { id: 'praxisCore', titleKey: 'praxisCore', component: PraxisCorePanel },
+    { id: 'praxisResonator', titleKey: 'praxisResonator', component: PraxisResonatorPanel },
+    { id: 'premotorPlanner', titleKey: 'premotorPlanner', component: PremotorPlannerPanel },
+    { id: 'prometheusEngine', titleKey: 'prometheusEngine', component: PrometheusPanel },
+    { id: 'proofLandscape', titleKey: 'proofLandscape', component: ProofLandscapeExplorer },
+    { id: 'psyche', titleKey: 'psyche', component: PsychePanel },
+    { id: 'psychedelicIntegration', titleKey: 'psychedelicIntegration', component: PsychedelicIntegrationPanel },
+    { id: 'psionicDesynchronization', titleKey: 'psionicDesynchronization', component: PsionicDesynchronizationPanel },
+    { id: 'qualiaSignalProcessor', titleKey: 'qualiaSignalProcessor', component: QualiaSignalProcessorPanel },
+    { id: 'ricciFlowManifold', titleKey: 'ricciFlowManifold', component: RicciFlowManifoldPanel },
+    { id: 'satori', titleKey: 'satori', component: SatoriPanel },
+    { id: 'selfAdaptation', titleKey: 'selfAdaptation', component: SelfAdaptationPanel },
+    { id: 'selfModification', titleKey: 'selfModification', component: SelfModificationPanel, props: (h: any) => ({ onRollback: (id: string) => h.syscall('ROLLBACK_STATE', { snapshotId: id }) }) },
+    { id: 'selfProgramming_vfs', titleKey: 'selfProgramming_vfs', component: VFSExplorerPanel },
+    { id: 'semanticWeaver', titleKey: 'semanticWeaver', component: SemanticWeaverPanel },
+    { id: 'sensoryIntegration', titleKey: 'sensoryIntegration', component: SensoryIntegrationPanel },
+    { id: 'somaticCrucible', titleKey: 'somaticCrucible', component: SomaticCruciblePanel },
+    { id: 'spandaEngine', titleKey: 'spandaEngine', component: SpandaEnginePanel },
+    { id: 'strategicCore', titleKey: 'strategicCore', component: StrategicCorePanel },
+    { id: 'synapticMatrix', titleKey: 'synapticMatrix', component: SynapticMatrixPanel },
+    { id: 'temporalEngine', titleKey: 'temporalEngine', component: TemporalEnginePanel },
+    { id: 'vfs_manual', titleKey: 'vfs_manual_title', component: VFS_Engineer_Manual },
+    { id: 'wisdomIngestion', titleKey: 'wisdomIngestion', component: WisdomIngestionPanel },
 ];

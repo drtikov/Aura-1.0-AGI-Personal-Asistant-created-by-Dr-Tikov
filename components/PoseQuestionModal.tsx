@@ -1,7 +1,8 @@
 // components/PoseQuestionModal.tsx
 import React, { useState, useEffect } from 'react';
-import { Modal } from './Modal';
-import { useLocalization } from '../context/AuraContext';
+import { Modal } from './Modal.tsx';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const PoseQuestionModal = ({ isOpen, onPose, onClose }: { isOpen: boolean; onPose: (question: string) => void; onClose: () => void; }) => {
     const [question, setQuestion] = useState('');
@@ -31,7 +32,7 @@ export const PoseQuestionModal = ({ isOpen, onPose, onClose }: { isOpen: boolean
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={t('curiosity_modal_title')}
+            title={t('curiosity_modal')}
             footer={footer}
             className="pose-question-modal"
         >

@@ -1,6 +1,6 @@
-
+// components/PsionicDesynchronizationPanel.tsx
 import React, { useState, useEffect } from 'react';
-import { useCoreState, useAuraDispatch } from '../context/AuraContext';
+import { useCoreState, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const PsionicDesynchronizationPanel = React.memo(() => {
     const { psionicDesynchronizationState: state } = useCoreState();

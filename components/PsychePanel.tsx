@@ -1,12 +1,12 @@
 // components/PsychePanel.tsx
 import React from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { CognitivePrimitiveDefinition } from '../types';
 import { useModal } from '../context/ModalContext';
 
 export const PsychePanel = () => {
     const { psycheState } = useArchitectureState();
-    const { handleAuditArchitecture } = useAuraDispatch();
     const { t } = useLocalization();
     const modal = useModal();
     const { version, primitiveRegistry } = psycheState;

@@ -1,62 +1,52 @@
 // App.tsx
-import React, { useEffect, useRef } from 'react';
-// FIX: Unifying component imports through the barrel file to resolve a casing conflict with ControlDeckComponent.
-import { ToastContainer, LeftColumnComponent, Header, LiveTranscriptOverlay, ControlDeckComponent } from './components';
-import { useAuraDispatch, useCoreState } from './context/AuraContext';
-import { ModalProvider } from './context/ModalContext';
-import { AuraProvider } from './context/AuraProvider';
+import React, { useEffect } from 'react';
+import { AuraProvider } from './context/AuraProvider.tsx';
+import { useAuraDispatch, useCoreState } from './context/AuraContext.tsx';
+import { ModalProvider, useModal } from './context/ModalContext.tsx';
+import { ToastContainer } from './components/Toast.tsx';
+import { LeftColumnComponent } from './components/LeftColumnComponent.tsx';
+import { LiveTranscriptOverlay } from './components/LiveTranscriptOverlay.tsx';
+import { Header } from './components/Header.tsx';
+import { VisualAnalysisFeed } from './components/VisualAnalysisFeed.tsx';
+// FIX: To resolve module resolution errors, this now points to the PascalCase file to ensure consistent casing.
+import { ControlDeckComponent } from './components/ControlDeckComponent.tsx';
+import { ModalPayloads } from './types.ts';
 
-// This component renders the main UI layout and is guaranteed to be within all necessary contexts.
-const MainLayout = () => {
-    // We can now get toasts directly from the context.
-    const { toasts, removeToast, startSession } = useAuraDispatch(); 
-    const { psychedelicIntegrationState, userModel, liveSessionState } = useCoreState();
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
-
-    // Effect to toggle the "Cognitive Kaleidoscope" visual theme
-    useEffect(() => {
-        const body = document.body;
-        if (psychedelicIntegrationState.isActive && psychedelicIntegrationState.mode === 'visions') {
-            body.classList.add('visions-active');
-        } else {
-            body.classList.remove('visions-active');
-        }
-        // Cleanup function to ensure the class is removed if the component unmounts while active
-        return () => {
-            body.classList.remove('visions-active');
-        };
-    }, [psychedelicIntegrationState]);
+const AppContent: React.FC = () => {
+    // The useAuraDispatch hook is used to access state and handlers provided by AuraProvider.
+    const { toasts, removeToast, videoRef, isVisualAnalysisActive, syscall } = useAuraDispatch();
+    const { modalRequest } = useCoreState();
+    const modal = useModal();
 
     useEffect(() => {
-        if (liveSessionState.status === 'connecting' && videoRef.current && canvasRef.current) {
-            startSession(videoRef.current, canvasRef.current);
+        if (modalRequest) {
+            // The type assertion here is a bit loose but necessary to bridge the state and context systems.
+            // We trust that the syscall payload is correct.
+            modal.open(modalRequest.type as keyof ModalPayloads, modalRequest.payload as any);
+            syscall('CLEAR_MODAL_REQUEST', {});
         }
-    }, [liveSessionState.status, startSession]);
+    }, [modalRequest, modal, syscall]);
 
     return (
         <div className="app-wrapper">
-            {/* Hidden elements for video processing */}
-            <video ref={videoRef} style={{ display: 'none' }} playsInline muted />
-            <canvas ref={canvasRef} style={{ display: 'none' }} />
-            
-            <LiveTranscriptOverlay />
-            <div className={`cognitive-resonance-overlay state-${userModel.inferredCognitiveState}`} />
             <Header />
             <div className="app-container">
-                <ToastContainer toasts={toasts} removeToast={removeToast} />
                 <LeftColumnComponent />
                 <ControlDeckComponent />
             </div>
+            {/* These components are overlays or positioned absolutely */}
+            <VisualAnalysisFeed videoRef={videoRef} isAnalysisActive={isVisualAnalysisActive} />
+            <LiveTranscriptOverlay />
+            <ToastContainer toasts={toasts} removeToast={removeToast} />
         </div>
     );
 };
 
-export const App = () => {
+export const App: React.FC = () => {
     return (
         <AuraProvider>
             <ModalProvider>
-                <MainLayout />
+                <AppContent />
             </ModalProvider>
         </AuraProvider>
     );

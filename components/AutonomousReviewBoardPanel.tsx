@@ -1,6 +1,6 @@
 // components/AutonomousReviewBoardPanel.tsx
 import React from 'react';
-import { useSystemState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 import { AGISDecision } from '../types';
 
 // FIX: Wrapped component in React.memo to handle `key` prop correctly and fixed the type of `t` to allow for interpolation options.

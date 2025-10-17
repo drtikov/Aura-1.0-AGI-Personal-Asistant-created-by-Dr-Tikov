@@ -1,7 +1,5 @@
-
-
 import React, { useState, useMemo } from 'react';
-import { useAuraDispatch, useLocalization } from '../context/AuraContext';
+import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { AuraState } from '../types';
 
 // --- Type Definitions ---

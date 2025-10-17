@@ -1,6 +1,6 @@
 // components/DoxasticEnginePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 // FIX: Changed import from CausalHypothesis to DoxasticHypothesis to match type definitions.
 import { DoxasticHypothesis } from '../types';
 import { Accordion } from './Accordion';
@@ -8,8 +8,8 @@ import { Accordion } from './Accordion';
 export const DoxasticEnginePanel = () => {
     const { doxasticEngineState } = useCoreState();
     const { t } = useLocalization();
-    const { testCausalHypothesis } = useAuraDispatch();
-    const { hypotheses, experiments, simulationStatus, simulationLog, lastSimulationResult } = doxasticEngineState;
+    const { syscall } = useAuraDispatch();
+    const { hypotheses, unverifiedHypotheses, experiments, simulationStatus, simulationLog, lastSimulationResult } = doxasticEngineState;
 
     const getStatusColor = (status: DoxasticHypothesis['status']) => {
         switch(status) {
@@ -44,7 +44,7 @@ export const DoxasticEnginePanel = () => {
 
     return (
         <div className="side-panel doxastic-engine-panel">
-            <Accordion title={t('doxastic_sandbox_title')} defaultOpen={true}>
+            <Accordion title={t('doxastic_sandbox_title')} defaultOpen={false}>
                 <div className="awareness-item">
                     <label>{t('doxastic_sandbox_status')}</label>
                     <strong className={`status-${simulationStatus}`}>{simulationStatus}</strong>
@@ -88,7 +88,7 @@ export const DoxasticEnginePanel = () => {
                 )}
             </Accordion>
             
-            <Accordion title={t('doxastic_hypotheses')} defaultOpen={false}>
+            <Accordion title={t('doxastic_hypotheses')} defaultOpen={true}>
                  {hypotheses.length === 0 ? (
                     <div className="kg-placeholder">{t('doxastic_noHypotheses')}</div>
                 ) : (
@@ -101,6 +101,18 @@ export const DoxasticEnginePanel = () => {
                                 <small style={{ textTransform: 'capitalize' }}>Source: {hypo.source}</small>
                                 <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(hypo.status), fontWeight: 'bold' }}>{hypo.status}</span></small>
                             </div>
+                        </div>
+                    ))
+                )}
+            </Accordion>
+
+            <Accordion title={t('doxastic_unverified')} defaultOpen={true} hasNotifications={unverifiedHypotheses.length > 0}>
+                {unverifiedHypotheses.length === 0 ? (
+                    <div className="kg-placeholder">{t('doxastic_noUnverified')}</div>
+                ) : (
+                    unverifiedHypotheses.map(hypo => (
+                        <div key={hypo.id} className="gde-status" style={{ borderLeftColor: getStatusColor(hypo.status) }}>
+                            <p><em>"{hypo.description}"</em></p>
                         </div>
                     ))
                 )}

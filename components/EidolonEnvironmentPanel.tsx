@@ -1,5 +1,6 @@
+// components/EidolonEnvironmentPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 
 export const EidolonEnvironmentPanel = React.memo(() => {
     const { eidolonEngine: state } = useArchitectureState();

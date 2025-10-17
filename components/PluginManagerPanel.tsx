@@ -1,6 +1,6 @@
 // components/PluginManagerPanel.tsx
-import React from 'react';
-import { useSystemState, useAuraDispatch, useLocalization } from '../context/AuraContext';
+import React, { useMemo } from 'react';
+import { useSystemState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { Plugin } from '../types';
 
 export const PluginManagerPanel = React.memo(() => {
@@ -24,50 +24,60 @@ export const PluginManagerPanel = React.memo(() => {
         syscall('PLUGIN/SET_STATUS', { pluginId: plugin.id, status: newStatus });
     };
 
-    const getPluginTypeName = (type: Plugin['type']) => {
-        switch (type) {
-            case 'TOOL': return 'Tool';
-            case 'COPROCESSOR': return 'Coprocessor';
-            case 'KNOWLEDGE': return 'Knowledge';
-            case 'PERCEPTOR': return 'Perceptor';
-            case 'MODULATOR': return 'Modulator';
-            case 'GOVERNOR': return 'Governor';
-            case 'SYNTHESIZER': return 'Synthesizer';
-            case 'ORACLE': return 'Oracle';
-            default: return 'Plugin';
-        }
-    }
+    const groupedPlugins = useMemo(() => {
+        return pluginState.registry.reduce((acc, plugin) => {
+            const type = plugin.type;
+            if (!acc[type]) {
+                acc[type] = [];
+            }
+            acc[type].push(plugin);
+            return acc;
+        }, {} as Record<Plugin['type'], Plugin[]>);
+    }, [pluginState.registry]);
+    
+    const groupOrder: Plugin['type'][] = ['TOOL', 'COPROCESSOR', 'KNOWLEDGE'];
 
     return (
-        <div className="side-panel plugin-manager-panel">
-            {pluginState.registry.map((plugin: Plugin) => (
-                <div key={plugin.id} className="plugin-item">
-                    <div className="plugin-info">
-                        <h5 className="plugin-name">
-                            {plugin.status === 'pending' && <span title="Synthesized Plugin (Pending Integration)">🤖</span>}
-                            <span className={`plugin-type-badge type-${plugin.type}`}>{getPluginTypeName(plugin.type)}</span>
-                            {t(plugin.name)}
-                            {plugin.type === 'KNOWLEDGE' && plugin.knowledge && (
-                                <span className="knowledge-data-indicator">
-                                    {t('plugin_facts_indicator', { count: plugin.knowledge.length })}
-                                </span>
-                            )}
-                        </h5>
-                        <p className="plugin-description">{t(plugin.description)}</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {groupOrder.map(groupType => {
+                const pluginsInGroup = groupedPlugins[groupType];
+                if (!pluginsInGroup || pluginsInGroup.length === 0) return null;
+                
+                return (
+                    <div key={groupType}>
+                        <h4 className="panel-subsection-title" style={{ marginTop: 0 }}>
+                            {t(`plugin_group_${groupType}`)}
+                        </h4>
+                        {pluginsInGroup.map((plugin: Plugin) => (
+                            <div key={plugin.id} className="plugin-item">
+                                <div className="plugin-info">
+                                    <div className="plugin-name">
+                                        <span className={`plugin-type-badge type-${plugin.type}`}>{plugin.type}</span>
+                                        {t(plugin.name)}
+                                        {plugin.type === 'KNOWLEDGE' && plugin.knowledge && (
+                                            <span className="knowledge-data-indicator">
+                                                {t('plugin_facts_indicator', { count: plugin.knowledge.length })}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <p className="plugin-description">{t(plugin.description)}</p>
+                                </div>
+                                <div className="plugin-controls">
+                                    <label className="toggle-switch">
+                                        <input
+                                            type="checkbox"
+                                            checked={plugin.status === 'enabled'}
+                                            onChange={() => handleToggle(plugin)}
+                                            disabled={plugin.status === 'pending'}
+                                        />
+                                        <span className="toggle-slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        ))}
                     </div>
-                    <div className="plugin-controls">
-                        <label className="toggle-switch">
-                            <input
-                                type="checkbox"
-                                checked={plugin.status === 'enabled'}
-                                onChange={() => handleToggle(plugin)}
-                                disabled={plugin.status === 'pending'}
-                            />
-                            <span className="toggle-slider"></span>
-                        </label>
-                    </div>
-                </div>
-            ))}
+                );
+            })}
         </div>
     );
 });

@@ -1,6 +1,6 @@
 // components/ReinforcementLearningPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 import { SynthesizedSkill } from '../types';
 
 export const ReinforcementLearningPanel = React.memo(() => {

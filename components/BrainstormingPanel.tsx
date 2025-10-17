@@ -1,12 +1,35 @@
 // components/BrainstormingPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 import { BrainstormIdea } from '../types';
+import { HAL } from '../core/hal';
 
 export const BrainstormingPanel = () => {
     const { brainstormState } = useCoreState();
     const { t } = useLocalization();
+    const { addToast } = useAuraDispatch();
     const { status, topic, ideas, winningIdea } = brainstormState;
+
+    const handleCopyAll = () => {
+        if (!topic && ideas.length === 0) return;
+
+        let fullText = `Brainstorming Session\n`;
+        fullText += `Topic: ${topic}\n\n`;
+        fullText += `--- IDEAS ---\n\n`;
+        ideas.forEach(idea => {
+            fullText += `${idea.personaName}:\n${idea.idea}\n\n`;
+        });
+
+        if (winningIdea) {
+            fullText += `--- WINNING IDEA ---\n\n${winningIdea}\n`;
+        }
+
+        HAL.Clipboard.writeText(fullText.trim()).then(() => {
+            addToast(t('brainstorm_copy_all_success'), 'success');
+        }, () => {
+            addToast(t('brainstorm_copy_all_failed'), 'error');
+        });
+    };
 
     if (status === 'idle') {
         return (
@@ -18,6 +41,14 @@ export const BrainstormingPanel = () => {
     
     return (
         <div className="side-panel brainstorming-panel">
+            {(ideas.length > 0 || winningIdea) && (
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                    <button className="control-button" onClick={handleCopyAll} style={{ width: 'auto', padding: '0.5rem 1rem' }}>
+                        {t('brainstorm_copy_all')}
+                    </button>
+                </div>
+            )}
+
             <div className="awareness-item">
                 <label>{t('brainstorm_status')}</label>
                 <strong className={`status-${status}`}>{status}</strong>
@@ -46,6 +77,9 @@ export const BrainstormingPanel = () => {
                 <>
                     <div className="panel-subsection-title">{t('brainstorm_winner')}</div>
                      <div className="axiom-card accepted">
+                        <div className="mod-log-header">
+                            <span className="mod-log-type">{t('brainstorm_winner')}</span>
+                        </div>
                         <p className="axiom-card-text">"{winningIdea}"</p>
                     </div>
                 </>

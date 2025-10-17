@@ -1,6 +1,6 @@
 // components/EventBusPanel.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization, useArchitectureState } from '../context/AuraContext';
+import { useAuraDispatch, useLocalization, useArchitectureState, useSystemState } from '../context/AuraContext.tsx';
 import { CoprocessorArchitecture, EventBusMessage, GunaState } from '../types';
 
 const getGunaColor = (guna: GunaState | undefined) => {
@@ -18,6 +18,7 @@ const getGunaColor = (guna: GunaState | undefined) => {
 export const EventBusPanel = () => {
     const { state } = useAuraDispatch();
     const { cognitiveArchitecture } = useArchitectureState();
+    const { eventBus } = useSystemState();
     const { t } = useLocalization();
 
     // This panel is only relevant for the Event Stream architecture
@@ -36,11 +37,11 @@ export const EventBusPanel = () => {
 
     return (
         <div className="side-panel command-log-panel">
-            {state.eventBus.length === 0 ? (
+            {eventBus.length === 0 ? (
                 <div className="kg-placeholder">{t('eventBus_placeholder')}</div>
             ) : (
                 <div className="command-log-list">
-                    {state.eventBus.map(entry => (
+                    {eventBus.map(entry => (
                         <div key={entry.id} className="command-log-item log-type-info">
                             <span className="log-icon">
                                 <span 

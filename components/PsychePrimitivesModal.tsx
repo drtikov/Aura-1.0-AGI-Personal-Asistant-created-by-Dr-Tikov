@@ -1,8 +1,10 @@
 import React from 'react';
-import { Modal } from './Modal';
-import { Accordion } from './Accordion';
-import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
-import { CognitivePrimitiveDefinition } from '../types';
+import { Modal } from './Modal.tsx';
+import { Accordion } from './Accordion.tsx';
+// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+// FIX: Imported CognitivePrimitiveDefinition to resolve type error.
+import { CognitivePrimitiveDefinition } from '../types.ts';
 
 // FIX: Wrapped the component in React.memo to correctly handle the `key` prop when used in a list.
 const PrimitiveCard = React.memo(({ primitive }: { primitive: CognitivePrimitiveDefinition }) => {
@@ -49,36 +51,26 @@ export const PsychePrimitivesModal = ({ isOpen, onClose }: { isOpen: boolean; on
     const handleCopyAll = () => {
         const allPrimitivesString = JSON.stringify(psycheState.primitiveRegistry, null, 2);
         navigator.clipboard.writeText(allPrimitivesString).then(() => {
-            addToast(t('psyche_modal_copy_all_success'), 'success');
+            addToast(t('psyche_library_copied_all'), 'success');
         }, () => {
-            addToast(t('psyche_modal_copy_all_failed'), 'error');
+            addToast(t('psyche_library_copy_failed'), 'error');
         });
     };
-
+    
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={`${t('psyche_primitiveRegistry')} (v${psycheState.version})`}
+            title={t('psyche_library')}
             className="psyche-primitives-modal"
         >
-            <p className="reason-text" style={{ marginBottom: '1rem' }}>
-                {t('psyche_modal_description')}
-            </p>
-
             <div className="top-actions">
                 <button className="control-button" onClick={handleCopyAll}>
-                    {t('psyche_modal_copy_all')}
+                    {t('psyche_library_copy_all')}
                 </button>
             </div>
-            
-            <Accordion title={t('psyche_modal_full_registry')} defaultOpen={false}>
-                <div className="code-snippet-container">
-                    <pre><code>{JSON.stringify(psycheState.primitiveRegistry, null, 2)}</code></pre>
-                </div>
-            </Accordion>
-
-            <div className="primitives-grid" style={{marginTop: '1.5rem'}}>
+            <div className="primitives-grid">
+                {/* FIX: Explicitly typed 'primitive' to resolve 'unknown' type error. */}
                 {primitives.map((primitive: CognitivePrimitiveDefinition) => (
                     <PrimitiveCard key={primitive.type} primitive={primitive} />
                 ))}

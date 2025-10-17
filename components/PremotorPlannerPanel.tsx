@@ -1,7 +1,6 @@
-
 // components/PremotorPlannerPanel.tsx
 import React from 'react';
-import { usePlanningState, useLocalization } from '../context/AuraContext';
+import { usePlanningState, useLocalization } from '../context/AuraContext.tsx';
 import { TacticalPlan } from '../types';
 
 export const PremotorPlannerPanel = React.memo(() => {
@@ -53,8 +52,8 @@ export const PremotorPlannerPanel = React.memo(() => {
                                 </div>
                             </summary>
                             <div className="workflow-content">
-                                {plan.sequence.commands.map((cmd: any, index: number) => (
-                                    <div key={cmd.id} className="command-log-item log-type-info" style={{background: 'rgba(0,0,0,0.1)'}}>
+                                {plan.sequence.map((cmd: any, index: number) => (
+                                    <div key={index} className="command-log-item log-type-info" style={{background: 'rgba(0,0,0,0.1)'}}>
                                         <span className="log-icon">{index + 1}</span>
                                         <span className="log-text">{cmd.type.replace(/_/g, ' ')}</span>
                                     </div>

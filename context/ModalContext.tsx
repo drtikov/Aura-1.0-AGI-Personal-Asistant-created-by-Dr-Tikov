@@ -1,52 +1,36 @@
+// context/ModalContext.tsx
 import React, { createContext, useState, useContext, useCallback, ReactNode } from 'react';
-import { CausalChainModal } from '../components/CausalChainModal';
-import { ProposalReviewModal } from '../components/ProposalReviewModal';
-import { WhatIfModal } from '../components/WhatIfModal';
-import { SearchModal } from '../components/SearchModal';
-import { StrategicGoalModal } from '../components/StrategicGoalModal';
-import { ForecastModal } from '../components/ForecastModal';
-import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal';
-import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal';
-import { BrainstormModal } from '../components/BrainstormModal';
-import { ImageGenerationModal } from '../components/ImageGenerationModal';
-import { ImageEditingModal } from '../components/ImageEditingModal';
-import { VideoGenerationModal } from '../components/VideoGenerationModal';
-import { AdvancedControlsModal } from '../components/AdvancedControlsModal';
-import { MusicGenerationModal } from '../components/MusicGenerationModal';
-import { CoCreatedWorkflowModal } from '../components/CoCreatedWorkflowModal';
-import { SkillGenesisModal } from '../components/SkillGenesisModal';
-import { AbstractConceptModal } from '../components/AbstractConceptModal';
-import { TelosModal } from '../components/TelosModal';
-import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal';
-import { DocumentForgeModal } from '../components/DocumentForgeModal';
-import { useAuraDispatch, useCoreState } from './AuraContext';
-import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types';
-import { PluginManagerModal } from '../components/PluginManagerModal';
-import { PoseQuestionModal } from '../components/PoseQuestionModal';
+import { CausalChainModal } from '../components/CausalChainModal.tsx';
+import { ProposalReviewModal } from '../components/ProposalReviewModal.tsx';
+import { WhatIfModal } from '../components/WhatIfModal.tsx';
+import { SearchModal } from '../components/SearchModal.tsx';
+import { StrategicGoalModal } from '../components/StrategicGoalModal.tsx';
+import { ForecastModal } from '../components/ForecastModal.tsx';
+import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal.tsx';
+import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal.tsx';
+import { BrainstormModal } from '../components/BrainstormModal.tsx';
+import { ImageGenerationModal } from '../components/ImageGenerationModal.tsx';
+import { ImageEditingModal } from '../components/ImageEditingModal.tsx';
+import { VideoGenerationModal } from '../components/VideoGenerationModal.tsx';
+// FIX: To resolve module resolution errors, this now points to the PascalCase file to ensure consistent casing.
+import { AdvancedControlsModal } from '../components/AdvancedControlsModal.tsx';
+import { MusicGenerationModal } from '../components/MusicGenerationModal.tsx';
+import { CoCreatedWorkflowModal } from '../components/CoCreatedWorkflowModal.tsx';
+import { SkillGenesisModal } from '../components/SkillGenesisModal.tsx';
+import { AbstractConceptModal } from '../components/AbstractConceptModal.tsx';
+import { TelosModal } from '../components/TelosModal.tsx';
+import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal.tsx';
+import { DocumentForgeContainerModal } from '../components/DocumentForgeContainerModal.tsx';
+import { useAuraDispatch, useCoreState } from './AuraContext.tsx';
+import { PerformanceLogEntry, ArchitecturalChangeProposal, CognitiveGainLogEntry, ModalPayloads } from '../types.ts';
+import { PluginManagerModal } from '../components/PluginManagerModal.tsx';
+import { PoseQuestionModal } from '../components/PoseQuestionModal.tsx';
+import { PersonaJournalModal } from '../components/PersonaJournalModal.tsx';
+import { AutonomousEvolutionModal } from '../components/AutonomousEvolutionModal.tsx';
+import { SystemPanelsModal } from '../components/SystemPanelsModal.tsx';
 
-type ModalType = 
-    | 'causalChain' 
-    | 'proposalReview' 
-    | 'whatIf' 
-    | 'search' 
-    | 'strategicGoal'
-    | 'forecast'
-    | 'cognitiveGainDetail'
-    | 'multiverseBranching'
-    | 'brainstorm'
-    | 'imageGeneration'
-    | 'imageEditing'
-    | 'videoGeneration'
-    | 'advancedControls'
-    | 'musicGeneration'
-    | 'coCreatedWorkflow'
-    | 'skillGenesis'
-    | 'abstractConcept'
-    | 'telos'
-    | 'psychePrimitives'
-    | 'pluginManager'
-    | 'poseQuestion'
-    | 'documentForge';
+// FIX: Changed ModalType to be derived from ModalPayloads keys to ensure type safety and resolve indexing errors.
+type ModalType = keyof ModalPayloads;
 
 interface ModalContextType {
     open: <T extends ModalType>(modalType: T, payload: ModalPayloads[T]) => void;
@@ -60,7 +44,7 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
     const { 
         approveProposal, rejectProposal, handleWhatIf, 
         handleSearch, handleSetStrategicGoal, 
-        processingState, handleMultiverseBranch, handleBrainstorm,
+        processingState, handleMultiverseBranch,
         handleSetTelos, handlePoseQuestion
     } = useAuraDispatch();
     
@@ -136,8 +120,6 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
              <BrainstormModal
                 isOpen={modal?.type === 'brainstorm'}
                 onClose={close}
-                onGenerate={handleBrainstorm}
-                isProcessing={processingState.active && processingState.stage === 'brainstorm'}
             />
             <ImageGenerationModal
                 isOpen={modal?.type === 'imageGeneration'}
@@ -192,9 +174,22 @@ export const ModalProvider = ({ children }: { children?: ReactNode }) => {
                 onClose={close}
                 onPose={handlePoseQuestion}
             />
-            <DocumentForgeModal
+            <DocumentForgeContainerModal
                 isOpen={modal?.type === 'documentForge'}
                 onClose={close}
+            />
+            <AutonomousEvolutionModal
+                isOpen={modal?.type === 'autonomousEvolution'}
+                onClose={close}
+            />
+            <SystemPanelsModal
+                isOpen={modal?.type === 'systemPanels'}
+                onClose={close}
+            />
+            <PersonaJournalModal
+                isOpen={modal?.type === 'personaJournal'}
+                onClose={close}
+                payload={modal?.type === 'personaJournal' ? modal.payload : { persona: null, entries: [] }}
             />
         </ModalContext.Provider>
     );

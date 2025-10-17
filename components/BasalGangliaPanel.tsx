@@ -1,5 +1,6 @@
+// components/BasalGangliaPanel.tsx
 import React from 'react';
-import { usePlanningState, useLocalization } from '../context/AuraContext';
+import { usePlanningState, useLocalization } from '../context/AuraContext.tsx';
 import { TacticalPlan } from '../types';
 
 export const BasalGangliaPanel = React.memo(() => {

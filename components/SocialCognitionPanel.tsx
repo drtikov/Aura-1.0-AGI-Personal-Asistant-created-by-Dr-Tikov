@@ -1,5 +1,5 @@
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { SocialGraphNode } from '../types';
 
 export const SocialCognitionPanel = React.memo(() => {

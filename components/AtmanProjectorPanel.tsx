@@ -1,27 +1,20 @@
+// components/AtmanProjectorPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { Gauge } from './Gauge';
 
 export const AtmanProjectorPanel = React.memo(() => {
-    const { coreIdentity: identity, atmanProjector: projector } = useCoreState();
+    const { atmanProjector: projector } = useCoreState();
     const { t } = useLocalization();
 
     return (
         <div className="side-panel atman-projector-panel">
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('atman_description')}
+            </p>
             <div className="atman-main-display">
                 <div className="atman-gauge-container">
-                    <svg viewBox="0 0 100 100" className="atman-gauge-svg">
-                        <circle cx="50" cy="50" r="45" className="gauge-bg" />
-                        <circle
-                            cx="50" cy="50" r="45"
-                            className="gauge-value"
-                            strokeDasharray={2 * Math.PI * 45}
-                            strokeDashoffset={(2 * Math.PI * 45) * (1 - projector.coherence)}
-                        />
-                    </svg>
-                    <div className="atman-gauge-text">
-                        <div className="atman-gauge-value-num">{(projector.coherence * 100).toFixed(0)}%</div>
-                        <div className="atman-gauge-label">{t('atman_coherence')}</div>
-                    </div>
+                     <Gauge label={t('atman_coherence')} value={projector.coherence} colorClass="love" />
                 </div>
                 <div className="atman-narrative-container">
                     <div className="panel-subsection-title">{t('atman_dominantNarrative')}</div>
@@ -39,13 +32,6 @@ export const AtmanProjectorPanel = React.memo(() => {
                 <label>{t('atman_growthVector')}</label>
                 <strong>{projector.growthVector}</strong>
             </div>
-
-            <div className="panel-subsection-title" style={{marginTop: '1rem'}}>{t('atman_coreValues')}</div>
-            <ul className="ethical-principles-list">
-                {identity.values.map((value, index) => (
-                    <li key={index}>{value}</li>
-                ))}
-            </ul>
         </div>
     );
 });

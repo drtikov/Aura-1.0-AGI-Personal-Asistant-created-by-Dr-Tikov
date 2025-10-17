@@ -1,7 +1,8 @@
+// components/CausalSelfModelPanel.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { CausalLink } from '../types';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { CausalLink } from '../types.ts';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const CausalSelfModelPanel = React.memo(() => {
     const { causalSelfModel: model } = useCoreState();

@@ -10,8 +10,9 @@ import {
     EngineStateContext,
     LogsStateContext,
     SystemStateContext,
-    LocalizationContext,
-} from './AuraContext';
+    LocalizationContext
+} from './AuraContext.tsx';
+import { AuraState } from '../types';
 
 export const AuraProvider = ({ children }: { children?: ReactNode }) => {
     const auraInterface = useAura();
@@ -66,6 +67,13 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         personaState: state.personaState,
         brainstormState: state.brainstormState,
         liveSessionState: state.liveSessionState,
+        proactiveUI: state.proactiveUI,
+        strategicCoreState: state.strategicCoreState,
+        mycelialState: state.mycelialState,
+        semanticWeaverState: state.semanticWeaverState,
+        modalRequest: state.modalRequest,
+        uiCommandRequest: state.uiCommandRequest,
+        prometheusState: state.prometheusState,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -79,7 +87,8 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.doxasticEngineState, state.qualiaSignalProcessorState, state.sensoryIntegration, state.narrativeSummary,
         state.socialCognitionState, state.metaphoricalMapState,
         state.internalScientistState, state.metisSandboxState, state.spandaState, state.personaState, state.brainstormState,
-        state.liveSessionState,
+        state.liveSessionState, state.proactiveUI, state.strategicCoreState, state.mycelialState, state.semanticWeaverState, state.modalRequest, state.uiCommandRequest,
+        state.prometheusState,
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -111,6 +120,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         granularCortexState: state.granularCortexState,
         koniocortexSentinelState: state.koniocortexSentinelState,
         cognitiveTriageState: state.cognitiveTriageState,
+        praxisCoreState: state.praxisCoreState,
         psycheState: state.psycheState,
         motorCortexState: state.motorCortexState,
         praxisResonatorState: state.praxisResonatorState,
@@ -121,20 +131,20 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         documentForgeState: state.documentForgeState,
         wisdomIngestionState: state.wisdomIngestionState,
         axiomaticCrucibleState: state.axiomaticCrucibleState,
+        atpCoprocessorState: state.atpCoprocessorState,
     }), [
-        state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState, 
+        state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState,
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
         state.architecturalCrucibleState, state.synapticMatrix, state.ricciFlowManifoldState,
-        state.selfProgrammingState,
-        state.neuralAcceleratorState, state.neuroCortexState,
-        state.granularCortexState, state.koniocortexSentinelState, state.cognitiveTriageState,
-        state.psycheState, state.motorCortexState, state.praxisResonatorState,
-        state.ontogeneticArchitectState, state.embodiedCognitionState, state.evolutionarySandboxState,
-        state.hovaState, state.documentForgeState, state.wisdomIngestionState, state.axiomaticCrucibleState,
+        state.selfProgrammingState, state.neuralAcceleratorState, state.neuroCortexState, state.granularCortexState,
+        state.koniocortexSentinelState, state.cognitiveTriageState, state.praxisCoreState, state.psycheState, state.motorCortexState,
+        state.praxisResonatorState, state.ontogeneticArchitectState, state.embodiedCognitionState,
+        state.evolutionarySandboxState, state.hovaState, state.documentForgeState, state.wisdomIngestionState,
+        state.axiomaticCrucibleState, state.atpCoprocessorState,
     ]);
 
     const planningStateValue = useMemo(() => ({
-        goalTree: state.goalTree,
+        goalTree: state.goalTree, 
         activeStrategicGoalId: state.activeStrategicGoalId,
         disciplineState: state.disciplineState,
         premotorPlannerState: state.premotorPlannerState,
@@ -145,8 +155,8 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
     const engineStateValue = useMemo(() => ({
         proactiveEngineState: state.proactiveEngineState, 
         ethicalGovernorState: state.ethicalGovernorState, 
-        intuitionEngineState: state.intuitionEngineState, 
-        intuitiveLeaps: state.intuitiveLeaps, 
+        intuitionEngineState: state.intuitionEngineState,
+        intuitiveLeaps: state.intuitiveLeaps,
         ingenuityState: state.ingenuityState,
     }), [state.proactiveEngineState, state.ethicalGovernorState, state.intuitionEngineState, state.intuitiveLeaps, state.ingenuityState]);
 
@@ -154,10 +164,11 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         history: state.history, 
         performanceLogs: state.performanceLogs, 
         commandLog: state.commandLog, 
-        cognitiveModeLog: state.cognitiveModeLog, 
-        cognitiveGainLog: state.cognitiveGainLog, 
+        cognitiveModeLog: state.cognitiveModeLog,
+        cognitiveGainLog: state.cognitiveGainLog,
         cognitiveRegulationLog: state.cognitiveRegulationLog,
-    }), [state.history, state.performanceLogs, state.commandLog, state.cognitiveModeLog, state.cognitiveGainLog, state.cognitiveRegulationLog]);
+        subsumptionLogState: state.subsumptionLogState
+    }), [state.history, state.performanceLogs, state.commandLog, state.cognitiveModeLog, state.cognitiveGainLog, state.cognitiveRegulationLog, state.subsumptionLogState]);
 
     const systemStateValue = useMemo(() => ({
         resourceMonitor: state.resourceMonitor, 
@@ -172,7 +183,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
     }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState, state.kernelState, state.ipcState, state.eventBus, state.temporalEngineState, state.autonomousReviewBoardState]);
 
     const localizationValue = useMemo(() => ({ t, language }), [t, language]);
-    
+
     return (
         <AuraDispatchContext.Provider value={auraInterface}>
             <LocalizationContext.Provider value={localizationValue}>
