@@ -1,6 +1,50 @@
 
-import React, { useEffect, useRef } from 'react';
 
+import React, { useEffect, useRef, Component, ReactNode } from 'react';
+
+// --- Simple Error Boundary for Modal Content ---
+interface ErrorBoundaryProps {
+    // FIX: Made children optional as the Modal component can be used without children, which would cause a type error here.
+    children?: ReactNode;
+}
+interface ErrorBoundaryState {
+    hasError: boolean;
+    error: Error | null;
+}
+class ModalErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+    constructor(props: ErrorBoundaryProps) {
+        super(props);
+        // FIX: Added 'this.' to correctly initialize state in the class constructor.
+        this.state = { hasError: false, error: null };
+    }
+
+    static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+        return { hasError: true, error };
+    }
+
+    componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+        console.error("Modal content crashed:", error, errorInfo);
+    }
+
+    render() {
+        // FIX: Used 'this.state' to access the component's state.
+        if (this.state.hasError) {
+            return (
+                <div className="failure-reason-display">
+                    <strong>Modal Content Error</strong>
+                    <p>There was an error rendering the content of this modal.</p>
+                    {/* FIX: Used 'this.state' to access the error message. */}
+                    <pre><code>{this.state.error?.message}</code></pre>
+                </div>
+            );
+        }
+        // FIX: Used 'this.props' to access the component's children.
+        return this.props.children;
+    }
+}
+
+
+// --- Main Modal Component ---
 interface ModalProps {
     isOpen: boolean;
     onClose: () => void;
@@ -18,13 +62,15 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
         if (isOpen) {
             lastActiveElement.current = document.activeElement as HTMLElement;
             
-            const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
-                `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
-            );
-            
-            if (focusableElements && focusableElements.length > 0) {
-                (focusableElements[0] as HTMLElement).focus();
-            }
+            // Delay focus to allow for animation
+            setTimeout(() => {
+                const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
+                    `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
+                );
+                if (focusableElements && focusableElements.length > 0) {
+                    (focusableElements[0] as HTMLElement).focus();
+                }
+            }, 300); // Should match animation duration
 
             const handleKeyDown = (event: KeyboardEvent) => {
                 if (event.key === 'Escape') {
@@ -57,35 +103,38 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
             document.addEventListener('keydown', handleKeyDown);
             return () => {
                 document.removeEventListener('keydown', handleKeyDown);
+                lastActiveElement.current?.focus();
             };
-        } else {
-            lastActiveElement.current?.focus();
         }
     }, [isOpen, onClose]);
 
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" onClick={onClose}>
+        <div className="modal-overlay" onMouseDown={onClose}>
             <div 
                 ref={modalRef}
-                className={`modal-content ${className || ''}`} 
-                onClick={e => e.stopPropagation()}
+                className={`modal-content-inner ${className || ''}`} 
+                onMouseDown={e => e.stopPropagation()}
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
             >
-                <h3>{title}</h3>
+                <header className="modal-header">
+                    {title}
+                </header>
                 <button className="modal-close" onClick={onClose} aria-label="Close">&times;</button>
                 
-                <div className="modal-body">
-                    {children}
-                </div>
+                <main className="modal-body">
+                    <ModalErrorBoundary>
+                        {children}
+                    </ModalErrorBoundary>
+                </main>
 
                 {footer && (
-                    <div className="modal-footer">
+                    <footer className="modal-footer">
                         {footer}
-                    </div>
+                    </footer>
                 )}
             </div>
         </div>

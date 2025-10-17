@@ -1,3 +1,4 @@
-// This file is a duplicate and has been emptied to resolve build errors. The canonical version is in the parent components/ directory.
-// FIX: Re-exporting from the correct file to resolve build errors caused by duplicate files with different casing.
+// components/components/controlDeckComponent.tsx
+// This file is a duplicate with incorrect casing. The canonical version is ControlDeckComponent.tsx.
+// FIX: Standardized export to point to the PascalCase file, ensuring a single consistent module path.
 export * from '../ControlDeckComponent.tsx';

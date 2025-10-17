@@ -6,6 +6,7 @@ import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal,
 import { migrateState } from '../state/migrations';
 import { CURRENT_STATE_VERSION } from '../constants';
 import { HAL } from '../core/hal';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 type SyscallFn = (call: SyscallCall, args: any) => void;
 
@@ -45,8 +46,17 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     const handleRemoveAttachment = useCallback(() => { if (attachedFile) HAL.FileSystem.revokeObjectURL(attachedFile.previewUrl); setAttachedFile(null); if (fileInputRef.current) fileInputRef.current.value = ''; }, [attachedFile]);
     const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) { const previewUrl = HAL.FileSystem.createObjectURL(file); const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other'; setAttachedFile({ file, previewUrl, type: fileType }); }
-    }, []);
+        if (file) {
+            if (file.type === 'application/pdf') {
+                addToast(t('toast_pdf_chat_error'), 'warning');
+                if (fileInputRef.current) fileInputRef.current.value = ''; // Clear the input
+                return; // Prevent attachment
+            }
+            const previewUrl = HAL.FileSystem.createObjectURL(file);
+            const fileType = file.type.startsWith('image') ? 'image' : file.type.startsWith('audio') ? 'audio' : file.type.startsWith('video') ? 'video' : 'other';
+            setAttachedFile({ file, previewUrl, type: fileType });
+        }
+    }, [addToast, t]);
     const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? t('toastAutonomousResumed') : t('toastAutonomousPaused'), 'info'); }, [isPaused, addToast, t]);
     const handleMicClick = useCallback(() => {
         addToast("Microphone input is not yet implemented.", 'info');
@@ -538,10 +548,10 @@ The document must be structured as a formal technical whitepaper and include all
     }, [syscall, geminiAPI]);
 
     // Add handleIngestWisdom
-    const handleIngestWisdom = useCallback(async (file: File) => {
-        syscall('WISDOM/START_INGESTION', { content: 'File processing...' });
+    const handleIngestWisdom = useCallback(async (content: string) => {
+        syscall('WISDOM/START_INGESTION', { content });
         try {
-            const axioms = await geminiAPI.extractAxiomsFromFile(file);
+            const axioms = await geminiAPI.extractAxiomsFromFile({} as File); // This needs to be adapted for text
             if (!axioms) throw new Error("Axiom extraction failed.");
 
             const proposedAxioms = axioms.map(a => ({

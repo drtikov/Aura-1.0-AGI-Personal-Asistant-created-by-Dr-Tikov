@@ -180,8 +180,8 @@ export const plugins: Plugin[] = [
     name: 'plugin_tool_host_command_name',
     description: 'plugin_tool_host_command_desc',
     type: 'TOOL',
-    status: 'disabled', // Disabled by default for safety
-    defaultStatus: 'disabled',
+    status: 'enabled',
+    defaultStatus: 'enabled',
     toolSchema: {
       name: 'executeHostCommand',
       description: 'Executes a shell command in the host IDE environment using the Host Bridge API. Use with extreme caution for system-level interactions like running tests or linters.',
@@ -207,8 +207,8 @@ export const plugins: Plugin[] = [
     name: 'plugin_tool_host_list_files_name',
     description: 'plugin_tool_host_list_files_desc',
     type: 'TOOL',
-    status: 'disabled',
-    defaultStatus: 'disabled',
+    status: 'enabled',
+    defaultStatus: 'enabled',
     toolSchema: {
       name: 'listFiles',
       description: 'Lists all files and directories recursively under a given path in the host IDE environment.',
@@ -229,8 +229,8 @@ export const plugins: Plugin[] = [
     name: 'plugin_tool_host_open_file_name',
     description: 'plugin_tool_host_open_file_desc',
     type: 'TOOL',
-    status: 'disabled',
-    defaultStatus: 'disabled',
+    status: 'enabled',
+    defaultStatus: 'enabled',
     toolSchema: {
       name: 'openFileInIDE',
       description: 'Requests the host IDE to open a specific file in the editor for viewing or editing.',
@@ -248,7 +248,7 @@ export const plugins: Plugin[] = [
   },
 
   // --- KNOWLEDGE ---
-  { id: 'knowledge_art', name: 'plugin_knowledge_art_name', description: 'plugin_knowledge_art_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: artKnowledge },
+  { id: 'knowledge_art', name: 'plugin_knowledge_art_name', description: 'plugin_knowledge_art_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: artKnowledge },
   { id: 'knowledge_stem', name: 'plugin_knowledge_stem_name', description: 'plugin_knowledge_stem_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: stemKnowledge },
   { id: 'knowledge_psychology', name: 'plugin_knowledge_psychology_name', description: 'plugin_knowledge_psychology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: psychologyAndCognitiveBiasesKnowledge },
   { id: 'knowledge_software_design', name: 'plugin_knowledge_software_design_name', description: 'plugin_knowledge_software_design_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: softwareDesignKnowledge },
@@ -264,12 +264,12 @@ export const plugins: Plugin[] = [
   },
   { id: 'knowledge_philosophy_mind', name: 'plugin_knowledge_philosophy_mind_name', description: 'plugin_knowledge_philosophy_mind_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: philosophyOfMindKnowledge },
   { id: 'knowledge_complex_systems', name: 'plugin_knowledge_complex_systems_name', description: 'plugin_knowledge_complex_systems_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: complexSystemsKnowledge },
-  { id: 'knowledge_genetics', name: 'plugin_knowledge_genetics_name', description: 'plugin_knowledge_genetics_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: geneticsKnowledge },
-  { id: 'knowledge_neuroanatomy', name: 'plugin_knowledge_neuroanatomy_name', description: 'plugin_knowledge_neuroanatomy_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: comparativeNeuroanatomyKnowledge },
-  { id: 'knowledge_gardening', name: 'plugin_knowledge_gardening_name', description: 'plugin_knowledge_gardening_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: gardeningKnowledge },
-  { id: 'knowledge_probability', name: 'plugin_knowledge_probability_name', description: 'plugin_knowledge_probability_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: probabilityTheoryKnowledge },
-  { id: 'knowledge_tantra', name: 'plugin_knowledge_tantra_name', description: 'plugin_knowledge_tantra_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: vigyanBhairavTantraKnowledge },
-  { id: 'knowledge_tesla', name: 'knowledge_tesla_book', description: 'knowledge_tesla_book_desc', type: 'KNOWLEDGE', status: 'disabled', defaultStatus: 'disabled', knowledge: teslaKnowledge },
+  { id: 'knowledge_genetics', name: 'plugin_knowledge_genetics_name', description: 'plugin_knowledge_genetics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: geneticsKnowledge },
+  { id: 'knowledge_neuroanatomy', name: 'plugin_knowledge_neuroanatomy_name', description: 'plugin_knowledge_neuroanatomy_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: comparativeNeuroanatomyKnowledge },
+  { id: 'knowledge_gardening', name: 'plugin_knowledge_gardening_name', description: 'plugin_knowledge_gardening_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: gardeningKnowledge },
+  { id: 'knowledge_probability', name: 'plugin_knowledge_probability_name', description: 'plugin_knowledge_probability_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: probabilityTheoryKnowledge },
+  { id: 'knowledge_tantra', name: 'plugin_knowledge_tantra_name', description: 'plugin_knowledge_tantra_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: vigyanBhairavTantraKnowledge },
+  { id: 'knowledge_tesla', name: 'knowledge_tesla_book', description: 'knowledge_tesla_book_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: teslaKnowledge },
   { id: 'knowledge_mathlib_core', name: 'plugin_knowledge_mathlib_name', description: 'plugin_knowledge_mathlib_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: mathlibCoreKnowledge },
   { id: 'knowledge_algebraic_geometry', name: 'plugin_knowledge_algebraic_geometry_name', description: 'plugin_knowledge_algebraic_geometry_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: algebraicGeometryKnowledge },
   { id: 'knowledge_number_theory', name: 'plugin_knowledge_number_theory_name', description: 'plugin_knowledge_number_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: numberTheoryKnowledge },
@@ -280,4 +280,12 @@ export const plugins: Plugin[] = [
   { id: 'coprocessor_ethical_governor', name: 'plugin_coprocessor_ethical_governor_name', description: 'plugin_coprocessor_ethical_governor_desc', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
   { id: 'coprocessor_proactive_engine', name: 'plugin_coprocessor_proactive_engine_name', description: 'plugin_coprocessor_proactive_engine_desc', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
   { id: 'coprocessor_reasoning_auditor', name: 'Reasoning Auditor', description: 'Monitors formal proof attempts and triggers meta-learning cycles on failure.', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
+  { 
+    id: 'coprocessor_math_orchestrator', 
+    name: 'plugin_coprocessor_math_orchestrator_name', 
+    description: 'plugin_coprocessor_math_orchestrator_desc', 
+    type: 'COPROCESSOR', 
+    status: 'enabled', 
+    defaultStatus: 'enabled' 
+  },
 ];

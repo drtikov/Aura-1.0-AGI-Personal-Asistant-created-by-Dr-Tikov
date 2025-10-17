@@ -42,14 +42,14 @@ const SymbolicMathResult = ({ result }: { result: any }) => {
     return (
         <div className="symbolic-math-result">
             <div className="tool-name">Symbolic Math</div>
-            <div className="final-result">{result.final_result}</div>
+            <div className="final-result"><SafeMarkdown text={`$${result.final_result}$`} /></div>
             <details>
                 <summary>{t('symbolic_math_view_steps')}</summary>
                 <ol className="math-steps">
                     {result.steps.map((step: any, index: number) => (
                         <li key={index}>
                             <span className="step-desc">{step.description}</span>
-                            <span className="step-eq">{step.equation}</span>
+                            <span className="step-eq"><SafeMarkdown text={`$${step.equation}$`} /></span>
                         </li>
                     ))}
                 </ol>
@@ -78,7 +78,7 @@ const ProofAssistantResult = ({ result }: { result: any }) => {
                     <ol className="proof-steps">
                         {result.steps.map((step: any) => (
                             <li key={step.step}>
-                                <span className="step-statement">{step.statement}</span>
+                                <span className="step-statement"><SafeMarkdown text={step.statement} /></span>
                                 <span className="step-justification">{step.justification}</span>
                             </li>
                         ))}
@@ -89,7 +89,7 @@ const ProofAssistantResult = ({ result }: { result: any }) => {
             {result.suggestedNextStep && (
                 <div className="suggested-step">
                     <strong>{t('proof_suggestion')}</strong>
-                    <p>{result.suggestedNextStep}</p>
+                    <p><SafeMarkdown text={result.suggestedNextStep} /></p>
                 </div>
             )}
         </div>

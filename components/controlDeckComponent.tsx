@@ -1,4 +1,3 @@
 // components/controlDeckComponent.tsx
-// This file is a duplicate with incorrect casing. The canonical version is ControlDeckComponent.tsx.
-// FIX: Emptied file to resolve module casing conflicts with ControlDeckComponent.tsx.
-export {};
+// FIX: This file is a duplicate due to casing. Re-exporting from the canonical PascalCase file to resolve module resolution errors.
+export * from './ControlDeckComponent.tsx';

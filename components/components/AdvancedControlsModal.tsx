@@ -4,4 +4,3 @@
 // FIX: Explicitly added .tsx extension to the re-export path to resolve module ambiguity caused by duplicate filenames with different casing.
 // FIX: Standardized export to point to the PascalCase file, ensuring a single consistent module path.
 export * from '../AdvancedControlsModal.tsx';
-export {}; // Make this a module to avoid isolated module errors

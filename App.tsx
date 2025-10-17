@@ -8,7 +8,8 @@ import { LeftColumnComponent } from './components/LeftColumnComponent.tsx';
 import { LiveTranscriptOverlay } from './components/LiveTranscriptOverlay.tsx';
 import { Header } from './components/Header.tsx';
 import { VisualAnalysisFeed } from './components/VisualAnalysisFeed.tsx';
-// FIX: To resolve module resolution errors, this now points to the PascalCase file to ensure consistent casing.
+// FIX: Corrected import path casing for ControlDeckComponent to resolve module resolution errors.
+// FIX: To resolve module resolution errors, this now points to the canonical PascalCase file to avoid casing ambiguity.
 import { ControlDeckComponent } from './components/ControlDeckComponent.tsx';
 import { ModalPayloads } from './types.ts';
 

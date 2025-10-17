@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { InternalState } from '../types';
 import { GunaState } from '../types';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const useGunaAnalysis = (internalState: InternalState, t: (key: string, options?: any) => string) => {
     const gunaReason = useMemo(() => {

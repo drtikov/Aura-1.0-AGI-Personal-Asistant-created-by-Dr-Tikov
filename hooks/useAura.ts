@@ -20,6 +20,7 @@ import { clamp, getText } from '../utils.ts';
 import { HAL } from '../core/hal';
 import { taskScheduler } from '../core/taskScheduler';
 import { HostBridge } from '../core/hostBridge';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 // This will now use the global `astermind` object from the script tag in index.html
 declare const astermind: any;
@@ -81,7 +82,7 @@ const executeTool = async (functionCall: FunctionCall, ai: GoogleGenAI, geminiAP
                 }
 
                 return {
-                    result: String(result), // Ensure result is a string
+                    final_result: String(result), // Ensure result is a string
                     steps: [
                         { description: `Executed command '${command}' on expression.`, equation: String(result) }
                     ]

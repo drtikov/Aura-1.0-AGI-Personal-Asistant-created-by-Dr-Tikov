@@ -3,25 +3,75 @@ import React, { useState, useCallback, DragEvent } from 'react';
 import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { ProposedAxiom } from '../types';
 
+declare const pdfjsLib: any;
+
 export const WisdomIngestionPanel = React.memo(() => {
     const { wisdomIngestionState } = useArchitectureState();
     const { handleIngestWisdom, handleProcessAxiom, handleResetWisdomIngestion, handleApproveAllAxioms, addToast } = useAuraDispatch();
     const { t } = useLocalization();
     const [isDragging, setIsDragging] = useState(false);
+    const [isProcessingFile, setIsProcessingFile] = useState(false);
 
-    const handleFile = (file: File | null) => {
-        if (file && (file.type === 'text/plain' || file.type === 'text/markdown' || file.type === 'application/pdf')) {
-            handleIngestWisdom(file);
-        } else if (file) {
+    const extractTextFromPdf = async (file: File): Promise<string> => {
+        const reader = new FileReader();
+        return new Promise((resolve, reject) => {
+            reader.onload = async (event) => {
+                try {
+                    const typedarray = new Uint8Array(event.target?.result as ArrayBuffer);
+                    const pdf = await pdfjsLib.getDocument(typedarray).promise;
+                    let textContent = '';
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const text = await page.getTextContent();
+                        textContent += text.items.map((item: any) => item.str).join(' ');
+                        textContent += '\n\n'; // Add space between pages
+                    }
+                    resolve(textContent);
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            reader.onerror = reject;
+            reader.readAsArrayBuffer(file);
+        });
+    };
+
+    const handleFile = async (file: File | null) => {
+        if (!file) return;
+
+        if (file.type === 'text/plain' || file.type === 'text/markdown') {
+            const content = await file.text();
+            handleIngestWisdom(content);
+        } else if (file.type === 'application/pdf') {
+            setIsProcessingFile(true);
+            try {
+                const content = await extractTextFromPdf(file);
+                handleIngestWisdom(content);
+            } catch (error) {
+                console.error("Failed to process PDF:", error);
+                addToast(t('toast_wisdomIngestion_pdfError'), 'error');
+            } finally {
+                setIsProcessingFile(false);
+            }
+        } else {
             addToast(t('toast_wisdomIngestion_invalidFileType'), 'error');
         }
     };
     
     const handleDragOver = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(true); }, []);
     const handleDragLeave = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); }, []);
-    const handleDrop = useCallback((e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); handleFile(e.dataTransfer.files?.[0] || null); }, [handleIngestWisdom]);
+    const handleDrop = useCallback(async (e: DragEvent<HTMLDivElement>) => { e.preventDefault(); e.stopPropagation(); setIsDragging(false); await handleFile(e.dataTransfer.files?.[0] || null); }, [handleIngestWisdom]);
 
     const renderContent = () => {
+        if (isProcessingFile) {
+            return (
+                <div className="generating-indicator" style={{ justifyContent: 'center', minHeight: '200px' }}>
+                    <div className="spinner-small"></div>
+                    <span>{t('wisdomIngestion_processing_pdf')}</span>
+                </div>
+            );
+        }
+
         switch(wisdomIngestionState.status) {
             case 'analyzing':
                 return (
