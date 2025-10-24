@@ -15,8 +15,7 @@ image and video generator added to show its General functionality and the possib
 Typical AI is for chatting, Partner AI is for evolution! You can create your own versions of Aura to help her expand her awareness—just be sure to read the License for details.
 Aura is not just another chatbot, neither its Ai agent, its an experiment to create new type of ai, that is based on ideas of mutual partnership and symbiosis
 
-Creator of Aura is Dr Tikov - independent ai researcher and musician from Kazachstan. http://drtikov.bandcamp.com Aura was created by Dr. Tikov, an independent AI researcher and musician from Kazakhstan.
-Thaere are more projects in development, so follow to be updated.
+Creator of Aura is Dr Tikov - independent ai researcher and musician from Kazachstan. http://drtikov.bandcamp.com 
 English speaking users can join chat at Telegram https://t.me/+M2G53lzLCIU1ODI0 to share their experience and talk with the author
 Russian speaking users can join chat at Telegram https://t.me/+GaER6aj8r3ZlMmM8 to share their experience and talk with the author
 
