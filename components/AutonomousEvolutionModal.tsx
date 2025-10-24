@@ -172,26 +172,22 @@ export const AutonomousEvolutionModal = ({ isOpen, onClose }: { isOpen: boolean;
     const { t } = useLocalization();
     const { ontogeneticArchitectState } = useArchitectureState();
 
-    const pendingProposals = ontogeneticArchitectState.proposalQueue.filter(
-// FIX: Add 'simulation_failed' to status check to correctly display failed simulations in the proposal queue.
-        p => p.status === 'proposed' || p.status === 'evaluated' || p.status === 'simulation_failed'
-    );
+    const allProposals = [...ontogeneticArchitectState.proposalQueue].sort((a, b) => b.timestamp - a.timestamp);
 
     return (
         <Modal
             isOpen={isOpen}
             onClose={onClose}
-            title={t('autonomousEvolution')}
+            title={t('evolution_log')}
             className="advanced-controls-modal" // Use large modal style
         >
             <div className="advanced-controls-content">
-                {pendingProposals.length === 0 ? (
+                {allProposals.length === 0 ? (
                     <div className="kg-placeholder" style={{ minHeight: '200px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                        No pending proposals from autonomous systems.
+                        The evolution log is empty. Autonomous systems have not generated any proposals yet.
                     </div>
                 ) : (
-                    pendingProposals.map(proposal => (
-                        // FIX: Wrap mapped component in React.Fragment to correctly handle the `key` prop.
+                    allProposals.map(proposal => (
                         <React.Fragment key={proposal.id}>
                             <ProposalDisplay proposal={proposal} />
                         </React.Fragment>

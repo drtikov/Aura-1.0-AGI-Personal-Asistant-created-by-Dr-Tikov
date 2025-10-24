@@ -1,10 +1,10 @@
 // components/ForecastModal.tsx
 import React, { useMemo } from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { InternalState } from '../types.ts';
-import { AuraConfig } from '../constants.ts';
+import { InternalState } from '../types';
+import { AuraConfig } from '../constants';
 // FIX: Corrected import path for utils to resolve module error.
-import { clamp } from '../utils.ts';
+import { clamp } from '../utils';
 import { Modal } from './Modal.tsx';
 import { useLocalization } from '../context/AuraContext.tsx';
 

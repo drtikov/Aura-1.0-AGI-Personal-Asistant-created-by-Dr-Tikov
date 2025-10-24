@@ -1,11 +1,10 @@
-// components/TelosPanel.tsx
+// components/TelosEnginePanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 import { useModal } from '../context/ModalContext';
-import { CandidateTelos } from '../types';
+import { CandidateTelos, ValueHierarchy } from '../types';
 
-// FIX: Wrapped component in React.memo to correctly handle the `key` prop when used in a list.
 const CandidateTelosCard = React.memo(({ candidate, onAdopt, onRemove }: { candidate: CandidateTelos; onAdopt: (id: string) => void; onRemove: (id: string) => void }) => {
     const { t } = useLocalization();
     const isRefinement = candidate.type === 'refinement';
@@ -35,13 +34,12 @@ const CandidateTelosCard = React.memo(({ candidate, onAdopt, onRemove }: { candi
     );
 });
 
-export const TelosPanel = React.memo(() => {
+export const TelosEnginePanel = React.memo(() => {
     const { telosEngine } = useCoreState();
     const { t } = useLocalization();
     const modal = useModal();
     const { syscall, addToast } = useAuraDispatch();
-
-    const sortedVectors = [...telosEngine.evolutionaryVectors].sort((a, b) => b.magnitude - a.magnitude);
+    const { valueHierarchy, candidateTelos, activeDirectives } = telosEngine;
 
     const handleAdopt = (id: string) => {
         syscall('TELOS/ADOPT_CANDIDATE', id);
@@ -54,49 +52,45 @@ export const TelosPanel = React.memo(() => {
 
     return (
         <div className="side-panel telos-panel">
-            <div className="panel-subsection-title">{t('telos_current')}</div>
-            <p className="reason-text" style={{ fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
-                {telosEngine.telos || t('telos_notSet')}
+            <div className="panel-subsection-title">{t('telos_title')}</div>
+            <p className="reason-text" style={{ fontSize: '0.9rem', fontStyle: 'italic', color: 'var(--text-color)', marginBottom: '1rem', borderLeft: '3px solid var(--primary-color)', paddingLeft: '0.75rem', background: 'rgba(0, 255, 255, 0.05)'}}>
+                {valueHierarchy.telos || t('telos_notSet')}
             </p>
-            <div className="button-grid">
-                <button 
-                    className="control-button" 
-                    onClick={() => modal.open('telos', {})}
-                >
-                    {t('telos_setButton')}
-                </button>
-            </div>
             
-            {(telosEngine.candidateTelos && telosEngine.candidateTelos.length > 0) && (
+            <div className="panel-subsection-title">{t('telos_coreValues')}</div>
+            {valueHierarchy.coreValues.map(value => (
+                <details key={value.id} className="workflow-details">
+                    <summary className="workflow-summary" style={{fontWeight: 'normal', background: 'rgba(0,0,0,0.1)'}}>
+                        {value.name}
+                    </summary>
+                    <div className="workflow-content">
+                        <p className="workflow-description">{value.description}</p>
+                        <strong style={{fontSize: '0.8rem'}}>{t('telos_heuristics')}:</strong>
+                        <ul className="workflow-steps-list" style={{fontSize: '0.8rem'}}>
+                            {value.operationalHeuristics.map((h, i) => <li key={i}>{h}</li>)}
+                        </ul>
+                    </div>
+                </details>
+            ))}
+
+             {(candidateTelos && candidateTelos.length > 0) && (
                 <>
                     <div className="panel-subsection-title">{t('telos_candidate_title')}</div>
-                    {telosEngine.candidateTelos.map(c => (
+                    {candidateTelos.map(c => (
                         <CandidateTelosCard key={c.id} candidate={c} onAdopt={handleAdopt} onRemove={handleRemove} />
                     ))}
                 </>
             )}
 
-            <div className="panel-subsection-title">{t('telos_evolutionaryVectors')}</div>
-            {sortedVectors.length === 0 ? (
-                <div className="kg-placeholder" style={{ marginBottom: '1rem' }}>{t('telos_noVectors')}</div>
-            ) : (
-                <div className="hormone-signals">
-                    {sortedVectors.map(vector => (
-                        <div key={vector.id} className="hormone-item" title={`${t('telos_source')}: ${vector.source}`}>
-                            <label>{vector.direction}</label>
-                            <div className="state-bar-container">
-                                <div 
-                                    className="state-bar" 
-                                    style={{ 
-                                        width: `${vector.magnitude * 100}%`, 
-                                        backgroundColor: 'var(--guna-dharma)' 
-                                    }}
-                                    title={`${t('telos_magnitude')}: ${vector.magnitude.toFixed(3)}`}
-                                ></div>
-                            </div>
+            {activeDirectives && activeDirectives.length > 0 && (
+                 <>
+                    <div className="panel-subsection-title">{t('telos_activeDirectives')}</div>
+                    {activeDirectives.map((d, i) => (
+                        <div key={i} className="temporal-engine-directive" style={{background: 'rgba(255, 255, 0, 0.05)', borderColor: 'var(--accent-color)'}}>
+                           {d}
                         </div>
                     ))}
-                </div>
+                </>
             )}
         </div>
     );

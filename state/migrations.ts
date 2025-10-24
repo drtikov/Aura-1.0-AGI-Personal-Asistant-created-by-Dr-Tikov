@@ -1,18 +1,17 @@
 // state/migrations.ts
-import { AuraState, UserModel, InternalState, HistoryEntry } from '../types';
-import { getInitialState } from './initialState';
-import { CURRENT_STATE_VERSION } from '../constants';
+import { AuraState, UserModel, InternalState, HistoryEntry } from '../types.ts';
+import { getInitialState } from './initialState.ts';
+import { CURRENT_STATE_VERSION } from '../constants.ts';
 
 // Define interfaces for past versions to ensure type safety during migration.
 // V2 is the state *before* our changes.
 interface V2InternalState extends InternalState {
     positivityScore: number;
 }
-interface V2AuraState extends Omit<AuraState, 'internalState' | 'userModel' | 'history'> {
+interface V2AuraState extends Omit<AuraState, 'internalState' | 'userModel'> {
     version: 2;
     internalState: V2InternalState;
     userModel: UserModel; // Let's assume userModel was the same in v2
-    // FIX: Added the `history` property to the `V2AuraState` interface to resolve a type error during state migration.
     history: HistoryEntry[];
 }
 

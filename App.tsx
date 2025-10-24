@@ -8,8 +8,7 @@ import { LeftColumnComponent } from './components/LeftColumnComponent.tsx';
 import { LiveTranscriptOverlay } from './components/LiveTranscriptOverlay.tsx';
 import { Header } from './components/Header.tsx';
 import { VisualAnalysisFeed } from './components/VisualAnalysisFeed.tsx';
-// FIX: Corrected import path casing for ControlDeckComponent to resolve module resolution errors.
-// FIX: To resolve module resolution errors, this now points to the canonical PascalCase file to avoid casing ambiguity.
+// FIX: Standardized import to use PascalCase 'ControlDeckComponent.tsx' to resolve module ambiguity and casing conflicts caused by duplicate filenames.
 import { ControlDeckComponent } from './components/ControlDeckComponent.tsx';
 import { ModalPayloads } from './types.ts';
 
@@ -35,7 +34,7 @@ const AppContent: React.FC = () => {
                 <LeftColumnComponent />
                 <ControlDeckComponent />
             </div>
-            {/* These components are overlays or positioned absolutely */}
+            {/* These components are positioned absolutely */}
             <VisualAnalysisFeed videoRef={videoRef} isAnalysisActive={isVisualAnalysisActive} />
             <LiveTranscriptOverlay />
             <ToastContainer toasts={toasts} removeToast={removeToast} />

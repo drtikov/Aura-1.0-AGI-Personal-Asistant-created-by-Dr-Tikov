@@ -1,7 +1,7 @@
 // components/SymbiosisPanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-import { useModal } from '../context/ModalContext';
+import { useModal } from '../context/ModalContext.tsx';
 
 export const SymbiosisPanel = React.memo(() => {
     const { symbioticState: state } = useCoreState();

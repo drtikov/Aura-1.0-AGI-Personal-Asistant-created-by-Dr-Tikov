@@ -1,73 +1,48 @@
 // components/AxiomaticCruciblePanel.tsx
 import React from 'react';
-import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
-import { CandidateAxiom } from '../types';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
+import { ProposedAxiom } from '../types.ts';
+import { Accordion } from './Accordion.tsx';
 
 export const AxiomaticCruciblePanel = () => {
     const { axiomaticCrucibleState } = useArchitectureState();
-    const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
-    const { status, log, candidateAxioms, mode } = axiomaticCrucibleState;
-
-    const handleStartCycle = () => {
-        syscall('CRUCIBLE/START_CYCLE', {});
-    };
-
-    const handleStartGrandUnification = () => {
-        syscall('CRUCIBLE/START_GRAND_UNIFICATION_CYCLE', {});
-    };
+    const { axioms, inconsistencyLog } = axiomaticCrucibleState;
 
     return (
         <div className="side-panel axiomatic-crucible-panel">
-            <p className="reason-text">{t('crucible_description')}</p>
-            <div className="awareness-item">
-                <label>{t('cogArchPanel_status')}</label>
-                <strong>{status} {status === 'running' && `(${mode} mode)`}</strong>
-            </div>
+             <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                This panel stores high-level mathematical truths (Axioms) that have been formally proven by Aura's ATP Coprocessor. They form a foundational layer of verified knowledge.
+            </p>
 
-            <div className="button-grid" style={{ margin: '1rem 0', gridTemplateColumns: '1fr 1fr' }}>
-                <button 
-                    className="control-button" 
-                    onClick={handleStartCycle} 
-                    disabled={status === 'running'}
-                >
-                    {status === 'running' ? t('crucible_running') : t('crucible_beginCycle')}
-                </button>
-                 <button 
-                    className="control-button mode-psi" 
-                    onClick={handleStartGrandUnification} 
-                    disabled={status === 'running'}
-                    title="A highly speculative attempt to find unifying principles across all of Aura's knowledge."
-                >
-                    Grand Unification
-                </button>
-            </div>
-
-            <div className="panel-subsection-title">{t('crucible_simulationLog')}</div>
-            <div className="command-log-list" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                {log.map((entry, index) => (
-                    <div key={index} className="command-log-item log-type-info">
-                        <span className="log-icon">{status === 'running' && index === log.length - 1 ? <div className="spinner-small" /> : '»'}</span>
-                        <span className="log-text">{entry}</span>
-                    </div>
-                ))}
-            </div>
-
-            <div className="panel-subsection-title">{t('crucible_candidateAxioms')}</div>
-            {candidateAxioms.length === 0 ? (
-                <div className="kg-placeholder">{t('crucible_noAxioms')}</div>
-            ) : (
-                candidateAxioms.map((axiom: CandidateAxiom) => (
-                    <div key={axiom.id} className="axiom-card" style={{ borderLeft: '3px solid var(--primary-color)' }}>
-                        <p className="axiom-card-text">"{axiom.axiomText}"</p>
-                        <p className="axiom-card-source"><strong>{t('crucible_evidence')}:</strong> {axiom.evidenceFromSimulation}</p>
-                        <div className="proposal-actions-footer" style={{justifyContent: 'flex-start'}}>
-                            <span className="skill-tag">{t('crucible_elegance')}: {axiom.eleganceScore.toFixed(3)}</span>
-                            <span className="skill-tag">{t('crucible_status')}: {axiom.status}</span>
+            <Accordion title="Core Axioms" defaultOpen={true}>
+                {axioms.length === 0 ? (
+                    <div className="kg-placeholder">No axioms have been proven and stored yet.</div>
+                ) : (
+                    axioms.map((axiom: ProposedAxiom) => (
+                        <div key={axiom.id} className="axiom-card accepted">
+                             <div className="mod-log-header">
+                                <span className="mod-log-type">Validated Axiom</span>
+                                <span className="mod-log-status" style={{textTransform: 'capitalize'}}>{axiom.status}</span>
+                            </div>
+                            <p className="axiom-card-text">"{axiom.axiom}"</p>
+                            <p className="axiom-card-source"><strong>Source:</strong> "{axiom.source}"</p>
                         </div>
-                    </div>
-                ))
-            )}
+                    ))
+                )}
+            </Accordion>
+
+            <Accordion title="Axiom Guardian Log" defaultOpen={false}>
+                 {inconsistencyLog && inconsistencyLog.length > 0 ? (
+                    inconsistencyLog.map((log, index) => (
+                        <div key={index} className="veto-log-item" style={{ borderLeftColor: 'var(--failure-color)'}}>
+                            <p className="veto-reason"><strong>Inconsistency Found:</strong> {log}</p>
+                        </div>
+                    ))
+                 ) : (
+                    <div className="kg-placeholder">No logical inconsistencies detected by the Axiom Guardian.</div>
+                 )}
+            </Accordion>
         </div>
     );
 };

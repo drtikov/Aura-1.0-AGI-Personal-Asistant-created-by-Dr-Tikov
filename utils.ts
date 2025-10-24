@@ -1,6 +1,8 @@
 // utils.ts
-import { MDNAVector } from './types';
+import { MDNAVector } from './types.ts';
 import { GenerateContentResponse } from "@google/genai";
+
+declare const dayjs: any;
 
 /**
  * Clamps a number between a minimum and maximum value.
@@ -74,27 +76,12 @@ export const findClosestVectors = (targetVector: MDNAVector, space: Record<strin
 };
 
 /**
- * Safely extracts and concatenates all text parts from a GenerateContentResponse.
- * This avoids using the `.text` accessor which can log warnings about non-text parts.
+ * Safely extracts the full text content from a GenerateContentResponse.
  * @param response The GenerateContentResponse from the Gemini API.
- * @returns A string containing all concatenated text parts.
+ * @returns A string containing the text content.
  */
 export function getText(response: GenerateContentResponse): string {
-    if (!response.candidates || response.candidates.length === 0) {
-        return "";
-    }
-    const candidate = response.candidates[0];
-    if (!candidate.content || !candidate.content.parts) {
-        return "";
-    }
-    
-    let text = '';
-    for (const part of candidate.content.parts) {
-        if (part.text) {
-            text += part.text;
-        }
-    }
-    return text;
+    return response.text ?? "";
 }
 
 
@@ -158,3 +145,16 @@ export async function decodeAudioData(
   }
   return buffer;
 }
+
+
+/**
+ * Formats a timestamp into a consistent string format using day.js.
+ * @param timestamp The timestamp number (milliseconds since epoch).
+ * @returns A formatted date string, e.g., "2024-07-15 14:35:10".
+ */
+export const formatTimestamp = (timestamp: number): string => {
+    if (typeof dayjs === 'undefined') {
+        return new Date(timestamp).toLocaleString();
+    }
+    return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss');
+};

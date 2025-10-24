@@ -1,14 +1,15 @@
 // components/LeftColumnComponent.tsx
 import React from 'react';
 import { useLogsState, useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext.tsx';
-import { useModal } from '../context/ModalContext';
-import { CoreMonitor } from './CoreMonitor';
-import { LoadingOverlay } from './LoadingOverlay';
-import { SafeMarkdown } from './SafeMarkdown';
-import { WorkingMemoryPanel } from './WorkingMemoryPanel';
-import { ProactiveUIPanel } from './ProactiveUIPanel'; // Import the new component
+import { useModal } from '../context/ModalContext.tsx';
+import { CoreMonitor } from './CoreMonitor.tsx';
+import { LoadingOverlay } from './LoadingOverlay.tsx';
+import { SafeMarkdown } from './SafeMarkdown.tsx';
+import { WorkingMemoryPanel } from './WorkingMemoryPanel.tsx';
+import { ProactiveUIPanel } from './ProactiveUIPanel.tsx'; // Import the new component
+import { SymbioticCanvas } from './SymbioticCanvas.tsx';
 // FIX: Corrected import path for types to resolve module error.
-import { HistoryEntry, PerformanceLogEntry, InternalState } from '../types';
+import { HistoryEntry, PerformanceLogEntry, InternalState, TscError } from '../types';
 
 const getChromaStyle = (state?: InternalState): React.CSSProperties => {
     if (!state) return {};
@@ -122,6 +123,37 @@ const MathKnowledgeResult = ({ result }: { result: any }) => {
     );
 };
 
+const TscResult = ({ result }: { result: TscError[] }) => {
+    const { t } = useLocalization();
+    if (!Array.isArray(result)) {
+        return <pre><code>{JSON.stringify(result, null, 2)}</code></pre>;
+    }
+    
+    return (
+        <div className="eslint-result"> {/* Re-using eslint styles */}
+            <div className="tool-name">{t('tsc_scanResult')}</div>
+            {result.length === 0 ? (
+                <div className="eslint-summary success">{t('tsc_noErrors')}</div>
+            ) : (
+                <>
+                    <div className="eslint-summary">{t('tsc_summary', { count: result.length })}</div>
+                    <details className="eslint-details errors" open>
+                        <summary>Errors ({result.length})</summary>
+                        <div className="eslint-issues-list">
+                            {result.map((issue, i) => (
+                                <div key={i} className="eslint-issue">
+                                    <span className="line-number">{issue.file}:{issue.line}</span>
+                                    <span className="message">{issue.message}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </details>
+                </>
+            )}
+        </div>
+    );
+};
+
 
 export const LeftColumnComponent = () => {
     const { history, performanceLogs } = useLogsState();
@@ -138,6 +170,7 @@ export const LeftColumnComponent = () => {
         <div className="left-column">
             <div className="left-column-tabs">
                 <button className={`tab-button ${activeLeftTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveLeftTab('chat')}>{t('chatTab')}</button>
+                <button className={`tab-button ${activeLeftTab === 'canvas' ? 'active' : ''}`} onClick={() => setActiveLeftTab('canvas')}>{t('canvasTab')}</button>
                 <button className={`tab-button ${activeLeftTab === 'monitor' ? 'active' : ''}`} onClick={() => setActiveLeftTab('monitor')}>
                     {t('monitorTab')}
                     {internalState.autonomousEvolutions > 0 && (
@@ -157,16 +190,18 @@ export const LeftColumnComponent = () => {
                             <div key={entry.id} id={`history-entry-${entry.id}`} className={`history-entry from-${entry.from} ${entry.streaming ? 'streaming' : ''}`}>
                                 <div className="entry-content" style={getChromaStyle(entry.internalStateSnapshot)}>
                                     {entry.from === 'tool' ? (
-                                        entry.text === 'symbolic_math' && entry.args ? (
+                                        entry.toolResult?.toolName === 'typescript_check_types' ? (
+                                            <TscResult result={entry.toolResult.result} />
+                                        ) : entry.toolName === 'symbolic_math' && entry.args ? (
                                             <SymbolicMathResult result={entry.args} />
-                                        ) : entry.text === 'formal_proof_assistant' && entry.args ? (
+                                        ) : entry.toolName === 'formal_proof_assistant' && entry.args ? (
                                             <ProofAssistantResult result={entry.args} />
-                                        ) : entry.text === 'math_knowledge_retrieval' && entry.args ? (
+                                        ) : entry.toolName === 'math_knowledge_retrieval' && entry.args ? (
                                             <MathKnowledgeResult result={entry.args} />
                                         ) : (
                                             <>
-                                                <div className="tool-name">{entry.text}</div>
-                                                {entry.args && <pre><code>{JSON.stringify(entry.args, null, 2)}</code></pre>}
+                                                <div className="tool-name">{entry.toolName || entry.text}</div>
+                                                <pre><code>{JSON.stringify(entry.toolResult?.result || entry.args, null, 2)}</code></pre>
                                             </>
                                         )
                                     ) : (
@@ -237,6 +272,7 @@ export const LeftColumnComponent = () => {
                 </div>
             )}
 
+            {activeLeftTab === 'canvas' && <SymbioticCanvas />}
             {activeLeftTab === 'monitor' && <CoreMonitor />}
         </div>
     );

@@ -1,5 +1,5 @@
 // state/reducers/psyche.ts
-import { AuraState, Action, CognitivePrimitiveDefinition, PsycheProposal } from '../../types';
+import { AuraState, Action, CognitivePrimitiveDefinition, PsycheProposal, PsycheAdaptationProposal } from '../../types.ts';
 
 export const psycheReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -62,6 +62,24 @@ export const psycheReducer = (state: AuraState, action: Action): Partial<AuraSta
                         ...state.psycheState.primitiveRegistry,
                         [newPrimitive.type]: newPrimitive,
                     }
+                }
+            };
+        }
+        
+        case 'PSYCHE/ADAPT_PRIMITIVE': {
+            const { newPrimitive } = args as { newPrimitive: CognitivePrimitiveDefinition };
+            if (!newPrimitive || state.psycheState.primitiveRegistry[newPrimitive.type]) {
+                return {}; // Do not add if it's missing or already exists
+            }
+
+            return {
+                psycheState: {
+                    ...state.psycheState,
+                    version: state.psycheState.version + 1,
+                    primitiveRegistry: {
+                        ...state.psycheState.primitiveRegistry,
+                        [newPrimitive.type]: newPrimitive,
+                    },
                 }
             };
         }

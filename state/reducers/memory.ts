@@ -1,5 +1,5 @@
 // state/reducers/memory.ts
-import { AuraState, Action, MDNASpace, ConceptConnections, KnowledgeFact, Episode } from '../../types';
+import { AuraState, Action, MDNASpace, ConceptConnections, KnowledgeFact, Episode, CommandLogEntry } from '../../types';
 import { createRandomVector, cosineSimilarity } from '../../utils';
 import { MDNA_DIMENSIONS, HEBBIAN_LEARNING_RATE, CONNECTION_DECAY_RATE, PRUNING_THRESHOLD } from '../../constants';
 
@@ -10,6 +10,29 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'HOMEOSTASIS/REGULATE': {
+            const { reason } = args;
+            const newLog: CommandLogEntry = { id: self.crypto.randomUUID(), timestamp: Date.now(), text: `Homeostatic regulation triggered: ${reason}. Pruning memory.`, type: 'info' };
+
+            const factsToKeep = state.knowledgeGraph
+                .sort((a, b) => b.strength - a.strength)
+                .slice(0, Math.floor(state.knowledgeGraph.length * 0.9)); // Keep 90%
+
+            const episodesToKeep = state.episodicMemoryState.episodes
+                .sort((a, b) => b.timestamp - a.timestamp)
+                .slice(0, Math.floor(state.episodicMemoryState.episodes.length * 0.9)); // Keep 90%
+
+            return {
+                commandLog: [newLog, ...state.commandLog].slice(0, 50),
+                workingMemory: [], // Clear working memory
+                knowledgeGraph: factsToKeep,
+                episodicMemoryState: {
+                    ...state.episodicMemoryState,
+                    episodes: episodesToKeep,
+                }
+            };
+        }
+
         case 'MEMORY/SYNAPTIC_PROBE': {
             const concepts = Object.keys(state.mdnaSpace);
             if (concepts.length < 10) return {}; // Not enough concepts to make interesting connections

@@ -1,7 +1,11 @@
+
+
+
+
 import React from 'react';
 // FIX: Corrected import path for hooks to resolve module not found error.
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-import { Sparkline } from './Sparkline';
+import { Sparkline } from './Sparkline.tsx';
 // FIX: Import PersonalityPortrait for type casting.
 import { PersonalityPortrait } from '../types';
 

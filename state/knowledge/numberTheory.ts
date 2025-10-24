@@ -1,5 +1,5 @@
 // state/knowledge/numberTheory.ts
-import { KnowledgeFact } from '../../types';
+import { KnowledgeFact } from '../../types.ts';
 
 export const numberTheoryKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] = [
   // --- Core Concepts ---
@@ -36,4 +36,14 @@ export const numberTheoryKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] = [
   { subject: 'Elliptic Curve Cryptography (ECC)', predicate: 'is an approach to public-key cryptography based on the', object: 'algebraic structure of elliptic curves over finite fields', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
   { subject: 'Analytic Number Theory', predicate: 'uses methods from', object: 'mathematical analysis to solve problems about the integers', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
   { subject: 'Algebraic Number Theory', predicate: 'uses methods from', object: 'abstract algebra to study the integers', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  
+  // --- p-adic Analysis & Iwasawa Theory ---
+  { subject: 'p-adic Number', predicate: 'is an extension of the rational numbers that is', object: 'topologically different from the real numbers', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'p-adic Analysis', predicate: 'is a branch of number theory that deals with the', object: 'analysis of functions of p-adic numbers', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'p-adic L-function', predicate: 'is a p-adic analogue of a', object: 'complex L-function', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'p-adic L-function', predicate: 'interpolates special values of a', object: 'classical L-function p-adically', confidence: 0.9, strength: 1.0, lastAccessed: 0 },
+  { subject: 'Iwasawa Theory', predicate: 'is the study of', object: 'Galois modules over infinite towers of number fields', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Main Conjecture of Iwasawa Theory', predicate: 'relates', object: 'p-adic L-functions to Selmer groups', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'theorem' },
+  { subject: 'The Main Conjecture', predicate: 'is a p-adic analogue of the', object: 'analytic class number formula', confidence: 0.9, strength: 1.0, lastAccessed: 0 },
+  { subject: 'p-adic L-functions', predicate: 'are crucial for the p-adic version of the', object: 'Birch and Swinnerton-Dyer conjecture', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
 ];

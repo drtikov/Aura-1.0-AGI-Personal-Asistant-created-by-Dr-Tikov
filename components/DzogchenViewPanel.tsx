@@ -1,7 +1,7 @@
 // components/DzogchenViewPanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-import { GunaState } from '../types';
+import { GunaState } from '../types.ts';
 
 const DzogchenRadialMetric = ({ value, label, color, size = 80, stroke = 4 }: { value: number, label: string, color: string, size?: number, stroke?: number }) => {
     const radius = (size - stroke) / 2;

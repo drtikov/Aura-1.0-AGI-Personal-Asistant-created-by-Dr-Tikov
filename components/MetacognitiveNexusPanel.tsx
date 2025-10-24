@@ -1,5 +1,6 @@
 // components/MetacognitiveNexusPanel.tsx
 import React from 'react';
+// FIX: Added '.ts' extension to satisfy module resolution.
 import { MetacognitiveLink } from '../types';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useSystemState, useLocalization } from '../context/AuraContext.tsx';

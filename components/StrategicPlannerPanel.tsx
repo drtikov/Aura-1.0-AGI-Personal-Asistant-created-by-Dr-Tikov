@@ -1,12 +1,15 @@
 // components/StrategicPlannerPanel.tsx
 import React from 'react';
 import { usePlanningState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-import { Goal } from '../types';
+// FIX: Added '.ts' extension to satisfy module resolution.
+import { Goal } from '../types.ts';
+import { useModal } from '../context/ModalContext.tsx';
 
 export const StrategicPlannerPanel = React.memo(() => {
     const { goalTree, activeStrategicGoalId: activeGoalId } = usePlanningState();
     const { t } = useLocalization();
     const { handleScrollToHistory } = useAuraDispatch();
+    const modal = useModal();
 
     const renderGoalNode = (goalId: string) => {
         const goal = goalTree[goalId];
@@ -69,6 +72,11 @@ export const StrategicPlannerPanel = React.memo(() => {
             ) : (
                 <div className="kg-placeholder">
                     {t('strategicPlanner_placeholder')}
+                    <div className="button-grid" style={{marginTop: '1rem'}}>
+                        <button className="control-button" onClick={() => modal.open('strategicGoal', {})}>
+                            {t('setGoal')}
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

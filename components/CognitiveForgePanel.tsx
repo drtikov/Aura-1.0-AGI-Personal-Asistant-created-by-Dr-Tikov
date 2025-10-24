@@ -1,12 +1,14 @@
 // components/CognitiveForgePanel.tsx
 import React from 'react';
-import { SynthesizedSkill, SimulationLogEntry, SynthesisCandidate } from '../types';
+// FIX: Added '.ts' extension to satisfy module resolution.
+import { SynthesizedSkill, SimulationLogEntry } from '../types';
 import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const CognitiveForgePanel = React.memo(() => {
     const { cognitiveForgeState: state } = useArchitectureState();
     const { t } = useLocalization();
-    const { syscall } = useAuraDispatch();
+    // FIX: Destructured `addToast` from `useAuraDispatch` to make it available in the component.
+    const { syscall, addToast } = useAuraDispatch();
     
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -21,8 +23,9 @@ export const CognitiveForgePanel = React.memo(() => {
         syscall('TOGGLE_COGNITIVE_FORGE_PAUSE', {});
     };
 
-    const handleUpdateCandidateStatus = (id: string, status: 'approved' | 'rejected') => {
-        syscall('COGNITIVE_FORGE/UPDATE_SYNTHESIS_STATUS', { id, status });
+    const handleAnalyze = () => {
+        syscall('COGNITIVE_FORGE/ANALYZE_PERFORMANCE_LOGS', {});
+        addToast("Analyzing performance logs for synthesis opportunities...", "info");
     };
 
     return (
@@ -34,37 +37,11 @@ export const CognitiveForgePanel = React.memo(() => {
                 >
                     {state.isTuningPaused ? t('resume') : t('pause')} {t('cognitiveForge_tuning')}
                 </button>
+                <button className="control-button" onClick={handleAnalyze}>
+                    {t('cognitiveForge_analyzeLogs')}
+                </button>
             </div>
             
-            <div className="panel-subsection-title">{t('cognitiveForge_synthesisCandidates')}</div>
-            {state.synthesisCandidates.filter(c => c.status === 'proposed').length > 0 ? (
-                state.synthesisCandidates.filter(c => c.status === 'proposed').map((candidate: SynthesisCandidate) => (
-                    <div key={candidate.id} className="proposal-card">
-                        <div className="proposal-card-header">
-                             <span className="proposal-type-badge psyche">{t('cognitiveForge_newPrimitive')}</span>
-                        </div>
-                        <div className="proposal-card-body">
-                            <p><strong>{candidate.name}</strong></p>
-                            <p><em>{candidate.description}</em></p>
-                            <div className="code-snippet-container" style={{ maxHeight: '100px', marginTop: '0.5rem' }}>
-                                <pre><code>{candidate.primitiveSequence.join('\n→ ')}</code></pre>
-                            </div>
-                        </div>
-                        <div className="proposal-actions-footer">
-                            <button className="control-button reject-button" onClick={() => handleUpdateCandidateStatus(candidate.id, 'rejected')}>
-                                {t('proposalReview_reject')}
-                            </button>
-                            <button className="control-button implement-button" onClick={() => handleUpdateCandidateStatus(candidate.id, 'approved')}>
-                                {t('proposalReview_approve')}
-                            </button>
-                        </div>
-                    </div>
-                ))
-            ) : (
-                <div className="kg-placeholder">{t('cognitiveForge_noCandidates')}</div>
-            )}
-
-
             <div className="panel-subsection-title">{t('cognitiveForge_synthesizedSkills')}</div>
             {state.synthesizedSkills.length > 0 ? (
                 state.synthesizedSkills.map((skill: SynthesizedSkill) => (

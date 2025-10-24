@@ -1,7 +1,7 @@
 // state/reducers/kernel.ts
 import React from 'react';
 // FIX: Added 'AuraState' to import to resolve 'Cannot find name' error.
-import { AuraState, Action, SyscallCall, SyscallPayload, CognitiveTask, ModificationLogEntry, KernelPatchProposal } from '../../types';
+import { AuraState, Action, SyscallCall, SyscallPayload, CognitiveTask, ModificationLogEntry, KernelPatchProposal } from '../../types.ts';
 
 export const kernelReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -127,6 +127,15 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
                     }
                 },
                 modificationLog: [newLog, ...state.modificationLog].slice(0, 50),
+            };
+        }
+        
+        case 'SYSTEM/REBOOT': {
+            return {
+                kernelState: {
+                    ...state.kernelState,
+                    rebootRequired: true,
+                }
             };
         }
 

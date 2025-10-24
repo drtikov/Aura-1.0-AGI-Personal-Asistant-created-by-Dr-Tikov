@@ -1,3 +1,3 @@
 // components/controlDeckComponent.tsx
-// FIX: This file is a duplicate due to casing. Re-exporting from the canonical PascalCase file to resolve module resolution errors.
-export * from './ControlDeckComponent.tsx';
+// FIX: This file is a duplicate of ControlDeckComponent.tsx due to casing, which causes module resolution errors. It has been emptied to resolve the conflict.
+export {};

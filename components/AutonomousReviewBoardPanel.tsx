@@ -1,9 +1,8 @@
 // components/AutonomousReviewBoardPanel.tsx
 import React from 'react';
-import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
-import { AGISDecision } from '../types';
+import { useSystemState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+import { AGISDecision } from '../types.ts';
 
-// FIX: Wrapped component in React.memo to handle `key` prop correctly and fixed the type of `t` to allow for interpolation options.
 const DecisionCard = React.memo(({ decision, t }: { decision: AGISDecision, t: (key: string, options?: any) => string }) => {
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -71,7 +70,13 @@ const DecisionCard = React.memo(({ decision, t }: { decision: AGISDecision, t: (
 
 export const AutonomousReviewBoardPanel = () => {
     const { autonomousReviewBoardState } = useSystemState();
+    const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
+    const { agisConfidenceThreshold, decisionLog } = autonomousReviewBoardState;
+
+    const handleThresholdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        syscall('AGIS/SET_THRESHOLD', { threshold: parseFloat(e.target.value) });
+    };
 
     return (
         <div className="side-panel">
@@ -79,9 +84,19 @@ export const AutonomousReviewBoardPanel = () => {
                 {t('agis_description')}
             </p>
             
-            <div className="awareness-item">
-                <label title={t('agis_confidence_threshold_tip')}>{t('agis_confidence_threshold')}</label>
-                <strong>{(autonomousReviewBoardState.agisConfidenceThreshold * 100).toFixed(1)}%</strong>
+            <div className="image-gen-control-group">
+                <label htmlFor="agis-threshold" title={t('agis_confidence_threshold_tip')}>
+                    {t('agis_confidence_threshold')} ({(agisConfidenceThreshold * 100).toFixed(0)}%)
+                </label>
+                <input
+                    id="agis-threshold"
+                    type="range"
+                    min="0.5"
+                    max="1.0"
+                    step="0.01"
+                    value={agisConfidenceThreshold}
+                    onChange={handleThresholdChange}
+                />
             </div>
             
             {autonomousReviewBoardState.lastCalibrationReason && (
@@ -91,11 +106,11 @@ export const AutonomousReviewBoardPanel = () => {
             )}
 
             <div className="panel-subsection-title">{t('agis_decisionLog')}</div>
-            {autonomousReviewBoardState.decisionLog.length === 0 ? (
+            {decisionLog.length === 0 ? (
                 <div className="kg-placeholder">{t('agis_noDecisions')}</div>
             ) : (
                 <div className="decision-log-list">
-                    {autonomousReviewBoardState.decisionLog.map(decision => (
+                    {decisionLog.map(decision => (
                         <DecisionCard key={decision.id} decision={decision} t={t} />
                     ))}
                 </div>

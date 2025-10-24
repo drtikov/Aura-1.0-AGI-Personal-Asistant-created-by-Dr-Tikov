@@ -1,7 +1,7 @@
 // components/CognitiveGainDetailModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { CognitiveGainLogEntry } from '../types.ts';
+import { CognitiveGainLogEntry } from '../types';
 import { Modal } from './Modal.tsx';
 import { useLocalization } from '../context/AuraContext.tsx';
 

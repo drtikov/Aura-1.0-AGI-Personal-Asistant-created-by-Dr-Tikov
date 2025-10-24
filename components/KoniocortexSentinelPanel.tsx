@@ -1,8 +1,7 @@
 // components/KoniocortexSentinelPanel.tsx
 import React from 'react';
-// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
-import { Percept } from '../types';
+import { Percept } from '../types.ts';
 
 export const KoniocortexSentinelPanel = React.memo(() => {
     const { koniocortexSentinelState } = useArchitectureState();
@@ -16,6 +15,11 @@ export const KoniocortexSentinelPanel = React.memo(() => {
             </div>
         );
     }
+
+    const mockRelationalFeatures = [
+        { object: 'Grey Dot at [2,3]', features: { 'closest_key_object(x)': 'Blue Square @ [5,3]', 'key_object_alignment(y)': 'true', 'containing_region': 'blue_zone' } },
+        { object: 'Grey L-Shape at [6,1]', features: { 'closest_key_object(y)': 'Red Circle @ [6,5]', 'key_object_alignment(x)': 'true', 'relative_position_in_zone(y)': 0.25 } },
+    ];
 
     return (
         <div className="side-panel koniocortex-panel">
@@ -42,7 +46,6 @@ export const KoniocortexSentinelPanel = React.memo(() => {
                         <label>{t('granularCortex_modality')}</label>
                         <strong style={{textTransform: 'capitalize'}}>{lastPercept.sensoryEngram.modality}</strong>
                     </div>
-                    {/* FIX: Corrected property access from `primitives` to `rawPrimitives` to match the SensoryEngram type in types.ts. */}
                     {lastPercept.sensoryEngram.rawPrimitives.slice(0,2).map((p, i) => (
                          <div className="awareness-item" key={i}>
                             <label style={{textTransform: 'capitalize'}}>{p.type.replace(/_/g, ' ')}</label>
@@ -51,6 +54,25 @@ export const KoniocortexSentinelPanel = React.memo(() => {
                     ))}
                 </>
             )}
+
+            <div className="panel-subsection-title">{t('koniocortex_relationalAnalysis')}</div>
+             <div className="relational-features-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                {mockRelationalFeatures.map((item, index) => (
+                    <div key={index} className="veto-log-item" style={{ borderLeftColor: 'var(--primary-color)', background: 'rgba(0, 255, 255, 0.05)' }}>
+                        <p className="veto-action" style={{ fontWeight: 'bold', color: 'var(--text-color)', margin: '0 0 0.5rem 0' }}>
+                           {item.object}
+                        </p>
+                        <div className="secondary-metrics" style={{ gridTemplateColumns: '1fr', textAlign: 'left', gap: '0.2rem' }}>
+                            {Object.entries(item.features).map(([key, value]) => (
+                                <div key={key} className="metric-item">
+                                    <span className="metric-label">{key}</span>
+                                    <span className="metric-value">{String(value)}</span>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 });

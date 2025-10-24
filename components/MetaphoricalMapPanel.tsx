@@ -2,7 +2,7 @@
 import React from 'react';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-import { Metaphor } from '../types';
+import { Metaphor } from '../types.ts';
 
 export const MetaphoricalMapPanel = () => {
     const { metaphoricalMapState } = useCoreState();

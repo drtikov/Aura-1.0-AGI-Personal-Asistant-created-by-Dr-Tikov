@@ -1,5 +1,5 @@
 // state/reducers/planning.ts
-import { AuraState, Action, GoalTree } from '../../types';
+import { AuraState, Action, GoalTree, Goal, GoalType, ConceptualProofStrategy } from '../../types.ts';
 
 const updateParentProgress = (tree: GoalTree, childId: string): GoalTree => {
     const child = tree[childId];
@@ -37,19 +37,93 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
     const { call, args } = action.payload;
 
     switch (call) {
-        case 'TELOS/DECOMPOSE_AND_SET_TREE': {
-            const { tree, rootId } = args;
+        case 'BUILD_GOAL_TREE': {
+            const { decomposition, rootGoal } = args;
+            if (!decomposition || !rootGoal) return {};
+
+            const rootId = `goal_${self.crypto.randomUUID()}`;
+            const newTree: GoalTree = {};
+
+            const childrenIds = decomposition.steps.map((step: string) => {
+                const childId = `goal_${self.crypto.randomUUID()}`;
+                newTree[childId] = {
+                    id: childId,
+                    parentId: rootId,
+                    children: [],
+                    description: step,
+                    status: 'not_started',
+                    progress: 0,
+                    type: GoalType.TACTICAL,
+                };
+                return childId;
+            });
+
+            newTree[rootId] = {
+                id: rootId,
+                parentId: null,
+                children: childrenIds,
+                description: rootGoal,
+                status: 'in_progress',
+                progress: 0,
+                type: GoalType.STRATEGIC,
+            };
+            
+            const newCommittedGoal = {
+                type: GoalType.STRATEGIC,
+                description: rootGoal,
+                commitmentStrength: 0.9,
+            };
+
             return {
-                goalTree: tree,
+                goalTree: newTree,
+                activeStrategicGoalId: rootId,
+                disciplineState: {
+                    ...state.disciplineState,
+                    committedGoal: newCommittedGoal,
+                    adherenceScore: 1.0, 
+                    distractionResistance: 0.5 
+                }
+            };
+        }
+        
+        case 'BUILD_PROOF_TREE': {
+            const { strategy, rootGoal } = args as { strategy: ConceptualProofStrategy, rootGoal: string };
+            if (!strategy || !rootGoal) return {};
+
+            const rootId = `goal_${self.crypto.randomUUID()}`;
+            const newTree: GoalTree = {};
+
+            const childrenIds = strategy.strategic_plan.map((step: string) => {
+                const childId = `goal_${self.crypto.randomUUID()}`;
+                newTree[childId] = {
+                    id: childId,
+                    parentId: rootId,
+                    children: [],
+                    description: step, // The step is a lemma to prove
+                    status: 'not_started',
+                    progress: 0,
+                    type: GoalType.TACTICAL,
+                    attempts: 0,
+                };
+                return childId;
+            });
+
+            newTree[rootId] = {
+                id: rootId,
+                parentId: null,
+                children: childrenIds,
+                description: rootGoal,
+                status: 'in_progress',
+                progress: 0,
+                type: GoalType.MATHEMATICAL_PROOF,
+                attempts: 1,
+            };
+
+            return {
+                goalTree: newTree,
                 activeStrategicGoalId: rootId,
             };
         }
-
-        case 'BUILD_GOAL_TREE':
-            return {
-                goalTree: args.tree,
-                activeStrategicGoalId: args.rootId,
-            };
 
         case 'UPDATE_GOAL_STATUS': {
             const { id, status, failureReason } = args;
@@ -59,15 +133,30 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
             }
 
             const progress = status === 'completed' ? 1 : goal.progress;
-            const updatedGoal = { ...goal, status, progress, failureReason: failureReason || null };
+            // When a proof fails, reset its status to 'not_started' to allow for another attempt
+            const finalStatus = status === 'failed' ? 'not_started' : status;
+            
+            const updatedGoal = { 
+                ...goal, 
+                status: finalStatus, 
+                progress, 
+                failureReason: failureReason || null,
+                // Increment attempts on failure, reset on other transitions
+                attempts: status === 'failed' ? (goal.attempts || 0) + 1 : goal.attempts,
+            };
             let newTree = { ...state.goalTree, [id]: updatedGoal };
 
             if (status === 'completed') {
                 newTree = updateParentProgress(newTree, id);
             }
             
+            // If the parent is completed, clear the active goal
+            const parent = goal.parentId ? newTree[goal.parentId] : null;
+            const activeStrategicGoalId = parent?.status === 'completed' ? null : state.activeStrategicGoalId;
+
             return {
                 goalTree: newTree,
+                activeStrategicGoalId,
             };
         }
 

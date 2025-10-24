@@ -258,6 +258,14 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
             };
         }
         
+        case 'AGIS/SET_THRESHOLD':
+            return {
+                autonomousReviewBoardState: {
+                    ...state.autonomousReviewBoardState,
+                    agisConfidenceThreshold: args.threshold,
+                }
+            };
+
         case 'AGIS/CALIBRATE_CONFIDENCE': {
             return {
                 autonomousReviewBoardState: {

@@ -1,7 +1,8 @@
 // components/CognitiveArchitecturePanel.tsx
 import React from 'react';
 import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
-import { CognitiveModule, SynthesizedSkill, Coprocessor, CoprocessorArchitecture } from '../types';
+// FIX: Added '.ts' extension to satisfy module resolution.
+import { CognitiveModule, SynthesizedSkill, Coprocessor, CoprocessorArchitecture } from '../types.ts';
 
 export const CognitiveArchitecturePanel = React.memo(() => {
     const { cognitiveArchitecture: architecture, cognitiveForgeState } = useArchitectureState();

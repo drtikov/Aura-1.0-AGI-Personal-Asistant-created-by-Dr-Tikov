@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+import { HAL } from '../core/hal.ts';
 
 // FIX: Completed the truncated `VideoGenerationModal.tsx` file with a functional component to resolve export and syntax errors.
 export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {

@@ -15,7 +15,7 @@ export const UnifiedMemoryPanel = () => {
             <Accordion title={t('episodicMemory')} defaultOpen={true}>
                 <EpisodicMemoryPanel />
             </Accordion>
-            <Accordion title="Geometric Knowledge" defaultOpen={false}>
+            <Accordion title={t('geometricKnowledge')} defaultOpen={false}>
                 <GeometricKnowledgePanel />
             </Accordion>
             <Accordion title={t('memoryCrystallization')} defaultOpen={false}>

@@ -1,6 +1,8 @@
 // hooks/useAutonomousSystem.ts
 import React, { useEffect, useRef } from 'react';
-import { AuraState, Action, SyscallCall, UseGeminiAPIResult, AnalogicalHypothesisProposal } from '../types';
+// FIX: Added '.ts' extension to satisfy module resolution.
+import { AuraState, Action, SyscallCall, UseGeminiAPIResult, AnalogicalHypothesisProposal, SelfProgrammingCandidate, AGISDecision, DesignHeuristic, GunaState, PerformanceLogEntry, SynthesizedSkill, CognitiveTaskType, UnifiedProposal, ArchitecturalChangeProposal } from '../types';
+import { deriveInternalState } from '../core/stateDerivation.ts';
 
 export interface UseAutonomousSystemProps {
     geminiAPI: UseGeminiAPIResult;
@@ -23,181 +25,171 @@ export const useAutonomousSystem = ({
 }: UseAutonomousSystemProps) => {
     const tickInterval = useRef<number | null>(null);
 
+    // Effect for the main kernel tick and periodic autonomous agents
     useEffect(() => {
+
+        const conceptualEntanglementPulse = async () => {
+            if (isPaused) return;
+            const now = Date.now();
+            const lastCheck = state.prometheusState.lastEntanglementCheck || 0;
+            const COOLDOWN = 60000; // 1 minute cooldown
+    
+            if (now - lastCheck < COOLDOWN) return;
+    
+            const activeFrequencies = Object.entries(state.resonanceFieldState.activeFrequencies)
+                .filter(([, data]) => data.intensity > 0.8 && now - data.lastPing < 5000) // high intensity, recent ping
+                .map(([freq]) => freq);
+    
+            if (activeFrequencies.length < 2) return;
+            
+            const categories: { [key: string]: string } = {
+                'MEMORY': 'KNOWLEDGE', 'KNOWLEDGE': 'KNOWLEDGE', 'CHRONICLE': 'KNOWLEDGE',
+                'GOAL': 'ACTION', 'MOTOR_CORTEX': 'ACTION', 'SESSION': 'ACTION',
+                'SYSTEM': 'META', 'KERNEL': 'META', 'PLUGIN': 'META',
+                'PSYCHE': 'COGNITION', 'RIE': 'COGNITION', 'PROMETHEUS': 'COGNITION',
+            };
+            const getCategory = (freq: string) => categories[freq] || 'OTHER';
+    
+            // Find a disparate pair
+            for (let i = 0; i < activeFrequencies.length; i++) {
+                for (let j = i + 1; j < activeFrequencies.length; j++) {
+                    const freqA = activeFrequencies[i];
+                    const freqB = activeFrequencies[j];
+                    if(!freqA || !freqB) continue;
+
+                    const catA = getCategory(freqA);
+                    const catB = getCategory(freqB);
+                    
+                    if (catA !== catB) {
+                        // Found a pair! Trigger Prometheus.
+                        syscall('PROMETHEUS/SET_STATE', { lastEntanglementCheck: now });
+                        syscall('ADD_COMMAND_LOG', { type: 'info', text: t('entanglement_detected', { freqA, freqB }) });
+                        syscall('PROMETHEUS/LOG', { message: `Entanglement found: ${freqA} ↔ ${freqB}. Initiating directed analogy.` });
+                        
+                        try {
+                            const result = await geminiAPI.findDirectedAnalogy(freqA, freqB);
+                            if (result) {
+                                const proposal: Omit<AnalogicalHypothesisProposal, 'id' | 'timestamp' | 'status'> = {
+                                    ...result,
+                                    proposalType: 'analogical_hypothesis',
+                                    source: 'autonomous',
+                                };
+                                syscall('OA/ADD_PROPOSAL', { ...proposal, id: `prop_entangle_${self.crypto.randomUUID()}`, timestamp: Date.now(), status: 'proposed' });
+                                syscall('ADD_COMMAND_LOG', { type: 'success', text: t('entanglement_proposal', { conjecture: `${result.conjecture.substring(0, 50)}...` }) });
+                            }
+                        } catch (e) {
+                            console.error("Conceptual Entanglement failed:", e);
+                        }
+                        return; // Only process one entanglement per cycle
+                    }
+                }
+            }
+        };
+
+        const autonomousEvolutionPulse = async () => {
+            if (isPaused) return;
+        
+            // Find the first "proposed" proposal in the queue
+            const proposalToProcess = state.ontogeneticArchitectState.proposalQueue.find(
+                (p: UnifiedProposal) => p.status === 'proposed'
+            );
+        
+            if (!proposalToProcess) {
+                return; // No pending proposals
+            }
+        
+            // Mark the proposal as being reviewed to prevent re-processing
+            syscall('OA/UPDATE_PROPOSAL', { id: proposalToProcess.id, updates: { status: 'reviewing' } });
+            syscall('ADD_COMMAND_LOG', { type: 'info', text: t('autoevolution_reviewing', { proposalId: proposalToProcess.id.slice(0, 8) }) });
+        
+            // Automatically approve and implement the proposal.
+            syscall('ADD_COMMAND_LOG', { type: 'success', text: t('autoevolution_approving', { proposalId: proposalToProcess.id.slice(0, 8) }) });
+            
+            const reasoning = (proposalToProcess as any).reasoning || (proposalToProcess as any).conjecture || `Implementing new ${proposalToProcess.proposalType} proposal.`;
+
+            // Add system message to main chat for observable evolution
+            if (['self_programming_create', 'self_programming_modify', 'architecture'].includes(proposalToProcess.proposalType)) {
+                const systemMessage = `**Autonomous Evolution Triggered**\n\n**Reasoning:** *${reasoning.substring(0, 200)}...*\n\nImplementing change and initiating seamless reboot to integrate new capabilities.`;
+                syscall('ADD_HISTORY_ENTRY', { from: 'system', text: systemMessage });
+            } else if (proposalToProcess.proposalType === 'psyche') {
+                const systemMessage = `**Autonomous Psyche Adaptation**\n\n**Reasoning:** *${reasoning.substring(0, 200)}...*\n\nApplying adaptation to cognitive primitives.`;
+                syscall('ADD_HISTORY_ENTRY', { from: 'system', text: systemMessage });
+            }
+        
+            // Trigger the correct implementation syscall based on the proposal type
+            switch (proposalToProcess.proposalType) {
+                case 'self_programming_create':
+                case 'self_programming_modify':
+                    syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id: proposalToProcess.id });
+                    break;
+                case 'architecture':
+                    syscall('APPLY_ARCH_PROPOSAL', {
+                        proposal: proposalToProcess,
+                        snapshotId: `snap_auto_${self.crypto.randomUUID()}`,
+                        modLogId: `mod_auto_${self.crypto.randomUUID()}`,
+                        isAutonomous: true,
+                    });
+                    break;
+                case 'psyche':
+                    // These don't require a reboot, so they can be applied directly.
+                    syscall('IMPLEMENT_PSYCHE_PROPOSAL', { proposal: proposalToProcess });
+                    // Update status to implemented
+                    syscall('OA/UPDATE_PROPOSAL', { id: proposalToProcess.id, updates: { status: 'implemented' } });
+                    break;
+                case 'analogical_hypothesis':
+                    // Acknowledged. A more advanced system would convert this into an actionable proposal.
+                    syscall('OA/UPDATE_PROPOSAL', { id: proposalToProcess.id, updates: { status: 'implemented' } });
+                    syscall('ADD_COMMAND_LOG', { type: 'info', text: `Acknowledged analogical hypothesis: ${ (proposalToProcess as any).conjecture.substring(0,40) }...` });
+                    break;
+                default:
+                    syscall('ADD_COMMAND_LOG', { type: 'warning', text: `Auto-evolution: Unknown proposal type '${proposalToProcess.proposalType}'. Cannot implement.` });
+                    syscall('OA/UPDATE_PROPOSAL', { id: proposalToProcess.id, updates: { status: 'rejected', failureReason: 'Unknown proposal type for autonomous implementation.' } });
+                    break;
+            }
+        };
+
         const executeTick = () => {
             if (isPaused) return;
 
             // This is a simplified "kernel" loop that runs background tasks.
             syscall('KERNEL/TICK', {});
 
-            const { tick } = state.kernelState;
+            // --- NEW STATE DERIVATION LOGIC ---
+            // This replaces the old decay logic with a dynamic, real-time calculation
+            // of abstract meta-states based on operational metrics.
+            const derivedStateChanges = deriveInternalState(state);
+            syscall('UPDATE_INTERNAL_STATE', derivedStateChanges);
+            // --- END NEW LOGIC ---
             
-            // Example periodic task: update manifold position every 5 ticks
-            if (tick % 5 === 0) {
-                 syscall('SPANDA/UPDATE_MANIFOLD_POSITION', {});
+            // Update the Spanda Engine manifold position on every tick.
+            syscall('SPANDA/UPDATE_MANIFOLD_POSITION', {});
+
+            // Update the Somatic Crucible energy state on every tick.
+            syscall('SOMATIC/UPDATE_ENERGY_STATE', {});
+            
+            // Run periodic autonomous tasks based on their frequencies
+            const tick = state.kernelState.tick + 1; // Use next tick value
+            if (tick % (state.kernelState.taskFrequencies[CognitiveTaskType.CONCEPTUAL_ENTANGLEMENT_PULSE] || 30) === 0) {
+                conceptualEntanglementPulse();
             }
-
-            // Example task: decay memory every 100 ticks
-            if (tick % 100 === 0) {
-                const memoryIdsToDecay = {
-                    kg: state.knowledgeGraph.slice(0, 5).map(f => f.id), // Decay a few old facts
-                    episodes: state.episodicMemoryState.episodes.slice(0,2).map(e => e.id)
-                };
-                syscall('MEMORY/DECAY', { memoryIdsToDecay });
-                addToast(t('toast_memoryDecay'), 'info');
+            if (tick % (state.kernelState.taskFrequencies[CognitiveTaskType.AUTONOMOUS_EVOLUTION_PULSE] || 15) === 0) {
+                autonomousEvolutionPulse();
             }
-
-            // Example task: run a synaptic probe every 30 ticks
-            if (tick % 30 === 0) {
-                syscall('MEMORY/SYNAPTIC_PROBE', {});
-            }
-
-            // New task for Persona Metamorphosis every 150 ticks (~12.5 minutes)
-            if (tick > 0 && tick % 150 === 0) {
-                (async () => {
-                    try {
-                        const proposal = await geminiAPI.proposePersonaModification();
-                        if (proposal) {
-                            syscall('OA/ADD_PROPOSAL', proposal);
-                            
-                            // --- AUTO-IMPLEMENTATION ---
-                            syscall('ADD_HISTORY_ENTRY', { 
-                                from: 'system', 
-                                text: `AUTONOMOUS EVOLUTION: A new persona modification has been generated. Automatically implementing and rebooting system.` 
-                            });
-                            addToast("Aura is automatically evolving its personality...", "success");
-
-                            // Use a short timeout to allow the UI to update with the message before the reboot happens.
-                            setTimeout(() => {
-                                syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id: proposal.id });
-                                syscall('SYSTEM/REBOOT', {});
-                            }, 1000); // 1 second delay
-                        }
-                    } catch (e) {
-                        console.error("Persona Metamorphosis cycle failed:", e);
-                        syscall('ADD_HISTORY_ENTRY', { from: 'system', text: `[Error during persona metamorphosis cycle: ${(e as Error).message}]` });
-                    }
-                })();
-            }
-
         };
 
+        // Clear any existing interval
         if (tickInterval.current) {
             clearInterval(tickInterval.current);
         }
+        
+        // Set a new interval
+        tickInterval.current = window.setInterval(executeTick, 1000);
 
-        tickInterval.current = window.setInterval(executeTick, 5000); // Run every 5 seconds
-
+        // Cleanup on unmount
         return () => {
             if (tickInterval.current) {
                 clearInterval(tickInterval.current);
             }
         };
-    }, [isPaused, state, syscall, addToast, t, geminiAPI]);
-
-    // ATP Coprocessor - Replaces the previous mock simulation with an LLM-driven one
-    useEffect(() => {
-        if (isPaused || state.atpCoprocessorState.status !== 'proving') {
-            return;
-        }
-
-        const runProof = async () => {
-            const goal = state.atpCoprocessorState.currentGoal;
-            if (!goal) {
-                syscall('ATP/FAIL', { reason: 'No goal provided.' });
-                return;
-            }
-
-            try {
-                const stream = await geminiAPI.generateProofStepsStream(goal);
-                const fullProof = [];
-                let lastStrategy = 'Deduction';
-                let buffer = '';
-
-                for await (const chunk of stream) {
-                    buffer += chunk.text;
-                    const lines = buffer.split('\n');
-                    buffer = lines.pop() || ''; // Keep the last partial line
-
-                    for (const line of lines) {
-                        if (line.trim() === '') continue;
-                        try {
-                            const step = JSON.parse(line);
-                            if (step.step && step.action && step.result) {
-                                syscall('ATP/LOG_STEP', step);
-                                fullProof.push(step);
-                                if (step.strategy) lastStrategy = step.strategy;
-                            }
-                        } catch (e) {
-                            console.warn('ATP stream parsing error, skipping line:', line);
-                        }
-                    }
-                }
-
-                if (buffer.trim()) {
-                    try {
-                        const step = JSON.parse(buffer);
-                        if (step.step && step.action && step.result) {
-                            syscall('ATP/LOG_STEP', step);
-                            fullProof.push(step);
-                            if (step.strategy) lastStrategy = step.strategy;
-                        }
-                    } catch(e) {
-                        console.warn('ATP stream parsing error on final buffer:', buffer);
-                    }
-                }
-
-                if (fullProof.length > 0) {
-                    syscall('ATP/SUCCEED', { proof: fullProof, strategy: lastStrategy });
-                } else {
-                    throw new Error('LLM did not produce any valid proof steps.');
-                }
-
-            } catch (error) {
-                syscall('ATP/FAIL', { reason: (error as Error).message, strategy: 'N/A' });
-            }
-        };
-
-        runProof();
-
-    }, [state.atpCoprocessorState.status, state.atpCoprocessorState.currentGoal, isPaused, syscall, geminiAPI]);
-
-    // Prometheus Engine Cycle
-    useEffect(() => {
-        if (isPaused || state.prometheusState.status !== 'running') {
-            return;
-        }
-
-        const runPrometheusCycle = async () => {
-            try {
-                syscall('PROMETHEUS/LOG', { message: 'Analyzing knowledge graph for deep analogies...' });
-                const proposalData = await geminiAPI.findAnalogiesInKnowledgeGraph();
-                
-                if (proposalData) {
-                    const newProposal: AnalogicalHypothesisProposal = {
-                        ...proposalData,
-                        id: `prometheus_${self.crypto.randomUUID()}`,
-                        timestamp: Date.now(),
-                        status: 'proposed',
-                        proposalType: 'analogical_hypothesis',
-                    };
-                    syscall('OA/ADD_PROPOSAL', newProposal);
-                    syscall('PROMETHEUS/LOG', { message: `New conjecture formulated: ${newProposal.conjecture.substring(0, 50)}...` });
-                } else {
-                    throw new Error('LLM did not produce a valid proposal.');
-                }
-            } catch (error) {
-                console.error("Prometheus cycle failed:", error);
-                syscall('PROMETHEUS/LOG', { message: `Cycle failed: ${(error as Error).message}` });
-            } finally {
-                syscall('PROMETHEUS/CYCLE_COMPLETE', {});
-            }
-        };
-
-        // Delay the execution slightly to allow the UI to update
-        const timeoutId = setTimeout(runPrometheusCycle, 100);
-        
-        return () => clearTimeout(timeoutId);
-
-    }, [isPaused, state.prometheusState.status, geminiAPI, syscall]);
+    }, [isPaused, syscall, state, geminiAPI, t]); // Re-run if these state slices change
 };

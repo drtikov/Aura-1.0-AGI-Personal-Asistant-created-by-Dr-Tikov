@@ -1,7 +1,7 @@
 // components/CausalChainModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { PerformanceLogEntry } from '../types.ts';
+import { PerformanceLogEntry } from '../types';
 import { Modal } from './Modal.tsx';
 import { useLocalization } from '../context/AuraContext.tsx';
 

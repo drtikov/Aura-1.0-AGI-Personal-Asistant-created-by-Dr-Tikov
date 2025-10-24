@@ -1,7 +1,7 @@
 // components/QualiaSignalProcessorPanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-import { QualiaSignalProcessorState } from '../types';
+import { QualiaSignalProcessorState } from '../types.ts';
 
 interface AffectivePrimitiveBarProps {
     label: string;

@@ -1,7 +1,7 @@
 // components/WorldModelPanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-import { Sparkline } from './Sparkline';
+import { Sparkline } from './Sparkline.tsx';
 
 export const WorldModelPanel = React.memo(() => {
     const { worldModelState: state } = useCoreState();

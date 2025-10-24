@@ -2,7 +2,7 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
-// FIX: Made children prop optional to resolve incorrect TypeScript error.
+// FIX: Made the 'children' prop optional to resolve a TypeScript error where it was not being correctly inferred from JSX.
 const RegionLabel = ({ x, y, children }: { x: number, y: number, children?: React.ReactNode }) => (
     <text x={x} y={y} fill="var(--text-muted)" fontSize="10" textAnchor="middle" style={{ opacity: 0.5 }}>
         {children}

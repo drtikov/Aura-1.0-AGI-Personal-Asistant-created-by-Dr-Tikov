@@ -17,6 +17,7 @@ export const SomaticCruciblePanel = React.memo(() => {
                 return 'var(--failure-color)';
             case 'simulating':
             case 'designing':
+            case 'ethical_review':
                 return 'var(--warning-color)';
             default:
                 return 'var(--text-muted)';
@@ -30,11 +31,30 @@ export const SomaticCruciblePanel = React.memo(() => {
                 <div className="kg-placeholder">{t('somatic_pfsPlaceholder')}</div>
             ) : (
                 state.possibleFutureSelves.map(pfs => (
-                    <div key={pfs.id} className="gde-status" style={{ borderLeftColor: getStatusColor(pfs.status) }}>
-                        <p title={pfs.description}>
-                           <strong>{pfs.name}</strong>
-                        </p>
-                        <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(pfs.status), fontWeight: 'bold' }}>{pfs.status}</span></small>
+                    <div key={pfs.id} className="pfs-card">
+                        <div className="pfs-header">
+                            <span className="pfs-name">{pfs.name}</span>
+                            <span className="pfs-status" style={{ color: getStatusColor(pfs.status) }}>
+                                {pfs.status.replace('_', ' ')}
+                            </span>
+                        </div>
+                        <div className="pfs-body">
+                            <p className="pfs-description">{pfs.description}</p>
+                            <div className="pfs-metrics">
+                                <div className="pfs-metric-item">
+                                    <div className="sparkline-labels">
+                                        <span>Projected Wisdom Trajectory</span>
+                                    </div>
+                                    <Sparkline data={pfs.projectedTrajectory?.wisdom || [0,0]} strokeColor="var(--state-wisdom)" height={25} />
+                                </div>
+                                 <div className="pfs-metric-item">
+                                    <div className="sparkline-labels">
+                                        <span>Projected Harmony Trajectory</span>
+                                    </div>
+                                    <Sparkline data={pfs.projectedTrajectory?.harmony || [0,0]} strokeColor="var(--guna-dharma)" height={25} />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 ))
             )}
@@ -52,13 +72,6 @@ export const SomaticCruciblePanel = React.memo(() => {
                         <p className="mod-log-description" style={{fontStyle: 'italic', fontSize: '0.8rem'}}>
                             {log.reasoning}
                         </p>
-                        {log.somaticTrajectory && log.somaticTrajectory.length > 1 && (
-                            <div className="somatic-sparklines" style={{marginTop: '0.5rem'}}>
-                               <Sparkline data={log.somaticTrajectory.map(s => s.wisdomSignal)} strokeColor='var(--state-wisdom)' height={20} />
-                               <Sparkline data={log.somaticTrajectory.map(s => s.happinessSignal)} strokeColor='var(--state-happiness)' height={20} />
-                               <Sparkline data={log.somaticTrajectory.map(s => s.load)} strokeColor='var(--resource-cpu)' height={20} />
-                            </div>
-                        )}
                     </div>
                 ))
             )}

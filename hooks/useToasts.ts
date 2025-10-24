@@ -1,6 +1,6 @@
 import { useState, useCallback } from 'react';
 // FIX: Added missing ToastMessage and ToastType to the import from ../types to resolve module not found errors.
-import { ToastMessage, ToastType } from '../types';
+import { ToastMessage, ToastType } from '../types.ts';
 
 export const useToasts = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);

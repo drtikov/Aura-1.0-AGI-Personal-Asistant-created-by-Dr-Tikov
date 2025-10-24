@@ -1,6 +1,6 @@
 // context/AuraProvider.tsx
 import React, { useMemo, ReactNode } from 'react';
-import { useAura } from '../hooks';
+import { useAura } from '../hooks/index.ts';
 import {
     AuraDispatchContext,
     CoreStateContext,
@@ -12,7 +12,7 @@ import {
     SystemStateContext,
     LocalizationContext
 } from './AuraContext.tsx';
-import { AuraState } from '../types';
+import { AuraState } from '../types.ts';
 
 export const AuraProvider = ({ children }: { children?: ReactNode }) => {
     const auraInterface = useAura();
@@ -33,7 +33,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         theme: state.theme, 
         language: state.language,
         limitations: state.limitations, 
-        causalSelfModel: state.causalSelfModel, 
+        causalSelfModel: state.causalSelfModel,
         developmentalHistory: state.developmentalHistory,
         telosEngine: state.telosEngine,
         boundaryDetectionEngine: state.boundaryDetectionEngine,
@@ -74,6 +74,8 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         modalRequest: state.modalRequest,
         uiCommandRequest: state.uiCommandRequest,
         prometheusState: state.prometheusState,
+        collaborativeSessionState: state.collaborativeSessionState,
+        symbioticCanvasState: state.symbioticCanvasState,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -88,7 +90,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.socialCognitionState, state.metaphoricalMapState,
         state.internalScientistState, state.metisSandboxState, state.spandaState, state.personaState, state.brainstormState,
         state.liveSessionState, state.proactiveUI, state.strategicCoreState, state.mycelialState, state.semanticWeaverState, state.modalRequest, state.uiCommandRequest,
-        state.prometheusState,
+        state.prometheusState, state.collaborativeSessionState, state.symbioticCanvasState
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -120,7 +122,6 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         granularCortexState: state.granularCortexState,
         koniocortexSentinelState: state.koniocortexSentinelState,
         cognitiveTriageState: state.cognitiveTriageState,
-        praxisCoreState: state.praxisCoreState,
         psycheState: state.psycheState,
         motorCortexState: state.motorCortexState,
         praxisResonatorState: state.praxisResonatorState,
@@ -132,15 +133,16 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         wisdomIngestionState: state.wisdomIngestionState,
         axiomaticCrucibleState: state.axiomaticCrucibleState,
         atpCoprocessorState: state.atpCoprocessorState,
+        praxisCoreState: state.praxisCoreState,
     }), [
         state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState,
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
         state.architecturalCrucibleState, state.synapticMatrix, state.ricciFlowManifoldState,
         state.selfProgrammingState, state.neuralAcceleratorState, state.neuroCortexState, state.granularCortexState,
-        state.koniocortexSentinelState, state.cognitiveTriageState, state.praxisCoreState, state.psycheState, state.motorCortexState,
+        state.koniocortexSentinelState, state.cognitiveTriageState, state.psycheState, state.motorCortexState,
         state.praxisResonatorState, state.ontogeneticArchitectState, state.embodiedCognitionState,
         state.evolutionarySandboxState, state.hovaState, state.documentForgeState, state.wisdomIngestionState,
-        state.axiomaticCrucibleState, state.atpCoprocessorState,
+        state.axiomaticCrucibleState, state.atpCoprocessorState, state.praxisCoreState
     ]);
 
     const planningStateValue = useMemo(() => ({

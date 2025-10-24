@@ -86,6 +86,8 @@ import {
     CognitiveModeLogEntry,
     CognitiveGainLogEntry,
     CognitiveRegulationLogEntry,
+    SubsumptionLogState,
+    PraxisCoreState,
     ResourceMonitor,
     MetacognitiveNexus,
     MetacognitiveCausalModel,
@@ -104,16 +106,14 @@ import {
     BrainstormState,
     ChronicleState,
     ProactiveUIState,
-    PraxisCoreState,
-    SubsumptionLogState,
-    StrategicCoreState,
     MycelialState,
     SemanticWeaverState,
     HalState,
     PrometheusState,
     AutonomousReviewBoardState,
     ATPCoprocessorState,
-} from '../types';
+    SymbioticCanvasState,
+} from '../types.ts';
 
 // --- Context for the main dispatcher ---
 export const AuraDispatchContext = createContext<UseAuraResult | null>(null);
@@ -148,9 +148,9 @@ type CoreState = Pick<AuraState,
     | 'psionicDesynchronizationState' | 'satoriState' | 'doxasticEngineState' | 'qualiaSignalProcessorState' 
     | 'sensoryIntegration' | 'narrativeSummary' | 'socialCognitionState' | 'metaphoricalMapState' | 'atmanProjector'
     | 'internalScientistState' | 'metisSandboxState' | 'spandaState' | 'personaState' | 'brainstormState'
-    // FIX: Add liveSessionState and semanticWeaverState to CoreState
     | 'liveSessionState' | 'proactiveUI' | 'strategicCoreState' | 'mycelialState' | 'semanticWeaverState'
-    | 'modalRequest' | 'uiCommandRequest' | 'prometheusState' | 'metisSandboxState'
+    | 'modalRequest' | 'uiCommandRequest' | 'prometheusState'
+    | 'collaborativeSessionState' | 'symbioticCanvasState'
 >;
 export const [CoreStateContext, useCoreState] = createStateContext<CoreState>('CoreStateContext');
 
@@ -167,7 +167,6 @@ type ArchitectureState = Pick<AuraState,
     | 'praxisResonatorState' | 'ontogeneticArchitectState' | 'embodiedCognitionState' | 'evolutionarySandboxState'
     | 'hovaState' | 'documentForgeState' | 'wisdomIngestionState' | 'axiomaticCrucibleState'
     | 'atpCoprocessorState'
-    // FIX: Added 'praxisCoreState' to the ArchitectureState type to provide it to relevant components.
     | 'praxisCoreState'
 >;
 export const [ArchitectureStateContext, useArchitectureState] = createStateContext<ArchitectureState>('ArchitectureStateContext');

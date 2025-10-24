@@ -1,7 +1,4 @@
-
-
-
-
+// components/SearchModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 // FIX: Corrected import path for hooks to resolve module not found error.

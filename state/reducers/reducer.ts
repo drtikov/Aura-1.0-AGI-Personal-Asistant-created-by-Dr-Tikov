@@ -1,47 +1,57 @@
 // state/reducers/reducer.ts
-// FIX: Import missing AuraState and Action types.
-import { AuraState, Action, EventBusMessage, HistoryEntry } from '../../types';
-import { getInitialState } from '../initialState';
-import { coreReducer } from './core';
-import { memoryReducer } from './memory';
-import { architectureReducer } from './architecture';
-import { planningReducer } from './planning';
-import { enginesReducer } from './engines';
-import { logsReducer } from './logs';
-import { systemReducer } from './system';
-import { neuroCortexReducer } from './neuroCortex';
-import { granularCortexReducer } from './granularCortex';
-import { koniocortexReducer } from './koniocortex';
-import { premotorPlannerReducer } from './premotor';
-import { basalGangliaReducer } from './basalGanglia';
-import { cerebellumReducer } from './cerebellum';
-import { psycheReducer } from './psyche';
-import { motorCortexReducer } from './motorCortex';
-import { praxisResonatorReducer } from './praxisResonator';
-import { cognitiveForgeReducer } from './cognitiveForge';
-import { pluginReducer } from './pluginReducer';
-import { socialCognitionReducer } from './socialCognition';
-import { sandboxReducer } from './sandbox';
-import { doxasticReducer } from './doxastic';
-import { metaphorReducer } from './metaphor';
-import { hovaReducer } from './hova';
-import { documentForgeReducer } from './documentForge';
-import { internalScientistReducer } from './internalScientist';
-import { metisSandboxReducer } from './metisSandbox';
-import { wisdomIngestionReducer } from './wisdomIngestion';
-import { spandaReducer } from './spanda';
-import { temporalEngineReducer } from './temporalEngine';
-import { axiomaticCrucibleReducer } from './axiomaticCrucible';
-import { kernelReducer } from './kernel';
-import { personaReducer } from './persona';
-import { brainstormReducer } from './brainstorm';
-import { liveSessionReducer } from './liveSession';
-import { cognitiveTriageReducer } from './cognitiveTriage';
-import { praxisCoreReducer } from './praxisCore';
-import { subsumptionLogReducer } from './subsumptionLog';
-import { strategicCoreReducer } from './strategicCore';
-import { mycelialReducer } from './mycelial';
-import { semanticWeaverReducer } from './semanticWeaver';
+import { AuraState, Action, EventBusMessage, HistoryEntry } from '../../types.ts';
+import { getInitialState } from './initialState.ts';
+import { coreReducer } from './core.ts';
+import { memoryReducer } from './memory.ts';
+import { architectureReducer } from './architecture.ts';
+import { planningReducer } from './planning.ts';
+import { enginesReducer } from './engines.ts';
+import { logsReducer } from './logs.ts';
+import { systemReducer } from './system.ts';
+import { neuroCortexReducer } from './neuroCortex.ts';
+import { granularCortexReducer } from './granularCortex.ts';
+import { koniocortexReducer } from './koniocortex.ts';
+import { premotorPlannerReducer } from './premotor.ts';
+import { basalGangliaReducer } from './basalGanglia.ts';
+import { cerebellumReducer } from './cerebellum.ts';
+import { psycheReducer } from './psyche.ts';
+import { motorCortexReducer } from './motorCortex.ts';
+import { praxisResonatorReducer } from './praxisResonator.ts';
+import { cognitiveForgeReducer } from './cognitiveForge.ts';
+import { pluginReducer } from './pluginReducer.ts';
+import { socialCognitionReducer } from './socialCognition.ts';
+import { sandboxReducer } from './sandbox.ts';
+import { doxasticReducer } from './doxastic.ts';
+import { metaphorReducer } from './metaphor.ts';
+import { hovaReducer } from './hova.ts';
+import { documentForgeReducer } from './documentForge.ts';
+import { internalScientistReducer } from './internalScientist.ts';
+import { metisSandboxReducer } from './metisSandbox.ts';
+import { wisdomIngestionReducer } from './wisdomIngestion.ts';
+import { spandaReducer } from './spanda.ts';
+import { temporalEngineReducer } from './temporalEngine.ts';
+import { axiomaticCrucibleReducer } from './axiomaticCrucible.ts';
+import { kernelReducer } from './kernel.ts';
+import { personaReducer } from './persona.ts';
+import { brainstormReducer } from './brainstorm.ts';
+import { liveSessionReducer } from './liveSession.ts';
+import { cognitiveTriageReducer } from './cognitiveTriage.ts';
+import { praxisCoreReducer } from './praxisCore.ts';
+import { subsumptionLogReducer } from './subsumptionLog.ts';
+import { strategicCoreReducer } from './strategicCore.ts';
+import { mycelialReducer } from './mycelial.ts';
+import { semanticWeaverReducer } from './semanticWeaver.ts';
+import { atpCoprocessorReducer } from './atpCoprocessor.ts';
+import { prometheusReducer } from './prometheus.ts';
+import { symbioticCoderReducer } from './symbioticCoder.ts';
+import { collaborativeSessionReducer } from './collaborativeSession.ts';
+import { toolReducer } from './toolReducer.ts';
+import { canvasReducer } from './canvas.ts';
+import { synthesisReducer } from './synthesisReducer.ts';
+import { somaticCrucibleReducer } from './somaticCrucible.ts';
+import { autoCodeForgeReducer } from './autoCodeForge.ts';
+import { resonanceReducer } from './resonanceReducer.ts';
+import { crucibleReducer } from './crucibleReducer.ts';
 
 const reducers = [
     coreReducer,
@@ -84,9 +94,19 @@ const reducers = [
     strategicCoreReducer,
     mycelialReducer,
     semanticWeaverReducer,
+    atpCoprocessorReducer,
+    prometheusReducer,
+    symbioticCoderReducer,
+    collaborativeSessionReducer,
+    toolReducer,
+    canvasReducer,
+    synthesisReducer,
+    somaticCrucibleReducer,
+    autoCodeForgeReducer,
+    resonanceReducer,
+    crucibleReducer,
 ];
 
-// FIX: Implemented the full reducer function to resolve the "must return a value" error from a truncated file.
 export const auraReducer = (state: AuraState, action: Action): AuraState => {
     // Handle global actions that bypass slice reducers
     if (action.type === 'RESET_STATE') {
@@ -96,8 +116,35 @@ export const auraReducer = (state: AuraState, action: Action): AuraState => {
         return action.payload;
     }
 
+    let intermediateState = state;
+
+    // --- SYSCALL INTERCEPTION FOR RESONANCE ---
+    if (action.type === 'SYSCALL') {
+        const { call } = action.payload;
+        const frequency = call.split('/')[0];
+
+        // Dispatch resonance pings for relevant syscalls
+        if (frequency && frequency !== call && !call.startsWith('RESONANCE/')) {
+            const pingAction: Action = {
+                type: 'SYSCALL',
+                payload: { call: 'RESONANCE/PING_FREQUENCY', args: { frequency } }
+            };
+            intermediateState = { ...intermediateState, ...resonanceReducer(intermediateState, pingAction) };
+        }
+
+        // Dispatch decay on kernel tick
+        if (call === 'KERNEL/TICK') {
+            const decayAction: Action = {
+                type: 'SYSCALL',
+                payload: { call: 'RESONANCE/DECAY_FREQUENCIES', args: {} }
+            };
+            intermediateState = { ...intermediateState, ...resonanceReducer(intermediateState, decayAction) };
+        }
+    }
+    // --- END RESONANCE INTERCEPTION ---
+    
     // Process the action through all slice reducers, accumulating changes
-    let nextState = state;
+    let nextState = intermediateState;
     for (const reducer of reducers) {
         // Reducers now return partial state, so we merge them.
         const partialState = reducer(nextState, action);

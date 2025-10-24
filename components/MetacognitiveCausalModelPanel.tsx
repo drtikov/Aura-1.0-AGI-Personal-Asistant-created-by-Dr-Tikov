@@ -1,6 +1,7 @@
 // components/MetacognitiveCausalModelPanel.tsx
 import React from 'react';
-import { MetacognitiveLink } from '../types';
+// FIX: Added '.ts' extension to satisfy module resolution.
+import { MetacognitiveLink } from '../types.ts';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 

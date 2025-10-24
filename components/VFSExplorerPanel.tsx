@@ -7,12 +7,13 @@ type VFSNode = { name: string; type: 'f' | 'd' };
 
 // --- CVFS Facade Logic ---
 const cvfsRead = (path: string, state: AuraState): string | null => {
-    const parts = path.split('/').filter(Boolean);
-    if (parts.length === 0) return null; // Can't read root
+    // First, check the real VFS for a direct match
+    if (state.selfProgrammingState.virtualFileSystem[path]) {
+        return state.selfProgrammingState.virtualFileSystem[path];
+    }
 
     const contentMapping: { [key: string]: (s: AuraState) => any } = {
         '/sys/persona/active': (s) => s.personalityState.dominantPersona,
-        '/sys/logs/boot.log': (s) => s.selfProgrammingState.virtualFileSystem['/system/logs/boot.log'] || 'Log not found.',
         '/mem/semantic/graph.json': (s) => JSON.stringify(s.knowledgeGraph, null, 2),
         '/mem/episodic/log': (s) => s.episodicMemoryState.episodes.map(e => `[${new Date(e.timestamp).toISOString()}] ${e.title}: ${e.summary}`).join('\n'),
         '/dev/user_in': (s) => s.history.filter(h => h.from === 'user').slice(-1)[0]?.text || '',
@@ -24,7 +25,7 @@ const cvfsRead = (path: string, state: AuraState): string | null => {
         try {
             return String(contentMapping[path](state));
         } catch (e) {
-            console.error(`Error reading VFS path ${path}:`, e);
+            console.error(`Error reading CVFS path ${path}:`, e);
             return "Error reading file content.";
         }
     }
@@ -33,7 +34,7 @@ const cvfsRead = (path: string, state: AuraState): string | null => {
 };
 
 const cvfsLs = (path: string, state: AuraState): VFSNode[] | null => {
-    const structure: any = {
+     const virtualStructure: any = {
         proc: { type: 'd' },
         mem: { 
             type: 'd',
@@ -54,10 +55,6 @@ const cvfsLs = (path: string, state: AuraState): VFSNode[] | null => {
                 persona: {
                     type: 'd',
                     children: { 'active': { type: 'f' } }
-                },
-                logs: {
-                    type: 'd',
-                    children: { 'boot.log': { type: 'f' } }
                 }
             }
         },
@@ -71,12 +68,31 @@ const cvfsLs = (path: string, state: AuraState): VFSNode[] | null => {
         }
     };
     
+    // Merge real VFS structure with virtual structure
+    const allPaths = Object.keys(state.selfProgrammingState.virtualFileSystem);
+    allPaths.forEach(p => {
+        const parts = p.split('/').filter(Boolean);
+        let currentLevel = virtualStructure;
+        for (let i = 0; i < parts.length; i++) {
+            const part = parts[i];
+            const isLast = i === parts.length - 1;
+            if (isLast) {
+                currentLevel[part] = { type: 'f' };
+            } else {
+                if (!currentLevel[part]) {
+                    currentLevel[part] = { type: 'd', children: {} };
+                }
+                currentLevel = currentLevel[part].children;
+            }
+        }
+    });
+
     if (path === '/') {
-        return Object.keys(structure).map(name => ({ name, type: structure[name].type }));
+        return Object.keys(virtualStructure).map(name => ({ name, type: virtualStructure[name].type }));
     }
 
     const parts = path.split('/').filter(Boolean);
-    let currentLevel = structure;
+    let currentLevel = virtualStructure;
     for (const part of parts) {
         if (currentLevel[part] && currentLevel[part].type === 'd') {
             currentLevel = currentLevel[part].children;

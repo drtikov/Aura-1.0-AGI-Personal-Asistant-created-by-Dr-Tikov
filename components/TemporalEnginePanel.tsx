@@ -1,12 +1,12 @@
 // components/TemporalEnginePanel.tsx
 import React from 'react';
 import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
-import { SEDLDirective } from '../types';
+import { SEDLDirective } from '../types.ts';
 
 export const TemporalEnginePanel = () => {
     const { temporalEngineState } = useSystemState();
     const { t } = useLocalization();
-    const { status, directive, chronicler, reactor, oracle, interClusterLog } = temporalEngineState;
+    const { status, directive, chronicler, reactor, oracle, historian, interClusterLog } = temporalEngineState;
 
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -61,6 +61,18 @@ export const TemporalEnginePanel = () => {
                             <div key={i} className="log-item">
                                 <span className="log-icon">🔮</span>
                                 <span className="log-text">{sim}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+                 {/* Historian (Counterfactual) */}
+                <div className="temporal-cluster">
+                    <div className="cluster-header historian-header">{t('temporal_historian')}</div>
+                    <div className="cluster-content">
+                         {historian.findings.map((finding, i) => (
+                            <div key={i} className="log-item">
+                                <span className="log-icon">⏳</span>
+                                <span className="log-text">{finding}</span>
                             </div>
                         ))}
                     </div>

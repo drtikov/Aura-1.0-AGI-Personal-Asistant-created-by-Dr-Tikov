@@ -1,5 +1,5 @@
 // state/reducers/sandbox.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const sandboxReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -51,6 +51,15 @@ export const sandboxReducer = (state: AuraState, action: Action): Partial<AuraSt
                     result: null,
                 }
             };
+        }
+
+        case 'METIS/SET_STATE': {
+            return {
+                metisSandboxState: {
+                    ...state.metisSandboxState,
+                    ...args
+                }
+            }
         }
 
         default:

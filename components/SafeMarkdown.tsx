@@ -1,41 +1,31 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useEffect } from 'react';
 
 declare const katex: any;
+declare const marked: any;
 
-const MarkdownFragment: React.FC<{ text: string }> = ({ text }) => {
-    // This regex now also handles backticks for inline code
-    const markdownRegex = /(\*\*.*?\*\*|\*.*?\*|`.*?`)/g;
-    const parts = text.split(markdownRegex).filter(Boolean);
-
-    return (
-        <>
-            {parts.map((part, i) => {
-                if (part.startsWith('**') && part.endsWith('**')) {
-                    return <strong key={i}>{part.slice(2, -2)}</strong>;
-                }
-                if (part.startsWith('*') && part.endsWith('*')) {
-                    return <em key={i}>{part.slice(1, -1)}</em>;
-                }
-                 if (part.startsWith('`') && part.endsWith('`')) {
-                    return <code key={i} className="inline-code">{part.slice(1, -1)}</code>;
-                }
-                // Handle newlines within normal text parts
-                return part.split('\n').map((line, j) => (
-                    <React.Fragment key={`${i}-${j}`}>
-                        {line}
-                        {j < part.split('\n').length - 1 && <br />}
-                    </React.Fragment>
-                ));
-            })}
-        </>
-    );
+// A custom renderer for marked to add specific classes or behaviors
+const renderer = {
+  // Example: Add a class to blockquotes
+  blockquote(quote: string) {
+    return `<blockquote class="markdown-blockquote">${quote}</blockquote>`;
+  },
+  // Example: Add a class to code blocks for syntax highlighting later
+  code(code: string, language: string) {
+    const validLanguage = language && /^[a-zA-Z0-9]+$/.test(language) ? language : 'plaintext';
+    return `<pre><code class="language-${validLanguage}">${code}</code></pre>`;
+  }
 };
+
+// Set up marked with the custom renderer
+if (typeof marked !== 'undefined') {
+  marked.use({ renderer });
+}
 
 export const SafeMarkdown = React.memo(({ text }: { text: string }) => {
     const elements = useMemo(() => {
-        if (typeof katex === 'undefined') {
-            // Fallback if KaTeX library isn't loaded
-            return <MarkdownFragment text={text} />;
+        if (typeof marked === 'undefined' || typeof katex === 'undefined') {
+            // Fallback if libraries aren't loaded
+            return <pre><code>{text}</code></pre>;
         }
         
         // Regex to find both inline ($...$) and display ($$...$$) LaTeX blocks
@@ -46,34 +36,31 @@ export const SafeMarkdown = React.memo(({ text }: { text: string }) => {
             if (part.startsWith('$$') && part.endsWith('$$')) {
                 const math = part.slice(2, -2);
                 try {
-                    const html = katex.renderToString(math, {
-                        displayMode: true,
-                        throwOnError: false
-                    });
-                    // display-mode math needs a block-level element
+                    const html = katex.renderToString(math, { displayMode: true, throwOnError: false });
                     return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
                 } catch (e) {
-                    // In case of error, render as plain code
                     return <code key={index}>{part}</code>;
                 }
             }
             if (part.startsWith('$') && part.endsWith('$')) {
                 const math = part.slice(1, -1);
                  try {
-                    const html = katex.renderToString(math, {
-                        displayMode: false,
-                        throwOnError: false
-                    });
+                    const html = katex.renderToString(math, { displayMode: false, throwOnError: false });
                     return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
                  } catch (e) {
                      return <code key={index}>{part}</code>;
                  }
             }
-            // If it's not a math part, process it for markdown
-            return <MarkdownFragment key={index} text={part} />;
+            // If it's not a math part, process it for markdown using marked.js
+            try {
+                const html = marked.parse(part, { gfm: true, breaks: true });
+                return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
+            } catch(e) {
+                // In case of a marked error, render as plain text
+                return <span key={index}>{part}</span>;
+            }
         });
     }, [text]);
 
-    // Use a div instead of a p to be a valid container for block-level elements from KaTeX
     return <div className="content-renderer">{elements}</div>;
 });

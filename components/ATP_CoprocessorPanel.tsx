@@ -1,31 +1,30 @@
 // components/ATP_CoprocessorPanel.tsx
 import React, { useState } from 'react';
 import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
-import { ATPProofStep } from '../types';
-
-const MetricItem = ({ label, value, color }: { label: string; value: string | number; color?: string }) => (
-    <div className="metric-item">
-        <span className="metric-label">{label}</span>
-        <span className="metric-value" style={{ color: color || 'var(--text-color)' }}>{value}</span>
-    </div>
-);
+import { ATPProofStep } from '../types.ts';
 
 export const ATPCoprocessorPanel = () => {
     const { atpCoprocessorState } = useArchitectureState();
-    const { handleStartProof, syscall } = useAuraDispatch();
+    const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
     const [goal, setGoal] = useState('Prove the sum of the first n odd numbers is n^2');
-    const { status, currentGoal, proofLog, strategyMetrics, finalProof } = atpCoprocessorState;
+    const { status, currentGoal, proofLog, finalProof } = atpCoprocessorState;
 
-    const handleProve = () => {
+    const handleInitiate = () => {
         if (goal.trim()) {
-            handleStartProof(goal.trim());
+            syscall('ATP/START_ORCHESTRATION', { goal: goal.trim() });
         }
     };
     
     const handleReset = () => {
         syscall('ATP/RESET', {});
     };
+
+    const handleViewLandscape = () => {
+        syscall('EXECUTE_UI_HANDLER', { handlerName: 'open', args: ['auraOS', { initialPanel: 'proofLandscape' }] });
+    };
+
+    const isProgramRunning = status === 'orchestrating' || status === 'strategizing' || status === 'proving';
 
     return (
         <div className="side-panel atp-coprocessor-panel">
@@ -39,73 +38,40 @@ export const ATPCoprocessorPanel = () => {
                     onChange={(e) => setGoal(e.target.value)}
                     placeholder={t('atp_goal_placeholder')}
                     rows={2}
-                    disabled={status === 'proving'}
+                    disabled={isProgramRunning}
                 />
             </div>
             <div className="button-grid" style={{ marginTop: '1rem' }}>
                 <button
                     className="control-button"
-                    onClick={handleProve}
-                    disabled={status === 'proving' || !goal.trim()}
+                    onClick={handleInitiate}
+                    disabled={isProgramRunning || !goal.trim()}
                 >
-                    {status === 'proving' ? t('atp_proving') : t('atp_prove')}
+                    {isProgramRunning ? t('atp_proving') : t('atp_initiate_program')}
                 </button>
-                 {(status === 'success' || status === 'failed') && (
+                 {(status !== 'idle') && (
                     <button className="control-button" onClick={handleReset}>
                         {t('atp_reset')}
                     </button>
                 )}
             </div>
 
-            <div className="panel-subsection-title">{t('atp_proofLog')}</div>
-            <div className="command-log-list" style={{ maxHeight: '200px', overflowY: 'auto' }}>
-                {proofLog.length === 0 ? (
-                    <div className="kg-placeholder">{t('atp_log_placeholder')}</div>
-                ) : (
-                    proofLog.map((step, index) => (
-                        <div key={index} className={`command-log-item log-type-${step.step === -1 ? 'error' : 'info'}`}>
-                            <span className="log-icon">{step.step === -1 ? '❌' : `S${step.step}`}</span>
-                            <span className="log-text" title={step.result}>{step.action}</span>
-                        </div>
-                    ))
-                )}
-                 {status === 'proving' && (
-                     <div className="command-log-item log-type-info">
-                         <span className="log-icon"><div className="spinner-small" /></span>
-                         <span className="log-text">Thinking...</span>
-                     </div>
-                )}
+            <div className="awareness-item" style={{ marginTop: '1rem' }}>
+                <label>{t('atp_program_status')}</label>
+                <strong className={`status-${status}`} style={{textTransform: 'capitalize'}}>
+                    {t(`atp_status_${status}`, { defaultValue: status })}
+                    {isProgramRunning && <div className="spinner-small" style={{ display: 'inline-block', marginLeft: '0.5rem' }} />}
+                </strong>
             </div>
 
-            {finalProof && status === 'success' && (
-                <>
-                    <div className="panel-subsection-title">{t('atp_finalProof')}</div>
-                     <div className="gde-status" style={{ borderLeftColor: 'var(--success-color)' }}>
-                        <ol className="proof-steps" style={{ border: 'none', padding: 0, gap: '0.5rem' }}>
-                           {finalProof.map((step: ATPProofStep) => (
-                               <li key={step.step}>
-                                   <span className="step-statement">{step.step}. {step.action}</span>
-                                   <span className="step-justification">{step.result}</span>
-                               </li>
-                           ))}
-                       </ol>
-                    </div>
-                </>
+            {atpCoprocessorState.proofTreeRootId && (
+                 <div className="button-grid" style={{ marginTop: '0.5rem' }}>
+                    <button className="control-button" onClick={handleViewLandscape}>
+                        {t('atp_view_landscape')}
+                    </button>
+                 </div>
             )}
-
-            <div className="panel-subsection-title">{t('atp_strategyMetrics')}</div>
-            <div className="secondary-metrics" style={{ gridTemplateColumns: '1fr 1fr 1fr', textAlign: 'center' }}>
-                {Object.entries(strategyMetrics).map(([strategy, metrics]) => (
-                    <div key={strategy} className="metric-item" style={{ flexDirection: 'column', gap: '0.25rem' }}>
-                        <span className="metric-label">{strategy}</span>
-                        <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'center' }}>
-                            {/* FIX: Add type assertion to metrics to resolve unknown property error */}
-                             <MetricItem label={t('atp_successes')} value={(metrics as any).successes} color="var(--success-color)" />
-                             <MetricItem label={t('atp_failures')} value={(metrics as any).failures} color="var(--failure-color)" />
-                        </div>
-                    </div>
-                ))}
-            </div>
+            
         </div>
     );
 };

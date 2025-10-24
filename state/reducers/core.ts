@@ -1,5 +1,7 @@
 // state/reducers/core.ts
-import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown, UnifiedProposal } from '../../types';
+import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown, UnifiedProposal } from '../../types.ts';
+import { clamp } from '../../utils.ts';
+import { AuraConfig } from '../../constants.ts';
 
 export const coreReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -76,6 +78,22 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                     ...args
                 }
             };
+        
+        case 'RIE/TRIGGER_ADAPTATION_ANALYSIS':
+            return {
+                rieState: {
+                    ...state.rieState,
+                    adaptationAnalysisPending: true,
+                }
+            };
+        
+        case 'RIE/COMPLETE_ADAPTATION_ANALYSIS':
+            return {
+                rieState: {
+                    ...state.rieState,
+                    adaptationAnalysisPending: false,
+                }
+            };
 
         case 'ADD_RIE_INSIGHT':
             return {
@@ -137,7 +155,10 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             return {
                 telosEngine: {
                     ...state.telosEngine,
-                    telos: args,
+                    valueHierarchy: {
+                        ...state.telosEngine.valueHierarchy,
+                        telos: args,
+                    },
                 }
             };
 
@@ -163,7 +184,10 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             return {
                 telosEngine: {
                     ...state.telosEngine,
-                    telos: candidate.text,
+                    valueHierarchy: {
+                        ...state.telosEngine.valueHierarchy,
+                        telos: candidate.text,
+                    },
                     candidateTelos: state.telosEngine.candidateTelos.filter(c => c.id !== args),
                 }
             };
@@ -291,8 +315,8 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             const newMilestone = {
                 id: self.crypto.randomUUID(),
                 timestamp: Date.now(),
-                title: 'VFS Code Ingestion',
-                description: `A user or internal process directly modified the file: ${filePath}`,
+                title: 'Manual Code Ingestion',
+                description: `A user or external agent directly modified the file: ${filePath}`,
             };
             return {
                 developmentalHistory: {
@@ -365,6 +389,14 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             };
         }
         
+        case 'CURIOSITY/SET_ACTIVE_INQUIRY':
+            return {
+                curiosityState: {
+                    ...state.curiosityState,
+                    activeInquiry: args.inquiry,
+                }
+            };
+            
         case 'CURIOSITY/SET_ACTIVE_GOAL': {
             return {
                 curiosityState: {
@@ -437,6 +469,17 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                 }
             };
         }
+
+        case 'MODAL/OPEN':
+            return {
+                modalRequest: {
+                    type: args.type,
+                    payload: args.payload,
+                }
+            };
+
+        case 'CLEAR_MODAL_REQUEST':
+            return { modalRequest: null };
 
         default:
             return {};

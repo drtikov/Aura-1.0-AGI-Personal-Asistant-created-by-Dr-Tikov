@@ -1,11 +1,12 @@
 // components/CognitiveRegulationPanel.tsx
 import React from 'react';
 import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
-import { StateAdjustment } from '../types';
+import { StateAdjustment, CognitiveRegulationLogEntry } from '../types';
 
 export const CognitiveRegulationPanel = React.memo(() => {
     const { cognitiveRegulationLog: log } = useLogsState();
     const { t } = useLocalization();
+    
     const timeAgo = (timestamp: number) => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
@@ -16,33 +17,39 @@ export const CognitiveRegulationPanel = React.memo(() => {
     };
 
     return (
-        <div className="side-panel">
+        <div className="side-panel command-log-panel">
             {log.length === 0 ? (
-                <div className="kg-placeholder">{t('cogRegulation_placeholder')}</div>
+                <div className="kg-placeholder">{t('cogRegulationPanel_placeholder')}</div>
             ) : (
-                log.map(entry => (
-                    <div key={entry.id} className="rie-insight-item" style={{background: 'rgba(42, 161, 152, 0.05)', borderLeft: '3px solid var(--guna-dharma)'}}>
-                        <div className="rie-insight-header">
-                            <span title={entry.triggeringCommand}>{t('cogRegulation_task')}: <strong>"{entry.triggeringCommand.substring(0, 40)}{entry.triggeringCommand.length > 40 ? '...' : ''}"</strong></span>
-                            <small>{timeAgo(entry.timestamp)}</small>
-                        </div>
-                        <div className="rie-insight-body">
-                            <p><strong>{t('cogRegulation_directive')}:</strong> {entry.primingDirective}</p>
-                            <div className="adjustments-list" style={{marginTop: '0.5rem'}}>
-                                {Object.entries(entry.stateAdjustments).map(([key, adjustment]: [string, StateAdjustment]) => (
-                                    <p key={key} className="rie-insight-model-update" style={{fontSize: '0.8rem'}}>
-                                        <strong>{key.replace('Signal', '')}:</strong>
-                                        <span className="rie-insight-model-update-value"> {adjustment.from.toFixed(2)} → {adjustment.to.toFixed(2)}</span>
-                                        <span style={{color: adjustment.to > adjustment.from ? 'var(--success-color)' : 'var(--failure-color)', marginLeft: '0.5rem'}}>
-                                            {adjustment.to > adjustment.from ? '▲' : '▼'}
-                                        </span>
-                                    </p>
-                                ))}
+                <div className="command-log-list">
+                    {log.map((entry: CognitiveRegulationLogEntry) => (
+                        <details key={entry.id} className="workflow-details">
+                            <summary className="workflow-summary">
+                                <div className="mod-log-header" style={{ width: '100%' }}>
+                                    <span className="mod-log-type" title={entry.reason}>
+                                        {entry.trigger}
+                                    </span>
+                                    <span className="log-time">{timeAgo(entry.timestamp)}</span>
+                                </div>
+                            </summary>
+                            <div className="workflow-content">
+                                <p className="workflow-description"><strong>Reason:</strong> <em>"{entry.reason}"</em></p>
+                                <ul className="adjustments-list">
+                                    {/* FIX: Inlined the AdjustmentItem component JSX to resolve typing error with the 'key' prop. */}
+                                    {entry.adjustments.map((adj, i) => (
+                                        <li key={i} className="adjustment-item">
+                                            <span className="param">{adj.parameter.replace(/Signal|Level/g, '')}</span>
+                                            <span className="values">{adj.oldValue.toFixed(2)} → {adj.newValue.toFixed(2)}</span>
+                                            <span className={`change ${adj.newValue > adj.oldValue ? 'positive' : 'negative'}`}>
+                                                ({adj.newValue > adj.oldValue ? '+' : ''}{(adj.newValue - adj.oldValue).toFixed(2)})
+                                            </span>
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
-                            {entry.outcomeLogId && <small style={{display: 'block', textAlign: 'right', fontStyle: 'italic', marginTop: '0.5rem', opacity: 0.7}}>{t('cogRegulation_outcomeLogged')}</small>}
-                        </div>
-                    </div>
-                ))
+                        </details>
+                    ))}
+                </div>
             )}
         </div>
     );

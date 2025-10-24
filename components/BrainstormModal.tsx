@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-import { BrainstormIdea } from '../types.ts';
+import { BrainstormIdea, Persona } from '../types.ts';
 import { HAL } from '../core/hal.ts';
 
 // Re-using the results display logic from BrainstormingPanel
@@ -45,12 +45,12 @@ const BrainstormResults = ({ topic, ideas, winningIdea, onCopy }: { topic: strin
     );
 };
 
-export const BrainstormModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
+export const BrainstormModal = ({ isOpen, onClose, initialTopic, personas }: { isOpen: boolean; onClose: () => void; initialTopic?: string; personas?: Persona[] }) => {
     const { t } = useLocalization();
     const { geminiAPI, syscall, addToast } = useAuraDispatch();
     
     const [status, setStatus] = useState<'input' | 'generating' | 'results'>('input');
-    const [topic, setTopic] = useState('');
+    const [topic, setTopic] = useState(initialTopic || '');
     const [ideas, setIdeas] = useState<BrainstormIdea[]>([]);
     const [winningIdea, setWinningIdea] = useState<string | null>(null);
 
@@ -58,11 +58,11 @@ export const BrainstormModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
     useEffect(() => {
         if (isOpen) {
             setStatus('input');
-            setTopic('');
+            setTopic(initialTopic || '');
             setIdeas([]);
             setWinningIdea(null);
         }
-    }, [isOpen]);
+    }, [isOpen, initialTopic]);
 
     const handleGenerate = async () => {
         if (!topic.trim()) {
@@ -75,7 +75,7 @@ export const BrainstormModal = ({ isOpen, onClose }: { isOpen: boolean; onClose:
 
         try {
             // Perform the brainstorm
-            const generatedIdeas = await geminiAPI.generateBrainstormingIdeas(topic);
+            const generatedIdeas = await geminiAPI.generateBrainstormingIdeas(topic, personas);
             const generatedWinner = await geminiAPI.synthesizeBrainstormWinner(topic, generatedIdeas);
 
             // Update local state to show results

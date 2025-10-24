@@ -1,11 +1,11 @@
+// hooks/useAuraState.ts
 import { useReducer, useEffect, useState, useCallback, useRef } from 'react';
-import { getInitialState } from '../state/initialState';
-import { auraReducer } from '../state/reducer';
-import { CURRENT_STATE_VERSION } from '../constants';
-import { migrateState } from '../state/migrations';
-import { HAL } from '../core/hal';
-// FIX: Import missing AuraState type.
-import { AuraState, HistoryEntry } from '../types';
+import { getInitialState } from '../state/initialState.ts';
+import { auraReducer } from '../state/reducer.ts';
+import { CURRENT_STATE_VERSION } from '../constants.ts';
+import { migrateState } from '../state/migrations.ts';
+import { HAL } from '../core/hal.ts';
+import { AuraState, HistoryEntry } from '../types.ts';
 
 const CONTINUATION_SNAPSHOT_KEY = 'auraContinuationSnapshot';
 
@@ -33,7 +33,7 @@ export const useAuraState = () => {
                         text: 'SYSTEM: Seamless reboot complete. State restored.',
                         timestamp: Date.now()
                     };
-                    dispatch({ type: 'IMPORT_STATE', payload: { ...loadedState, history: [...loadedState.history, systemMessage] } });
+                    dispatch({ type: 'IMPORT_STATE', payload: { ...loadedState, history: [...(loadedState.history || []), systemMessage] } });
                     setMemoryStatus('ready');
                     return; // Initialization is done
                 }
@@ -82,19 +82,19 @@ export const useAuraState = () => {
     
     // Effect for triggering a seamless reboot when required
     useEffect(() => {
-        if (state.kernelState.rebootRequired) {
+        if (state.kernelState?.rebootRequired) {
             console.log("Seamless reboot triggered...");
             // Clean the flag before saving to prevent a loop
             const stateToSave = { ...state, kernelState: { ...state.kernelState, rebootRequired: false } };
             sessionStorage.setItem(CONTINUATION_SNAPSHOT_KEY, JSON.stringify(stateToSave));
             window.location.reload();
         }
-    }, [state.kernelState.rebootRequired]);
-
+    }, [state.kernelState]);
+    
     // Effect for saving state to Memristor whenever it changes
     useEffect(() => {
         // Don't save during initialization or if a reboot is pending.
-        if (memoryStatus !== 'ready' || state.kernelState.rebootRequired) {
+        if (memoryStatus !== 'ready' || state.kernelState?.rebootRequired) {
             return;
         }
 

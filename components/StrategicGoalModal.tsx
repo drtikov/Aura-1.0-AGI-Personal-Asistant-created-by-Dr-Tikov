@@ -3,15 +3,15 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 import { useLocalization } from '../context/AuraContext.tsx';
 
-export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing }: { isOpen: boolean; onSetGoal: (goal: string) => void; onClose: () => void; isProcessing: boolean; }) => {
-    const [goal, setGoal] = useState('');
+export const StrategicGoalModal = ({ isOpen, onSetGoal, onClose, isProcessing, initialGoal }: { isOpen: boolean; onSetGoal: (goal: string) => void; onClose: () => void; isProcessing: boolean; initialGoal?: string; }) => {
+    const [goal, setGoal] = useState(initialGoal || '');
     const { t } = useLocalization();
 
     useEffect(() => {
-        if (!isOpen) {
-            setGoal('');
+        if (isOpen) {
+            setGoal(initialGoal || '');
         }
-    }, [isOpen]);
+    }, [isOpen, initialGoal]);
 
     const handleSetGoalClick = () => {
         if (goal.trim()) {

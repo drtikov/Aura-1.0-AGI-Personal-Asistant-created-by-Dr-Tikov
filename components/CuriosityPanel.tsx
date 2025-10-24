@@ -2,8 +2,8 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Corrected import path for types to resolve module error.
-import { KnownUnknown } from '../types';
-import { useModal } from '../context/ModalContext';
+import { KnownUnknown } from '../types.ts';
+import { useModal } from '../context/ModalContext.tsx';
 
 export const CuriosityPanel = React.memo(() => {
     const { curiosityState: state, knownUnknowns } = useCoreState();

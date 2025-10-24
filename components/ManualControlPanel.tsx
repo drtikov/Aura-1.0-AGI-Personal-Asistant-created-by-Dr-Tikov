@@ -22,7 +22,10 @@ export const ManualControlPanel = () => {
         handleMeditate,
         handleGaze,
         handleTimefocus,
-        handleGenerateArchitectureDocument
+        handleGenerateArchitectureDocument,
+        handleOrchestrateTask,
+        handleExplainComponent,
+        handleGenerateArchitecturalSchema,
     } = useAuraDispatch();
     const { t } = useLocalization();
     const modal = useModal();
@@ -33,12 +36,13 @@ export const ManualControlPanel = () => {
             <div className="panel-group-title">{t('coreActions')}</div>
             <div className="button-grid">
                 <button className="control-button" onClick={handleContemplate} title={t('tip_introspect')}>{t('introspect')}</button>
-                <button className="control-button" onClick={() => modal.open('documentForge', {})} title={t('tip_documentForge')}>{t('documentForge')}</button>
-                <button className="control-button" onClick={handleGenerateArchitectureDocument} title={t('tip_generateArchDoc')}>{t('generateArchDoc')}</button>
+                <button className="control-button" onClick={() => handleOrchestrateTask()}>{t('orchestrateTask')}</button>
+                <button className="control-button" onClick={() => handleExplainComponent()}>{t('explainComponent')}</button>
                 <button className="control-button" onClick={() => modal.open('whatIf', {})} title={t('tip_whatIf')}>{t('whatIf')}</button>
                 <button className="control-button" onClick={() => modal.open('search', {})} title={t('tip_search')}>{t('search')}</button>
                 <button className="control-button" onClick={() => modal.open('strategicGoal', {})} title={t('tip_setGoal')}>{t('setGoal')}</button>
                 <button className="control-button" onClick={() => modal.open('forecast', {})} title={t('tip_forecast')}>{t('forecast')}</button>
+                <button className="control-button" onClick={() => modal.open('telosEngine', {})}>{t('telos_title')}</button>
                 <button className={`control-button pause-button ${isPaused ? 'paused' : ''}`} onClick={handleTogglePause} title={isPaused ? t('tip_resume') : t('tip_pause')}>
                     {isPaused ? t('resume') : t('pause')}
                 </button>
@@ -67,6 +71,7 @@ export const ManualControlPanel = () => {
                 <button className="control-button" onClick={() => importInputRef.current?.click()}>{t('importState')}</button>
                 <button className="control-button" onClick={handleExportState}>{t('exportState')}</button>
                 <button className="control-button" onClick={handleSaveAsCode}>{t('exportCode')}</button>
+                <button className="control-button" onClick={handleGenerateArchitecturalSchema}>{t('generateSchema')}</button>
             </div>
 
              <div className="panel-group-title">{t('vision')}</div>

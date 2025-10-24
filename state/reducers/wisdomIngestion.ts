@@ -28,6 +28,15 @@ export const wisdomIngestionReducer = (state: AuraState, action: Action): Partia
                 }
             };
         
+        case 'WISDOM/ADD_PROPOSED_AXIOMS':
+            return {
+                wisdomIngestionState: {
+                    ...state.wisdomIngestionState,
+                    status: 'complete', // Set to complete to show the list
+                    proposedAxioms: [...state.wisdomIngestionState.proposedAxioms, ...args.axioms],
+                }
+            };
+            
         case 'WISDOM/PROCESS_AXIOM':
             return {
                 wisdomIngestionState: {

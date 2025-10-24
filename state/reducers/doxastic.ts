@@ -1,5 +1,5 @@
 // state/reducers/doxastic.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -52,7 +52,8 @@ export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraS
             return {
                 doxasticEngineState: {
                     ...state.doxasticEngineState,
-                    simulationStatus: 'completed',
+                    // FIX: Corrected typo from "completed" to "complete" to match the type definition.
+                    simulationStatus: 'complete',
                     lastSimulationResult: result,
                     simulationLog: [...state.doxasticEngineState.simulationLog, logEntry].slice(-20),
                 }

@@ -6,12 +6,27 @@ export const prometheusReducer = (state: AuraState, action: Action): Partial<Aur
     const { call, args } = action.payload;
 
     switch(call) {
-        case 'PROMETHEUS/START_CYCLE':
+        case 'PROMETHEUS/START_AUTONOMOUS_CYCLE':
             return {
                 prometheusState: {
                     ...state.prometheusState,
                     status: 'running',
                     log: [{ timestamp: Date.now(), message: 'Prometheus cycle initiated. Seeking analogies...' }, ...state.prometheusState.log].slice(0, 20)
+                }
+            };
+        case 'PROMETHEUS/START_GUIDED_INQUIRY':
+             return {
+                prometheusState: {
+                    ...state.prometheusState,
+                    status: 'running',
+                    log: [{ timestamp: Date.now(), message: `Guided inquiry started: ${args.sourceDomain} ↔ ${args.targetDomain}` }, ...state.prometheusState.log].slice(0, 20)
+                }
+            };
+        case 'PROMETHEUS/SET_SESSION_ID':
+            return {
+                prometheusState: {
+                    ...state.prometheusState,
+                    lastSessionId: args.sessionId,
                 }
             };
         case 'PROMETHEUS/LOG':
@@ -26,6 +41,7 @@ export const prometheusReducer = (state: AuraState, action: Action): Partial<Aur
                 prometheusState: {
                     ...state.prometheusState,
                     status: 'idle',
+                    lastSessionId: null,
                     log: [{ timestamp: Date.now(), message: 'Prometheus cycle complete.' }, ...state.prometheusState.log].slice(0, 20)
                 }
             };

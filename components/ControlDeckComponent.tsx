@@ -5,10 +5,11 @@ import {
     useAuraDispatch,
     useCoreState
 } from '../context/AuraContext.tsx';
-import { ThemeSwitcher } from './ThemeSwitcher';
-import { ManualControlPanel } from './ManualControlPanel';
-import { useModal } from '../context/ModalContext';
-import { LocalizationPanel } from './LocalizationPanel';
+import { ThemeSwitcher } from './ThemeSwitcher.tsx';
+import { ManualControlPanel } from './ManualControlPanel.tsx';
+import { useModal } from '../context/ModalContext.tsx';
+import { LocalizationPanel } from './LocalizationPanel.tsx';
+import { NarrativeSummaryPanel } from './NarrativeSummaryPanel.tsx';
 
 const _ControlDeckComponent: React.FC = () => {
     const { t } = useLocalization();
@@ -21,27 +22,17 @@ const _ControlDeckComponent: React.FC = () => {
     return (
         <div className="control-deck-container">
             <div className="control-deck-content">
-                <ManualControlPanel />
-                
-                <div className="panel-group-header" style={{marginTop: '1.5rem'}}>{t('systemPanels')}</div>
-                <div className="button-grid" style={{ gridTemplateColumns: '1fr' }}>
-                    <button 
-                        className="control-button"
-                        onClick={() => modal.open('systemPanels', {})}
-                    >
-                        {t('openSystemPanels_button')}
+                <div className="panel-group-header">{t('auraOS_header')}</div>
+                <div className="button-grid" style={{gridTemplateColumns: '1fr'}}>
+                    <button className="control-button advanced-module-button" onClick={() => modal.open('auraOS', {})}>
+                        <span className="advanced-module-header">{t('auraOS_title')}</span>
+                        <span className="advanced-module-summary">{t('auraOS_summary')}</span>
                     </button>
                 </div>
 
-                <div className="panel-group-header" style={{marginTop: '1.5rem'}}>{t('advancedModules')}</div>
-                <div className="button-grid" style={{ gridTemplateColumns: '1fr' }}>
-                    <button 
-                        className="control-button"
-                        onClick={() => modal.open('advancedControls', {})}
-                    >
-                        {t('advancedModules_open')}
-                    </button>
-                </div>
+                <NarrativeSummaryPanel />
+
+                <ManualControlPanel />
                 
                 <div className="panel-group-title">{t('specialModes')}</div>
                 <div className="button-grid">

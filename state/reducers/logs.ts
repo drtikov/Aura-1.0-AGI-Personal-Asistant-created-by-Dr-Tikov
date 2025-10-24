@@ -74,15 +74,6 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
                 )
             };
         
-        case 'ADD_SIMULATION_LOG':
-            return {
-                ...state,
-                cognitiveForgeState: {
-                    ...state.cognitiveForgeState,
-                    simulationLog: [args, ...state.cognitiveForgeState.simulationLog].slice(0, 50),
-                }
-            };
-            
         case 'LOG_QUALIA':
             return {
                 phenomenologicalEngine: {
@@ -104,7 +95,6 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
             };
 
         case 'LOG_SUBSUMPTION_EVENT':
-            // FIX: Corrected reducer to use the 'subsumptionLogState' object and its 'log' array property.
             return {
                 subsumptionLogState: {
                     ...state.subsumptionLogState,

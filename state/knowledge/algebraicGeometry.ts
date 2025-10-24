@@ -1,5 +1,5 @@
 // state/knowledge/algebraicGeometry.ts
-import { KnowledgeFact } from '../../types';
+import { KnowledgeFact } from '../../types.ts';
 
 export const algebraicGeometryKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] = [
   // --- Core Concepts ---
@@ -33,4 +33,16 @@ export const algebraicGeometryKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] 
   { subject: 'Elliptic Curve', predicate: 'is central to', object: 'Fermat\'s Last Theorem proof', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
   { subject: 'Elliptic Curve', predicate: 'has applications in', object: 'cryptography', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
   { subject: 'Moduli Space', predicate: 'is a', object: 'geometric space whose points represent isomorphism classes of geometric objects', confidence: 0.9, strength: 1.0, lastAccessed: 0, type: 'definition' },
+
+  // --- Advanced Cohomology Theories ---
+  { subject: 'Cohomology Theory', predicate: 'is a tool to assign', object: 'algebraic invariants to topological spaces or schemes', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Étale Cohomology', predicate: 'is an algebraic analogue of', object: 'sheaf cohomology for varieties over any field', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Étale Cohomology', predicate: 'is used to prove the', object: 'Weil conjectures', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
+  { subject: 'Crystalline Cohomology', predicate: 'is a', object: 'p-adic cohomology theory for varieties in positive characteristic', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Galois Cohomology', predicate: 'studies the', object: 'group cohomology of Galois modules', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Galois Cohomology', predicate: 'is used to study', object: 'central simple algebras and Brauer groups', confidence: 0.9, strength: 1.0, lastAccessed: 0, type: 'fact' },
+  { subject: 'Selmer Group', predicate: 'is defined using', object: 'Galois Cohomology', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
+  { subject: 'Tate-Shafarevich Group', predicate: 'is defined using', object: 'Galois Cohomology', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
+  { subject: 'Weil Conjectures', predicate: 'concern the properties of', object: 'zeta functions of varieties over finite fields', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'theorem' },
+  { subject: 'Cohomological Calculations', predicate: 'are computationally', object: 'very difficult in practice', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
 ];

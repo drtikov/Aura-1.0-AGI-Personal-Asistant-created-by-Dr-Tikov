@@ -1,9 +1,7 @@
-
-
-
+// components/ProposalReviewModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { ArchitecturalChangeProposal } from '../types.ts';
+import { ArchitecturalChangeProposal } from '../types';
 import { Modal } from './Modal.tsx';
 // FIX: Corrected import path for hooks to resolve module not found error.
 import { useLocalization } from '../context/AuraContext.tsx';

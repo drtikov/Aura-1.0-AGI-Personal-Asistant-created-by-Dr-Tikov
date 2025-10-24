@@ -1,5 +1,5 @@
 // state/reducers/granularCortex.ts
-import { AuraState, Action, SensoryEngram, SensoryPrimitive } from '../../types';
+import { AuraState, Action, SensoryEngram, SensoryPrimitive } from '../../types.ts';
 
 // A simple function to compare two engrams and calculate an error score.
 // This is a placeholder for a much more complex algorithm.
@@ -8,14 +8,14 @@ const calculatePredictionError = (actual: SensoryEngram, predicted: SensoryEngra
         return {
             magnitude: 1.0, // Maximum error if no prediction or wrong modality
             // FIX: Corrected property from `primitives` to `rawPrimitives`.
-            mismatchedPrimitives: actual.rawPrimitives.map(p => ({ predicted: null, actual: p })),
+            mismatchedPrimitives: actual.rawPrimitives.map((p: SensoryPrimitive) => ({ predicted: null, actual: p })),
         };
     }
 
     let totalError = 0;
     const mismatchedPrimitives: { predicted: SensoryPrimitive | null, actual: SensoryPrimitive | null }[] = [];
     // FIX: Added explicit type to Map constructor to resolve type inference issues.
-    const predictedPrimitives: Map<string, SensoryPrimitive> = new Map(predicted.rawPrimitives.map(p => [p.type, p]));
+    const predictedPrimitives: Map<string, SensoryPrimitive> = new Map(predicted.rawPrimitives.map((p: SensoryPrimitive) => [p.type, p]));
 
     // FIX: Corrected property from `primitives` to `rawPrimitives`.
     for (const actualPrimitive of actual.rawPrimitives) {

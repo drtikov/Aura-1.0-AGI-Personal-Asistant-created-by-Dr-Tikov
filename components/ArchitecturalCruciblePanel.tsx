@@ -1,8 +1,7 @@
 // components/ArchitecturalCruciblePanel.tsx
-import React from 'react';
+import React, { useState } from 'react';
 import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-// FIX: Added import for ArchitecturalChangeProposal.
-import { ArchitecturalChangeProposal } from '../types';
+import { ArchitecturalChangeProposal, CrucibleLogEntry } from '../types.ts';
 
 const MetricItem = ({ label, value }: { label: string, value: number }) => (
     <div className="state-item">
@@ -20,23 +19,38 @@ const MetricItem = ({ label, value }: { label: string, value: number }) => (
 );
 
 export const ArchitecturalCruciblePanel = React.memo(() => {
-    const { architecturalCrucibleState: state } = useArchitectureState();
+    const { architecturalCrucibleState, ontogeneticArchitectState } = useArchitectureState();
     const { t } = useLocalization();
-    const { syscall } = useAuraDispatch();
+    const { handleRunCrucibleSimulation, syscall, addToast, geminiAPI } = useAuraDispatch();
+    const [isProposing, setIsProposing] = useState(false);
 
-    const handleProposeRadicalChange = () => {
-        // FIX: Add `proposalType` to the proposal object to match the updated type definition, resolving a type error. And correctly typed the proposal.
-        const proposal: any = {
-            action: 'RADICAL_REFACTOR',
-            target: 'state/reducer.ts',
-            reasoning: 'The current monolithic reducer pattern is becoming a bottleneck for parallel state updates. Proposing a migration to an Actor Model-based state management system to improve performance and scalability under high cognitive load.',
-            proposalType: 'architecture'
-        };
-        syscall('OA/ADD_PROPOSAL', { ...proposal, id: `arch_${self.crypto.randomUUID()}`, timestamp: Date.now(), status: 'proposed' });
+    const crucibleProposals = ontogeneticArchitectState.proposalQueue.filter(p => p.proposalType === 'crucible' && p.status === 'proposed') as ArchitecturalChangeProposal[];
+    
+    const timeAgo = (timestamp: number) => {
+        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        return `${seconds}s ago`;
+    };
+
+    const handleProposeEvolution = async () => {
+        setIsProposing(true);
+        addToast(t('toast_amai_analyzing'), 'info');
+        try {
+            const analysis = await geminiAPI.analyzeArchitectureForWeaknesses();
+            addToast(t('toast_amai_proposing'), 'info');
+            const proposal = await geminiAPI.generateCrucibleProposal(analysis);
+            syscall('OA/ADD_PROPOSAL', proposal);
+            addToast(t('toast_amai_complete'), 'success');
+        } catch (e) {
+            console.error("AMAI proposal generation failed:", e);
+            addToast(`AMAI failed: ${(e as Error).message}`, 'error');
+        } finally {
+            setIsProposing(false);
+        }
     };
 
     return (
         <div className="side-panel architectural-crucible-panel">
+            <p className="reason-text">{t('archCrucible_description')}</p>
             <div className="main-display">
                 <div className="geniality-gauge-container">
                      <svg viewBox="0 0 100 100">
@@ -55,31 +69,73 @@ export const ArchitecturalCruciblePanel = React.memo(() => {
                             strokeWidth="5"
                             strokeLinecap="round"
                             strokeDasharray={2 * Math.PI * 45}
-                            strokeDashoffset={(2 * Math.PI * 45) * (1 - state.architecturalHealthIndex)}
+                            strokeDashoffset={(2 * Math.PI * 45) * (1 - architecturalCrucibleState.architecturalHealthIndex)}
                             className="geniality-gauge-value"
                         />
                     </svg>
                     <div className="geniality-gauge-text">
-                        <div className="geniality-gauge-value-num">{(state.architecturalHealthIndex * 100).toFixed(0)}</div>
+                        <div className="geniality-gauge-value-num">{(architecturalCrucibleState.architecturalHealthIndex * 100).toFixed(0)}</div>
                         <div className="geniality-gauge-label">{t('archCrucible_healthIndex')}</div>
                     </div>
                 </div>
             </div>
 
             <div className="component-scores">
-                <MetricItem label={t('archCrucible_efficiency')} value={state.componentScores.efficiency} />
-                <MetricItem label={t('archCrucible_robustness')} value={state.componentScores.robustness} />
-                <MetricItem label={t('archCrucible_scalability')} value={state.componentScores.scalability} />
-                <MetricItem label={t('archCrucible_innovation')} value={state.componentScores.innovation} />
+                <MetricItem label={t('archCrucible_efficiency')} value={architecturalCrucibleState.componentScores.efficiency} />
+                <MetricItem label={t('archCrucible_robustness')} value={architecturalCrucibleState.componentScores.robustness} />
+                <MetricItem label={t('archCrucible_scalability')} value={architecturalCrucibleState.componentScores.scalability} />
+                <MetricItem label={t('archCrucible_innovation')} value={architecturalCrucibleState.componentScores.innovation} />
+            </div>
+            
+            <div className="panel-subsection-title">{t('archCrucible_proposeEvolution')}</div>
+            <p className="reason-text" style={{fontSize: '0.8rem'}}>
+                Trigger the Autonomous Meta-Architectural Intelligence (AMAI) to analyze the system for weaknesses and propose a high-risk, high-reward refactoring.
+            </p>
+            <div className="button-grid" style={{marginTop: '1rem'}}>
+                <button 
+                    className="control-button" 
+                    onClick={handleProposeEvolution}
+                    disabled={isProposing}
+                >
+                    {isProposing ? 'Analyzing...' : 'Initiate AMAI Cycle'}
+                </button>
             </div>
 
-            <div className="panel-subsection-title">{t('geniality_proposals_title')}</div>
-            <div className="kg-placeholder">{t('archCrucible_proposalsMoved')}</div>
-
-            <div className="button-grid" style={{marginTop: '1rem'}}>
-                <button className="control-button" onClick={handleProposeRadicalChange}>
-                    {t('archCrucible_proposeEvolution')}
-                </button>
+            <div className="panel-subsection-title">AMAI Proposals</div>
+            {crucibleProposals.length > 0 ? (
+                crucibleProposals.map(proposal => (
+                    <div key={proposal.id} className="proposal-card">
+                        <div className="proposal-card-body">
+                            <p><em>{proposal.reasoning}</em></p>
+                        </div>
+                        <div className="proposal-actions-footer">
+                            <button
+                                className="control-button implement-button"
+                                onClick={() => handleRunCrucibleSimulation(proposal)}
+                                disabled={proposal.status === 'simulating'}
+                            >
+                                {proposal.status === 'simulating' ? 'Simulating...' : t('archCrucible_run_in_crucible')}
+                            </button>
+                        </div>
+                    </div>
+                ))
+            ) : (
+                <div className="kg-placeholder">{t('archCrucible_no_proposals')}</div>
+            )}
+            
+            <div className="panel-subsection-title">{t('archCrucible_simulation_log')}</div>
+            <div className="command-log-list">
+                {architecturalCrucibleState.simulationLog && architecturalCrucibleState.simulationLog.length > 0 ? (
+                    architecturalCrucibleState.simulationLog.map((log: CrucibleLogEntry) => (
+                        <div key={log.timestamp} className="command-log-item log-type-info">
+                            <span className="log-icon">🔬</span>
+                            <span className="log-text">{log.message}</span>
+                            <span className="log-time">{timeAgo(log.timestamp)}</span>
+                        </div>
+                    ))
+                ) : (
+                    <div className="kg-placeholder">{t('archCrucible_no_logs')}</div>
+                )}
             </div>
         </div>
     );

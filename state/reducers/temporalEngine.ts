@@ -1,5 +1,5 @@
 // state/reducers/temporalEngine.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const temporalEngineReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -65,11 +65,8 @@ export const temporalEngineReducer = (state: AuraState, action: Action): Partial
                 temporalEngineState: {
                     status: 'idle',
                     directive: null,
-// FIX: Changed status from 'idle' to 'pending' to match type definition.
                     chronicler: { status: 'pending', findings: [] },
-// FIX: Changed status from 'idle' to 'pending' to match type definition.
                     reactor: { status: 'pending', finalPlan: null, executionLog: [] },
-// FIX: Changed status from 'idle' to 'pending' to match type definition.
                     oracle: { status: 'pending', simulations: [] },
                     interClusterLog: [],
                 }

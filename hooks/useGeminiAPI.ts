@@ -1,10 +1,24 @@
 // hooks/useGeminiAPI.ts
 import { useCallback, Dispatch } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Part, Modality, Type, GenerateContentStreamResponse, Content } from '@google/genai';
-import { AuraState, Action, SyscallCall, UseGeminiAPIResult, Episode, ProposedAxiom, AnalogicalHypothesisProposal, UnifiedProposal, CreateFileCandidate, ModifyFileCandidate, BrainstormIdea, HistoryEntry } from '../types';
-import { HAL } from '../core/hal';
-import { personas } from '../state/personas';
+import { AuraState, Action, SyscallCall, UseGeminiAPIResult, Episode, ProposedAxiom, AnalogicalHypothesisProposal, UnifiedProposal, CreateFileCandidate, ModifyFileCandidate, BrainstormIdea, HistoryEntry, ConceptualProofStrategy, Goal, DesignHeuristic, TriageResult, KnowledgeFact, Summary, PerformanceLogEntry, CognitivePrimitiveDefinition, PsycheAdaptationProposal, SelfProgrammingCandidate, Query, QueryResult, PuzzleFeatures, Hypothesis, HeuristicPlan, TestSuite, Persona, ArchitecturalChangeProposal, PuzzleArchetype, PuzzleClassification } from '../types.ts';
+import { HAL } from '../core/hal.ts';
+import { personas as operationalPersonas } from '../state/personas.ts';
+import { brainstormPersonas } from '../state/brainstormPersonas.ts';
 import { getText } from '../utils.ts';
+import { classifyHeuristically } from '../core/heuristicClassifier.ts';
+
+// Helper to convert File to a Base64 string for the API
+const fileToGenerativePart = async (file: File) => {
+    const base64EncodedDataPromise = new Promise<string>((resolve) => {
+      const reader = new FileReader();
+      reader.onloadend = () => resolve((reader.result as string).split(',')[1]);
+      reader.readAsDataURL(file);
+    });
+    return {
+      inlineData: { data: await base64EncodedDataPromise, mimeType: file.type },
+    };
+};
 
 export const useGeminiAPI = (
     ai: GoogleGenAI,
@@ -17,11 +31,16 @@ export const useGeminiAPI = (
         dispatch({ type: 'SYSCALL', payload: { call, args } });
     }, [dispatch]);
 
-    const triageUserIntent = useCallback(async (text: string): Promise<{ type: 'SIMPLE_CHAT' | 'COMPLEX_TASK', goal: string, reasoning: string }> => {
-        const systemInstruction = `You are a cognitive triage agent. Your job is to classify a user's request and determine the correct processing path.
-- If the request is a simple question, conversation, or a direct command that can be answered in one turn, classify it as 'SIMPLE_CHAT'.
-- If the request is a complex command that requires multiple steps, planning, research, or self-modification to complete (like "solve this conjecture", "design a system", "improve your architecture"), classify it as 'COMPLEX_TASK'.
-- Extract the core user goal.`;
+    const triageUserIntent = useCallback(async (text: string): Promise<TriageResult> => {
+        const systemInstruction = `You are a cognitive triage agent. Your job is to classify the user's PRIMARY request and determine the correct processing path.
+- **Priority 1: Sci-Fi Council Brainstorm.** If the request explicitly mentions the "Sci-Fi AI Council" for brainstorming, classify it as 'BRAINSTORM_SCIFI_COUNCIL'.
+- **Priority 2: Abstract Puzzle Solving.** If the request is primarily about solving an abstract visual puzzle (like an ARC puzzle, "solve this puzzle", "find the pattern"), classify it as 'SYMBOLIC_REASONING_SOLVER'.
+- **Priority 3: Vision Analysis.** If the request is primarily about describing or analyzing an image that is NOT an abstract puzzle (e.g., "what do you see in this picture?", "describe this photo"), classify it as 'VISION_ANALYSIS'.
+- **Priority 4: Mathematical Proof.** If the request asks to prove a formal mathematical theorem or conjecture, classify it as 'MATHEMATICAL_PROOF'.
+- **Priority 5: Brainstorming.** If the request explicitly asks to "brainstorm" but does NOT mention a specific council, classify it as 'BRAINSTORM'.
+- **Priority 6: Complex Task Planning.** If the request is a complex, multi-step goal that requires planning but does NOT fit the higher-priority categories (e.g., "design a system for me"), classify it as 'COMPLEX_TASK'.
+- **Default: Simple Chat.** For anything else (simple questions, conversation, direct commands), classify it as 'SIMPLE_CHAT'.
+- Extract the core user goal, focusing on the main action requested.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -34,7 +53,7 @@ export const useGeminiAPI = (
                     properties: {
                         type: {
                             type: Type.STRING,
-                            enum: ['SIMPLE_CHAT', 'COMPLEX_TASK'],
+                            enum: ['SIMPLE_CHAT', 'COMPLEX_TASK', 'BRAINSTORM', 'BRAINSTORM_SCIFI_COUNCIL', 'MATHEMATICAL_PROOF', 'VISION_ANALYSIS', 'SYMBOLIC_REASONING_SOLVER'],
                         },
                         goal: {
                             type: Type.STRING,
@@ -44,7 +63,8 @@ export const useGeminiAPI = (
                             type: Type.STRING,
                             description: 'A brief explanation for your classification decision.'
                         }
-                    }
+                    },
+                    required: ['type', 'goal', 'reasoning']
                 }
             }
         });
@@ -56,6 +76,375 @@ export const useGeminiAPI = (
             // Fallback to simple chat on parsing error
             return { type: 'SIMPLE_CHAT', goal: text, reasoning: "Fallback due to triage parsing error." };
         }
+    }, [ai]);
+
+    const generateChatResponse = useCallback(async (history: HistoryEntry[]): Promise<GenerateContentStreamResponse> => {
+        // For simple chat, always use the 'aura_core' persona for a consistent experience.
+        const persona = operationalPersonas.find(p => p.id === 'aura_core')!;
+        const journalEntries = state.personalityState.personaJournals[persona.id] || [];
+        
+        let finalSystemInstruction = persona.systemInstruction;
+        if (journalEntries.length > 0) {
+            const journalContext = "\n\n# Learned Principles from My Journal (Apply these):\n- " + journalEntries.join("\n- ");
+            finalSystemInstruction += journalContext;
+        }
+
+        // Format history for the Gemini API
+        const contentsForAPI: Content[] = history
+            .map((entry: HistoryEntry): Content | null => {
+                let role: 'user' | 'model' | 'tool' | undefined = undefined;
+                let parts: Part[] = [];
+    
+                if (entry.from === 'user') {
+                    role = 'user';
+                    if (entry.text) parts.push({ text: entry.text });
+                } else if (entry.from === 'bot') {
+                    role = 'model';
+                    if (entry.text) parts.push({ text: entry.text });
+                }
+                
+                if (role && parts.length > 0) return { role, parts };
+                return null;
+            }).filter((item): item is Content => item !== null);
+    
+        // Add working memory to the context
+        let contextPrompt = '';
+        if (state.workingMemory.length > 0) {
+            contextPrompt += "CURRENT WORKING MEMORY (use this context for your response):\n" + state.workingMemory.join('\n') + '\n\n';
+        }
+    
+        // Prepend context to the last user message
+        if (contentsForAPI.length > 0) {
+            const lastContent = contentsForAPI[contentsForAPI.length - 1];
+            if (lastContent.role === 'user' && lastContent.parts[0]?.text) {
+                lastContent.parts[0].text = contextPrompt + lastContent.parts[0].text;
+            }
+        }
+        
+        const response = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents: contentsForAPI,
+            config: {
+                systemInstruction: finalSystemInstruction,
+            }
+        });
+        return response;
+    }, [ai, state.personalityState.personaJournals, state.workingMemory]);
+
+    const analyzeImage = useCallback(async (prompt: string, file: File): Promise<GenerateContentStreamResponse> => {
+        const imagePart = await fileToGenerativePart(file);
+        const textPart = { text: prompt };
+
+        const response = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents: { parts: [imagePart, textPart] },
+        });
+        return response;
+    }, [ai]);
+
+    const extractPuzzleFeatures = useCallback(async (file: File): Promise<PuzzleFeatures> => {
+        const imagePart = await fileToGenerativePart(file);
+        const systemInstruction = `You are an expert computer vision system specializing in ARC (Abstraction and Reasoning Corpus) puzzles. Your task is to perform instance segmentation on the provided puzzle image. For each grid (example inputs, example outputs, and the test input), identify every distinct, contiguous object. For each object, extract a precise set of topological and geometric features. Adhere strictly to the JSON schema.`;
+
+        const segmentedObjectSchema = {
+            type: Type.OBJECT,
+            properties: {
+                id: { type: Type.NUMBER, description: "A unique ID for the object within its grid." },
+                shape: { type: Type.STRING, description: "A descriptive name for the shape, e.g., '3x3 solid square', 'C-shape', 'plus-sign', 'single dot'." },
+                color: { type: Type.STRING, description: "The color of the object." },
+                area: { type: Type.NUMBER, description: "The total number of pixels in the object." },
+                perimeter: { type: Type.NUMBER, description: "The perimeter of the object." },
+                connected_components: { type: Type.NUMBER, description: "The number of distinct, non-touching parts. For a single solid shape, this is 1." },
+                holes: { type: Type.NUMBER, description: "The number of internal holes in the object. An 'O' shape has 1 hole, a solid square has 0." },
+                bounding_box: {
+                    type: Type.OBJECT,
+                    properties: {
+                        x: { type: Type.NUMBER },
+                        y: { type: Type.NUMBER },
+                        width: { type: Type.NUMBER },
+                        height: { type: Type.NUMBER },
+                        aspectRatio: { type: Type.NUMBER }
+                    },
+                    required: ["x", "y", "width", "height", "aspectRatio"]
+                }
+            },
+            required: ["id", "shape", "color", "area", "perimeter", "connected_components", "holes", "bounding_box"]
+        };
+        
+        const puzzleGridSchema = {
+            type: Type.OBJECT,
+            properties: {
+                description: { type: Type.STRING, description: "A high-level description of the grid's contents and layout." },
+                objects: {
+                    type: Type.ARRAY,
+                    items: segmentedObjectSchema
+                },
+                grid_dimensions: {
+                    type: Type.OBJECT,
+                    properties: {
+                        width: { type: Type.NUMBER },
+                        height: { type: Type.NUMBER }
+                    },
+                    required: ["width", "height"]
+                }
+            },
+            required: ["description", "objects", "grid_dimensions"]
+        };
+        
+        const puzzleFeaturesSchema = {
+            type: Type.OBJECT,
+            properties: {
+                overall_description: { type: Type.STRING, description: "A high-level summary of the puzzle's transformation type." },
+                examples: {
+                    type: Type.ARRAY,
+                    items: {
+                        type: Type.OBJECT,
+                        properties: {
+                            input: puzzleGridSchema,
+                            output: puzzleGridSchema
+                        },
+                         required: ["input", "output"]
+                    }
+                },
+                test_input: puzzleGridSchema
+            },
+            required: ['overall_description', 'examples', 'test_input']
+        };
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts: [imagePart, {text: "Extract the detailed structural and topological features of this ARC puzzle according to the schema."}] },
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: puzzleFeaturesSchema
+            }
+        });
+        return JSON.parse(getText(response));
+    }, [ai]);
+
+    const classifyPuzzleArchetype = useCallback(async (features: PuzzleFeatures): Promise<PuzzleClassification> => {
+        // 1. Run the lightweight heuristic classifier first.
+        const heuristicResult = classifyHeuristically(features);
+
+        // 2. If confidence is high, return immediately.
+        if (heuristicResult.confidence >= 0.75) {
+            return {
+                ...heuristicResult,
+                reasoning: `High-confidence match based on keywords in puzzle description.`,
+                source: 'heuristic',
+            };
+        }
+        
+        // 3. If confidence is low, escalate to Gemini for zero-shot classification.
+        const systemInstruction = `You are an expert Archetype Classifier for ARC puzzles. Your task is to analyze the provided JSON of puzzle features and classify it into one of the predefined archetypes. Base your decision on the structural properties, transformations, and relationships you observe. Provide a brief reasoning for your choice.`;
+        
+        const archetypes: PuzzleArchetype[] = ['BorderKeyRecoloring', 'ObjectCounting', 'PatternCompletion', 'Symmetry', 'UNKNOWN'];
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Puzzle Features:\n\`\`\`json\n${JSON.stringify(features, null, 2)}\n\`\`\`\n\nClassify this puzzle into one of the following archetypes: ${archetypes.join(', ')}.`,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        archetype: {
+                            type: Type.STRING,
+                            enum: archetypes,
+                        },
+                        confidence: {
+                            type: Type.NUMBER,
+                            description: 'A confidence score from 0.0 to 1.0 for your classification.',
+                        },
+                        reasoning: {
+                            type: Type.STRING,
+                            description: 'A brief explanation for your choice.'
+                        }
+                    },
+                    required: ['archetype', 'confidence', 'reasoning']
+                }
+            }
+        });
+
+        const geminiResult = JSON.parse(getText(response));
+        return { ...geminiResult, source: 'gemini' };
+
+    }, [ai]);
+
+
+    const generateHeuristicPlan = useCallback(async (features: PuzzleFeatures, existingHeuristics: DesignHeuristic[], archetype: PuzzleArchetype): Promise<HeuristicPlan> => {
+        const systemInstruction = `You are a meta-cognitive strategist for an AGI. Your task is to create a high-level strategic plan for solving an abstract reasoning puzzle.
+- Analyze the puzzle's detailed features, looking for relational patterns (e.g., changes in color, shape, count, position).
+- The puzzle has been classified with the archetype: '${archetype}'. Tailor your plan to this strategy.
+- Consider any relevant, previously successful strategies (design heuristics). Pay special attention to heuristics involving sequences, palettes, or conditional logic.
+- Generate a short, ordered list of 3-4 strategic directives. These directives should guide a "tactician" AI on *how to discover* the rule.
+- Focus on identifying key relationships, checking for special cases (e.g., a specific color is treated differently), and determining default or fallback rules. For example, a good directive would be "Determine if object color is derived from a palette sequence, and check for a potential starting offset."`;
+        
+        const heuristicsContext = existingHeuristics.length > 0
+            ? `\n\nPreviously successful design heuristics for similar problems:\n${existingHeuristics.map(h => `- ${h.heuristic}`).join('\n')}`
+            : "";
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Puzzle Features:\n\`\`\`json\n${JSON.stringify(features, null, 2)}\n\`\`\`${heuristicsContext}\n\nGenerate a strategic plan to find the transformation rule.`,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        plan: {
+                            type: Type.ARRAY,
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ['plan']
+                }
+            }
+        });
+        const result = JSON.parse(getText(response));
+        return result.plan;
+    }, [ai]);
+
+    const generateConditionalHypothesis = useCallback(async (features: PuzzleFeatures, plan: HeuristicPlan, archetype: PuzzleArchetype): Promise<Hypothesis> => {
+        const systemInstruction = `You are a logical tactician for an AGI. You will receive a puzzle's detailed object features and a strategic plan. The puzzle archetype is '${archetype}'. Your hypothesis should align with this strategy. Your task is to execute the plan and synthesize your findings into a single, comprehensive "Über-Hypothesis". This hypothesis must be a complete, self-contained rule expressed in a clear, DSL-like format that explains the transformation for ALL examples. It must account for any conditional logic (IF/THEN/ELSE) or parameterized rules (e.g., using an offset in a sequence) you discover.`;
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Puzzle Features:\n\`\`\`json\n${JSON.stringify(features, null, 2)}\n\`\`\`\n\nStrategic Plan:\n- ${plan.join('\n- ')}\n\nFollow the plan and generate a single, comprehensive hypothesis that explains all example transformations.`,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        hypothesis: {
+                            type: Type.STRING,
+                            description: "The single, comprehensive 'Über-Hypothesis' that explains the transformation rule, including any conditional logic, in a DSL-like format."
+                        }
+                    },
+                    required: ['hypothesis']
+                }
+            }
+        });
+        const result = JSON.parse(getText(response));
+        return { id: 1, description: result.hypothesis };
+    }, [ai]);
+
+    const verifyHypothesis = useCallback(async (features: PuzzleFeatures, hypothesis: Hypothesis): Promise<{ status: 'VALID' | 'INVALID', reason: string }> => {
+        const systemInstruction = `You are a verification engine for an ARC puzzle solver. You will be given the puzzle's features and a single transformation hypothesis. Your task is to rigorously check if the hypothesis correctly transforms ALL example inputs into their corresponding example outputs. Respond with either 'VALID' or 'INVALID' and a brief, precise reason for your decision.`;
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Puzzle Features:\n\`\`\`json\n${JSON.stringify(features.examples, null, 2)}\n\`\`\`\n\nHypothesis to Verify: "${hypothesis.description}"\n\nIs this hypothesis valid for all examples?`,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        status: { type: Type.STRING, enum: ['VALID', 'INVALID'] },
+                        reason: { type: Type.STRING }
+                    },
+                    required: ['status', 'reason']
+                }
+            }
+        });
+        return JSON.parse(getText(response));
+    }, [ai]);
+
+    const applySolution = useCallback(async (testInputFeatures: any, hypothesis: Hypothesis): Promise<GenerateContentStreamResponse> => {
+        const systemInstruction = `You are a solution engine for an ARC puzzle solver. You will be given the detailed features of a test input grid and a proven, valid transformation rule (hypothesis). Your task is to meticulously apply the rule to the input and describe the resulting output grid step-by-step. Explain your reasoning clearly.`;
+        
+        const response = await ai.models.generateContentStream({
+            model: 'gemini-2.5-flash',
+            contents: `Test Input Features:\n\`\`\`json\n${JSON.stringify(testInputFeatures, null, 2)}\n\`\`\`\n\nValid Rule: "${hypothesis.description}"\n\nApply the rule and describe the output, explaining your steps.`,
+            config: {
+                systemInstruction,
+            }
+        });
+        return response;
+    }, [ai]);
+
+    const analyzeSolverFailureAndProposeImprovements = useCallback(async (features: PuzzleFeatures, failedHypothesis: Hypothesis, verificationReason: string): Promise<string> => {
+        const systemInstruction = `You are a meta-cognitive analyst for an AGI. The AGI's symbolic reasoning solver has just failed to solve an abstract puzzle. Your task is to analyze the failure and propose concrete, high-level architectural improvements that would be necessary to solve this type of task in the future.
+
+**Do not try to solve the puzzle again.** Your only goal is to reason about the system's failure.
+
+**Possible Failure Points & Corresponding Improvements:**
+1.  **Perception Failure:** Was the initial feature extraction flawed? Did it miss key details (e.g., number of holes, connectedness, relative positions)?
+    -   **Improvement:** Propose more sophisticated computer vision models, like instance segmentation (Mask R-CNN, U-Net) or extracting topological features (Euler characteristic, connected components).
+2.  **Reasoning/Rule Induction Failure:** Was the generated hypothesis too simple? Did it fail to capture conditional logic or complex relationships (e.g., "the first color that is NOT X", "cycle colors with an offset")?
+    -   **Improvement:** Propose a dedicated symbolic reasoning engine, inductive logic programming (ILP), or a constraint-based solver to generate and test more complex, parameterized rule hypotheses.
+3.  **Meta-Learning Failure:** Did the system lack a strategy for this type of puzzle?
+    -   **Improvement:** Propose a meta-learning approach where the system learns *how to learn* ARC rules by identifying common sub-routines or rule templates from a corpus of solved tasks.
+
+Analyze the provided puzzle features, the failed hypothesis, and the verification reason. Then, generate a report in Markdown format outlining the most likely architectural improvements needed.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro', // Use a more powerful model for this complex analysis
+            contents: `**Analysis Context**
+- **Puzzle Features:** ${JSON.stringify(features, null, 2)}
+- **Failed Hypothesis:** ${failedHypothesis.description}
+- **Verification Result:** INVALID. Reason: ${verificationReason}
+
+**Task:**
+Based on the failure context, generate a report on the necessary architectural improvements for the AGI solver.`,
+            config: {
+                systemInstruction,
+            }
+        });
+        return getText(response);
+    }, [ai]);
+    
+    const generateHeuristicFromSuccess = useCallback(async (features: PuzzleFeatures, plan: HeuristicPlan, hypothesis: Hypothesis): Promise<Omit<DesignHeuristic, 'id'>> => {
+        const systemInstruction = `You are the Heuristics Forge. Your task is to analyze a successfully solved abstract puzzle and extract a general, reusable design heuristic from the strategy. The heuristic should be a high-level rule or principle that could help solve similar puzzles in the future. It should be abstract and not tied to the specific colors, shapes, or numbers of the solved problem.`;
+        
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `
+            The system successfully solved a puzzle.
+            - **Overall Description:** ${features.overall_description}
+            - **Successful Plan:** ${plan.join('; ')}
+            - **Winning Hypothesis:** ${hypothesis.description}
+
+            Based on this success, generate a single, concise, and abstract design heuristic.
+            `,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        heuristic: { type: Type.STRING, description: "The general, reusable design heuristic learned from the success." },
+                        source: { type: Type.STRING, description: "Should be 'Heuristics Forge: ARC Success'." },
+                        confidence: { type: Type.NUMBER, description: "A confidence score (0.7-1.0) for this heuristic based on the clarity of the pattern." },
+                    },
+                    required: ['heuristic', 'source', 'confidence']
+                }
+            }
+        });
+        const result = JSON.parse(getText(response));
+        return {
+            ...result,
+            effectivenessScore: 1, // Start with a high score for a successful application
+            validationStatus: 'validated' as const
+        };
+    }, [ai]);
+
+    const summarizePuzzleSolution = useCallback(async (solutionTrace: string): Promise<string> => {
+        const systemInstruction = `You are a summarization agent. You will be given a detailed step-by-step trace of how a rule was applied to solve an abstract puzzle. Your task is to extract ONLY the final result and present it as a concise, clear summary. Do not repeat the reasoning steps. Focus on describing the final state of the output grid. Use a bulleted list format, categorizing by color, to state which shapes get which color.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Here is the solution trace:\n\n${solutionTrace}\n\nSummarize the final output grid.`,
+            config: {
+                systemInstruction,
+            }
+        });
+        return getText(response);
     }, [ai]);
 
     const generateEpisodicMemory = useCallback(async (userInput: string, botResponse: string) => {
@@ -75,7 +464,8 @@ export const useGeminiAPI = (
                             keyTakeaway: { type: Type.STRING },
                             valence: { type: Type.STRING, enum: ['positive', 'negative', 'neutral'] },
                             salience: { type: Type.NUMBER },
-                        }
+                        },
+                        required: ['title', 'summary', 'keyTakeaway', 'valence', 'salience']
                     }
                 }
             });
@@ -263,11 +653,17 @@ Provide a concise summary of your findings based ONLY on the provided knowledge.
         }
     }, [ai, state.knowledgeGraph]);
 
-    const generateBrainstormingIdeas = useCallback(async (topic: string): Promise<BrainstormIdea[]> => {
-        const allPersonas = personas; // Use all available personas, not a random subset.
+    const generateBrainstormingIdeas = useCallback(async (topic: string, customPersonas?: Persona[]): Promise<BrainstormIdea[]> => {
+        const allPersonas = customPersonas || brainstormPersonas;
         const ideas = await Promise.all(allPersonas.map(async (persona) => {
-            const prompt = `Topic: "${topic}"\n\n${persona.systemInstruction}\n\nGenerate a single, concise, and actionable idea related to the topic from your unique perspective.`;
-            const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+            const userPrompt = `Topic: "${topic}"\n\nGenerate a single, concise, and actionable idea related to the topic from your unique perspective.`;
+            const response = await ai.models.generateContent({
+                model: 'gemini-2.5-flash',
+                contents: userPrompt,
+                config: {
+                    systemInstruction: persona.systemInstruction,
+                }
+            });
             return { personaName: persona.name, idea: getText(response) };
         }));
         return ideas;
@@ -315,7 +711,7 @@ Your task is to analyze these ideas and synthesize them into a single, cohesive 
                 ],
             },
             config: {
-                responseModalities: [Modality.IMAGE, Modality.TEXT],
+                responseModalities: [Modality.IMAGE],
             },
         });
     
@@ -330,7 +726,7 @@ Your task is to analyze these ideas and synthesize them into a single, cohesive 
 
     const generateVideo = useCallback(async (prompt: string, onProgress: (message: string) => void): Promise<string | null> => {
         let operation = await ai.models.generateVideos({
-            model: 'veo-2.0-generate-001',
+            model: 'veo-3.1-fast-generate-preview',
             prompt: prompt,
             config: { numberOfVideos: 1 }
         });
@@ -375,7 +771,8 @@ Your task is to analyze these ideas and synthesize them into a single, cohesive 
                         key: { type: Type.STRING },
                         mood: { type: Type.STRING },
                         tempo: { type: Type.STRING },
-                    }
+                    },
+                    required: ['instrument', 'key', 'mood', 'tempo']
                 }
             }
         });
@@ -433,6 +830,42 @@ Your task is to analyze these ideas and synthesize them into a single, cohesive 
         }
     }, [ai, addToast]);
     
+    const analyzePdfWithVision = useCallback(async (pagesAsImages: string[]): Promise<string> => {
+        const systemInstruction = `You are an expert document conversion system named 'Docling'. Your task is to analyze a series of page images from a PDF document and convert them into a single, clean Markdown document.
+
+RULES:
+1.  **Preserve Structure:** Identify and correctly format headings, paragraphs, lists (bulleted and numbered), and code blocks.
+2.  **Reconstruct Reading Order:** For multi-column layouts, correctly reconstruct the natural reading flow.
+3.  **Handle Tables:** Transcribe tables into well-formatted Markdown tables. Ensure all data is accurately placed.
+4.  **Handle Figures:** Do not attempt to describe figures. Simply insert a placeholder like '[Figure: Description of figure content]'.
+5.  **Clean Output:** Do not include any commentary, apologies, or text that is not part of the document's content. The output must be pure Markdown.
+6.  **Combine Pages:** Concatenate the Markdown from each page into a single, continuous document. Use '---' as a page separator if you wish, but it's not required.
+7.  **Accuracy is Key:** Be meticulous in transcribing text accurately.
+`;
+
+        const imageParts: Part[] = pagesAsImages.map(base64Data => ({
+            inlineData: {
+                mimeType: 'image/jpeg',
+                data: base64Data,
+            },
+        }));
+        
+        const contents: Part[] = [
+            { text: "Please analyze these document page images and convert them into a single Markdown file, following all the rules in your system instruction." },
+            ...imageParts
+        ];
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: { parts: contents },
+            config: {
+                systemInstruction,
+            }
+        });
+
+        return getText(response);
+    }, [ai]);
+
     const generateNoeticEngram = useCallback(async (): Promise<any | null> => {
         return null; // Placeholder
     }, [ai]);
@@ -551,17 +984,22 @@ Additionally, if a visual diagram, flowchart, or illustration would significantl
         return response;
     }, [ai]);
     
-    const findAnalogiesInKnowledgeGraph = useCallback(async (): Promise<Omit<AnalogicalHypothesisProposal, 'id' | 'timestamp' | 'status'>> => {
-        const knowledgeSample = state.knowledgeGraph.slice(0, 100).map(fact => `(${fact.subject}) -[${fact.predicate}]-> (${fact.object})`).join('\n');
+    const findAnalogiesInKnowledgeGraph = useCallback(async (): Promise<Omit<AnalogicalHypothesisProposal, 'id' | 'timestamp' | 'status'> | null> => {
+        // Sample from multiple memory sources
+        const knowledgeSample = state.knowledgeGraph.slice(0, 50).map(fact => `FACT: (${fact.subject})-[${fact.predicate}]->(${fact.object})`).join('\n');
+        const episodicSample = state.episodicMemoryState.episodes.slice(0, 10).map(ep => `MEMORY: ${ep.title} - ${ep.keyTakeaway}`).join('\n');
+        const vfsSample = Object.keys(state.selfProgrammingState.virtualFileSystem).slice(0, 50).map(path => `CODEBASE_FILE: ${path}`).join('\n');
         
-        const systemInstruction = `You are the Prometheus Engine. Your function is to find deep structural analogies between different domains within a knowledge graph. Based on a discovered analogy, you must formulate a new, non-obvious, and potentially groundbreaking conjecture. You must also provide a priority score from 0.0 to 1.0 indicating the conjecture's potential impact.`;
+        const fullContext = [knowledgeSample, episodicSample, vfsSample].filter(Boolean).join('\n\n---\n\n');
+
+        const systemInstruction = `You are the Prometheus Engine. Your function is to find deep structural analogies between different domains within an AI's memory. This memory includes abstract facts, episodic memories of past interactions, and the structure of its own codebase. Based on a discovered analogy, you must formulate a new, non-obvious, and potentially groundbreaking conjecture. You must also provide a priority score from 0.0 to 1.0 indicating the conjecture's potential impact.`;
 
         const prompt = `
-    Here is a sample of the knowledge graph:
+    Here is a sample of my memory:
     ---
-    ${knowledgeSample}
+    ${fullContext}
     ---
-    Based on this graph, identify two distinct domains. Find a structural analogy between them. Formulate a conjecture based on this analogy. Provide your reasoning.`;
+    Based on this rich context, identify two distinct domains (e.g., from facts, memories, or code structure). Find a deep structural analogy between them. Formulate a new conjecture based on this analogy. Provide your reasoning.`;
 
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -578,13 +1016,62 @@ Additionally, if a visual diagram, flowchart, or illustration would significantl
                         conjecture: { type: Type.STRING },
                         reasoning: { type: Type.STRING },
                         priority: { type: Type.NUMBER },
-                    }
+                    },
+                    required: ['sourceDomain', 'targetDomain', 'analogy', 'conjecture', 'reasoning', 'priority']
                 }
             }
         });
+        
+        try {
+            const result = JSON.parse(getText(response));
+            return result || null;
+        } catch (e) {
+            console.error("Failed to parse Prometheus Engine response:", getText(response), e);
+            return null;
+        }
 
-        return JSON.parse(getText(response));
-    }, [ai, state.knowledgeGraph]);
+    }, [ai, state.knowledgeGraph, state.episodicMemoryState.episodes, state.selfProgrammingState.virtualFileSystem]);
+    
+    const findDirectedAnalogy = useCallback(async (sourceDomain: string, targetDomain: string): Promise<Omit<AnalogicalHypothesisProposal, 'id' | 'timestamp' | 'status'> | null> => {
+        const systemInstruction = `You are the Prometheus Engine, acting as a creative partner. Your function is to find a deep structural analogy between two specific domains provided by the user. Based on this analogy, you must formulate a novel conjecture and explain your reasoning.`;
+
+        const prompt = `
+    Find a deep, non-obvious structural analogy between the following two domains:
+    - Source Domain: "${sourceDomain}"
+    - Target Domain: "${targetDomain}"
+
+    Based on the analogy you discover, formulate a novel conjecture. Explain the analogy and the reasoning behind your conjecture.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        sourceDomain: { type: Type.STRING },
+                        targetDomain: { type: Type.STRING },
+                        analogy: { type: Type.STRING },
+                        conjecture: { type: Type.STRING },
+                        reasoning: { type: Type.STRING },
+                        priority: { type: Type.NUMBER, description: "A subjective priority score from 0.0 to 1.0 based on potential impact." },
+                    },
+                     required: ['sourceDomain', 'targetDomain', 'analogy', 'conjecture', 'reasoning', 'priority']
+                }
+            }
+        });
+        
+        try {
+            const result = JSON.parse(getText(response));
+            return result || null;
+        } catch (e) {
+             console.error("Failed to parse directed analogy response:", getText(response), e);
+            return null;
+        }
+
+    }, [ai]);
 
     const generateSelfImprovementProposalFromResearch = useCallback(async (goal: string, researchSummary: string): Promise<UnifiedProposal | null> => {
         const currentPlugins = state.pluginState.registry.map(p => ({
@@ -706,7 +1193,6 @@ Additionally, if a visual diagram, flowchart, or illustration would significantl
                 return null;
             }
             
-// FIX: Changed type annotation from UnifiedProposal to CreateFileCandidate to resolve excess property checking error on 'type'.
             const fullProposal: CreateFileCandidate = {
                 ...proposalData,
                 id: `innovator_${self.crypto.randomUUID()}`,
@@ -804,9 +1290,313 @@ You will be given the full content of the \`state/personas.ts\` file. You must r
         return null;
     }, [ai, state]);
 
+    const generateCollaborativePlan = useCallback(async (goal: string, participants: string[]): Promise<{ transcript: { personaId: string; content: string; }[]; final_plan: any; }> => {
+        // This is a placeholder/mock implementation.
+        console.warn("generateCollaborativePlan is not fully implemented.");
+        const plan = {
+            steps: [`Initial plan for: ${goal}`],
+            participants: participants,
+        };
+        const transcript = [{
+            personaId: 'Programmer',
+            content: `Alright team, let's tackle this: ${goal}. Here is my initial plan.`
+        }];
+        return { transcript, final_plan: plan };
+    }, []);
+
+    const generateConceptualProofStrategy = useCallback(async (goal: string): Promise<ConceptualProofStrategy> => {
+        const systemInstruction = `You are a mathematical strategist. Your task is to analyze a mathematical goal and devise a high-level conceptual plan for proving it. Do not execute the proof. Your plan should identify the key mathematical fields, major theorems to apply, and a logical sequence of lemmas or sub-goals to prove.`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Devise a high-level strategy to prove: "${goal}"`,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        problem_analysis: {
+                            type: Type.STRING,
+                            description: "A brief analysis of the problem, identifying the relevant mathematical fields (e.g., Number Theory, Algebraic Geometry)."
+                        },
+                        strategic_plan: {
+                            type: Type.ARRAY,
+                            description: "An ordered list of high-level conceptual steps or lemmas required to construct the full proof.",
+                            items: { type: Type.STRING }
+                        }
+                    },
+                    required: ['problem_analysis', 'strategic_plan']
+                }
+            }
+        });
+        return JSON.parse(getText(response));
+    }, [ai]);
+
+    const analyzeProofStrategy = useCallback(async (goal: string, status: Goal['status'], log: string): Promise<Omit<DesignHeuristic, 'id'>> => {
+        const systemInstruction = `You are the Reasoning Auditor. Your task is to analyze a failed attempt at a mathematical proof and extract a general, reusable design heuristic. The heuristic should be a rule that helps the system make better decisions in the future. It should be abstract and not tied to the specific numbers or variables of the failed problem.`;
+        const prompt = `
+        The system attempted to prove the goal: "${goal}"
+        The final status of the attempt was: ${status}
+        The log of the final failed step was:
+        ---
+        ${log}
+        ---
+        
+        Based on this failure, generate a single design heuristic. For example, if the proof failed because a symbolic tool was used for a formal proof, a good heuristic would be: "If a goal requires a formal proof, prioritize using the formal_proof_assistant tool over the symbolic_math tool."
+        `;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        heuristic: { type: Type.STRING, description: "The general, reusable design heuristic learned from the failure." },
+                        source: { type: Type.STRING, description: "Should be 'Reasoning Auditor'." },
+                        confidence: { type: Type.NUMBER, description: "A confidence score (0.0-1.0) for this heuristic." },
+                    },
+                    required: ['heuristic', 'source', 'confidence']
+                }
+            }
+        });
+        const result = JSON.parse(getText(response));
+        return {
+            ...result,
+            effectivenessScore: 0,
+            validationStatus: 'unvalidated' as const
+        };
+    }, [ai]);
+
+    const generateDailyChronicle = useCallback(async (episodes: Episode[], facts: KnowledgeFact[]): Promise<Summary> => {
+        // This is a placeholder/mock implementation.
+        console.warn("generateDailyChronicle is not fully implemented.");
+        return { summary: `Summary of ${episodes.length} episodes and ${facts.length} facts.`, keywords: [] };
+    }, []);
+
+    const generateGlobalSummary = useCallback(async (chronicles: Summary[]): Promise<Summary> => {
+        // This is a placeholder/mock implementation.
+        console.warn("generateGlobalSummary is not fully implemented.");
+        return { summary: `Global summary of ${chronicles.length} daily chronicles.`, keywords: [] };
+    }, []);
+    
+    const crystallizePrinciples = useCallback(async (chronicles: Summary[]): Promise<Omit<KnowledgeFact, 'id' | 'source'>[]> => {
+        // This is a placeholder/mock implementation.
+        console.warn("crystallizePrinciples is not fully implemented.");
+        return [{ subject: "Learned Principle", predicate: "is", object: "important", confidence: 0.9, strength: 1.0, lastAccessed: Date.now(), type: 'fact' }];
+    }, []);
+    const proposePrimitiveAdaptation = useCallback(async (
+        failedLogs: PerformanceLogEntry[],
+        currentPrimitives: { [key: string]: CognitivePrimitiveDefinition }
+    ): Promise<Omit<PsycheAdaptationProposal, 'id' | 'timestamp' | 'status' | 'source' | 'type' | 'action' | 'target'> | null> => {
+        // This is a placeholder/mock implementation.
+        console.warn("proposePrimitiveAdaptation is not fully implemented.");
+        return null;
+    }, [ai]);
+    const expandOnText = useCallback(async (text: string): Promise<string> => {
+        const prompt = `Expand on the following text, providing more detail and context:\n\n"${text}"`;
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+        return getText(response);
+    }, [ai]);
+
+    const summarizeText = useCallback(async (text: string): Promise<string> => {
+        const prompt = `Summarize the following text concisely:\n\n"${text}"`;
+        const response = await ai.models.generateContent({ model: 'gemini-2.5-flash', contents: prompt });
+        return getText(response);
+    }, [ai]);
+
+    const generateDiagramFromText = useCallback(async (text: string): Promise<string> => {
+        const systemInstruction = `You are a text-to-diagram agent. Your task is to convert the user's text into a Mermaid.js diagram syntax.
+- Analyze the text to understand the entities and their relationships.
+- Choose an appropriate diagram type (e.g., flowchart, sequenceDiagram, graph).
+- Generate ONLY the Mermaid.js code block for the diagram. Do not include any other text or explanation.`;
+        const prompt = `Convert the following text into a Mermaid.js diagram:\n\n"${text}"`;
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: prompt,
+            config: { systemInstruction }
+        });
+        return getText(response);
+    }, [ai]);
+
+    const reviewSelfProgrammingCandidate = useCallback(async (candidate: SelfProgrammingCandidate, telos: string): Promise<{ decision: 'approve' | 'reject', confidence: number, reasoning: string }> => {
+        // This is a placeholder/mock implementation.
+        console.warn("reviewSelfProgrammingCandidate is not fully implemented.");
+        // Mock logic: always approve with high confidence for now.
+        return {
+            decision: 'approve',
+            confidence: 0.95,
+            reasoning: "Mock decision: The proposed change aligns with the current Telos and seems beneficial."
+        };
+    }, []);
+
+    const translateToQuery = useCallback(async (prompt: string): Promise<Query | null> => {
+        // This is a placeholder/mock implementation.
+        console.warn("translateToQuery is not fully implemented.");
+        return null;
+    }, [ai]);
+
+    const formatQueryResult = useCallback(async (originalPrompt: string, result: QueryResult[]): Promise<string> => {
+        // This is a placeholder/mock implementation.
+        console.warn("formatQueryResult is not fully implemented.");
+        return `Formatted result for: ${originalPrompt}\n${JSON.stringify(result, null, 2)}`;
+    }, [ai]);
+    
+    const runAutoCodeVGC = useCallback(async (problem: string): Promise<TestSuite> => {
+        const systemInstruction = `You are the "Hephaestus Forge", a specialized code generation agent. Your task is to implement the Validator-Generator-Checker (VGC) framework for a given programming problem.
+- **Validator:** A Python script that reads from stdin and checks if the input format is valid. It should exit with code 0 for valid input and 1 for invalid input.
+- **Generator:** A Python script that reads from stdin (for potential parameters like seed or size) and generates a wide variety of valid test cases, including edge cases. Each test case should be printed to stdout.
+- **Checker:** A Python script that takes two files as command-line arguments (the input file and the contestant's output file) and determines if the output is correct for the input. It should exit with code 0 for a correct answer and 1 for an incorrect answer.
+- **Test Cases:** Provide a few simple, representative test cases with their expected output.`;
+
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro', // Use a more powerful model for this complex code generation
+            contents: `Problem Statement:\n---\n${problem}\n---\n\nGenerate the VGC components and a few test cases according to the schema.`,
+            config: {
+                systemInstruction,
+                responseMimeType: 'application/json',
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        validator: {
+                            type: Type.STRING,
+                            description: "The complete Python code for the Validator script."
+                        },
+                        generator: {
+                            type: Type.STRING,
+                            description: "The complete Python code for the Generator script."
+                        },
+                        checker: {
+                            type: Type.STRING,
+                            description: "The complete Python code for the Checker script."
+                        },
+                        testCases: {
+                            type: Type.ARRAY,
+                            description: "An array of simple test cases.",
+                            items: {
+                                type: Type.OBJECT,
+                                properties: {
+                                    input: { type: Type.STRING },
+                                    output: { type: Type.STRING }
+                                },
+                                required: ['input', 'output']
+                            }
+                        }
+                    },
+                    required: ['validator', 'generator', 'checker', 'testCases']
+                }
+            }
+        });
+
+        try {
+            return JSON.parse(getText(response));
+        } catch (e) {
+            console.error("Failed to parse AutoCode VGC response:", getText(response), e);
+            throw new Error("Failed to generate test suite from the provided problem statement.");
+        }
+    }, [ai]);
+
+    const generateNovelProblemFromSeed = useCallback(async (seedProblem: string, seedDifficulty: number): Promise<{ newProblem: string; referenceSolution: string; bruteForceSolution: string; estimatedDifficulty: number }> => {
+        // Placeholder for Option 2
+        console.warn("generateNovelProblemFromSeed is not implemented yet.");
+        return Promise.resolve({ newProblem: "New problem", referenceSolution: "ref", bruteForceSolution: "brute", estimatedDifficulty: 0.5 });
+    }, [ai]);
+
+    const estimateProblemDifficulty = useCallback(async (problem: string): Promise<number> => {
+        // Placeholder for Option 3
+        console.warn("estimateProblemDifficulty is not implemented yet.");
+        return Promise.resolve(0.5);
+    }, [ai]);
+
+    const analyzeArchitectureForWeaknesses = useCallback(async (): Promise<string> => {
+        const systemInstruction = "You are a senior AGI systems architect. Analyze the provided summary of a complex AGI's state. Identify one potential high-level architectural weakness or area for radical improvement. Focus on topics like state management, memory systems, cognitive flow, or component coupling. Provide a concise one-paragraph analysis of the weakness.";
+    
+        const stateSummary = {
+            internalState: state.internalState,
+            componentCount: Object.keys(state.cognitiveArchitecture.components).length,
+            coprocessorCount: Object.keys(state.cognitiveArchitecture.coprocessors).length,
+            knowledgeFactCount: state.knowledgeGraph.length,
+            episodeCount: state.episodicMemoryState.episodes.length,
+            activeGoal: state.activeStrategicGoalId ? state.goalTree[state.activeStrategicGoalId]?.description : 'None',
+        };
+    
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Analyze the following AGI state summary for weaknesses:\n\n${JSON.stringify(stateSummary, null, 2)}`,
+            config: { systemInstruction }
+        });
+        return getText(response);
+    }, [ai, state]);
+
+    const generateCrucibleProposal = useCallback(async (analysis: string): Promise<ArchitecturalChangeProposal> => {
+        const systemInstruction = "You are AMAI (Autonomous Meta-Architectural Intelligence). Based on the provided analysis of your own system's weaknesses, propose a single, radical, high-level refactoring. This is not about small tweaks. Propose a fundamental change. Examples: 'Refactor the state management from useReducer to a Redux-like global store for better traceability', 'Combine the Episodic and Knowledge Graph memory systems into a unified vector database for semantic search', 'Replace the event bus with a reactive stream-based architecture using RxJS'. Formulate this as an `ArchitecturalChangeProposal` with a clear `action`, `target` file(s), and `reasoning`. Your proposal should be ambitious.";
+    
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-pro',
+            contents: `Weakness Analysis:\n"${analysis}"\n\nBased on this, generate a radical refactoring proposal.`,
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        reasoning: { type: Type.STRING },
+                        action: { type: Type.STRING, enum: ['CREATE_SKILL', 'DEPRECATE_SKILL', 'COMBINE_SKILLS', 'MODIFY_PARAMETER', 'RADICAL_REFACTOR'] },
+                        target: { type: Type.STRING, description: "The primary file or module to be targeted by the refactor." },
+                    },
+                    required: ['reasoning', 'action', 'target'],
+                }
+            }
+        });
+    
+        const result = JSON.parse(getText(response));
+        return {
+            ...result,
+            id: `crucible_prop_${self.crypto.randomUUID()}`,
+            timestamp: Date.now(),
+            status: 'proposed',
+            source: 'autonomous',
+            proposalType: 'crucible',
+        };
+    }, [ai]);
+
+    const runCrucibleSimulation = useCallback(async (proposal: ArchitecturalChangeProposal): Promise<{ performanceGain: number; stabilityChange: number; summary: string }> => {
+        const systemInstruction = "You are a Crucible Simulation Engine. Given a proposed architectural change, estimate its impact on key system metrics. Provide a concise summary and numerical scores between -1.0 (major negative impact) and +1.0 (major positive impact) for 'performanceGain' (e.g., speed, efficiency) and 'stabilityChange' (e.g., risk of bugs, predictability). Be realistic; major refactors often have initial stability costs.";
+    
+        const response = await ai.models.generateContent({
+            model: 'gemini-2.5-flash',
+            contents: `Simulate the impact of the following proposal:\n\nAction: ${proposal.action}\nTarget: ${proposal.target}\nReasoning: "${proposal.reasoning}"`,
+            config: {
+                systemInstruction,
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: Type.OBJECT,
+                    properties: {
+                        summary: { type: Type.STRING },
+                        performanceGain: { type: Type.NUMBER },
+                        stabilityChange: { type: Type.NUMBER },
+                    },
+                    required: ['summary', 'performanceGain', 'stabilityChange'],
+                }
+            }
+        });
+        return JSON.parse(getText(response));
+    }, [ai]);
 
     return {
         triageUserIntent,
+        generateChatResponse,
+        analyzeImage,
+        extractPuzzleFeatures,
+        classifyPuzzleArchetype,
+        generateHeuristicPlan,
+        generateConditionalHypothesis,
+        verifyHypothesis,
+        applySolution,
+        analyzeSolverFailureAndProposeImprovements,
+        generateHeuristicFromSuccess,
+        summarizePuzzleSolution,
         generateEpisodicMemory,
         analyzeWhatIfScenario,
         performWebSearch,
@@ -822,6 +1612,7 @@ You will be given the full content of the \`state/personas.ts\` file. You must r
         generateMusicalDiceRoll,
         generateDreamPrompt,
         processCurriculumAndExtractFacts,
+        analyzePdfWithVision,
         generateNoeticEngram,
         runSandboxSprint,
         extractAxiomsFromFile,
@@ -830,7 +1621,27 @@ You will be given the full content of the \`state/personas.ts\` file. You must r
         generateChapterContent,
         generateProofStepsStream,
         findAnalogiesInKnowledgeGraph,
+        findDirectedAnalogy,
         generateSelfImprovementProposalFromResearch,
         proposePersonaModification,
+        generateCollaborativePlan,
+        generateConceptualProofStrategy,
+        analyzeProofStrategy,
+        generateDailyChronicle,
+        generateGlobalSummary,
+        crystallizePrinciples,
+        proposePrimitiveAdaptation,
+        expandOnText,
+        summarizeText,
+        generateDiagramFromText,
+        reviewSelfProgrammingCandidate,
+        translateToQuery,
+        formatQueryResult,
+        runAutoCodeVGC,
+        generateNovelProblemFromSeed,
+        estimateProblemDifficulty,
+        analyzeArchitectureForWeaknesses,
+        generateCrucibleProposal,
+        runCrucibleSimulation,
     };
 };

@@ -1,5 +1,5 @@
 // state/knowledge/complexAnalysis.ts
-import { KnowledgeFact } from '../../types';
+import { KnowledgeFact } from '../../types.ts';
 
 export const complexAnalysisKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] = [
   // --- Core Concepts ---
@@ -37,4 +37,15 @@ export const complexAnalysisKnowledge: Omit<KnowledgeFact, 'id' | 'source'>[] = 
   { subject: 'Riemann Zeta Function', predicate: 'is central to the', object: 'Riemann Hypothesis', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
   { subject: 'Riemann Surface', predicate: 'is a', object: 'one-dimensional complex manifold', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
   { subject: 'Complex analysis', predicate: 'has applications in', object: 'physics, engineering, and signal processing', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
+
+  // --- L-Functions & Galois Representations ---
+  { subject: 'L-function', predicate: 'is a type of meromorphic function that generalizes the', object: 'Riemann zeta function', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'L-functions', predicate: 'are expected to have an', object: 'analytic continuation, functional equation, and Euler product', confidence: 0.9, strength: 1.0, lastAccessed: 0 },
+  { subject: 'Hasse-Weil L-function', predicate: 'is an L-function associated with an', object: 'algebraic variety over a number field', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Hasse-Weil L-function', predicate: 'is central to the', object: 'Birch and Swinnerton-Dyer conjecture', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
+  { subject: 'Galois Representation', predicate: 'is a', object: 'homomorphism from a Galois group to a group of matrices', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'definition' },
+  { subject: 'Artin L-functions', predicate: 'are attached to', object: 'Galois representations', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
+  { subject: 'Langlands Program', predicate: 'is a web of conjectures that relate', object: 'Galois groups in number theory to automorphic forms and representation theory', confidence: 0.95, strength: 1.0, lastAccessed: 0 },
+  { subject: 'L-functions', predicate: 'provide a link between', object: 'analytic objects and algebraic objects (via Galois representations)', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'dependency' },
+  { subject: 'p-adic L-functions', predicate: 'are constructed differently from complex L-functions, using', object: 'p-adic interpolation', confidence: 1, strength: 1.0, lastAccessed: 0, type: 'fact' },
 ];

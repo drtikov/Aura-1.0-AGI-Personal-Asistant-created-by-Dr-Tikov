@@ -1,20 +1,20 @@
+// components/Modal.tsx
+import React from 'react';
 
-
-import React, { useEffect, useRef, Component, ReactNode } from 'react';
+declare const anime: any;
 
 // --- Simple Error Boundary for Modal Content ---
 interface ErrorBoundaryProps {
-    // FIX: Made children optional as the Modal component can be used without children, which would cause a type error here.
-    children?: ReactNode;
+    children?: React.ReactNode;
 }
 interface ErrorBoundaryState {
     hasError: boolean;
     error: Error | null;
 }
-class ModalErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class ModalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+    // FIX: Reverted to a standard constructor to ensure `this.props` is correctly initialized, as class properties were causing an issue.
     constructor(props: ErrorBoundaryProps) {
         super(props);
-        // FIX: Added 'this.' to correctly initialize state in the class constructor.
         this.state = { hasError: false, error: null };
     }
 
@@ -27,18 +27,16 @@ class ModalErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryStat
     }
 
     render() {
-        // FIX: Used 'this.state' to access the component's state.
         if (this.state.hasError) {
             return (
                 <div className="failure-reason-display">
                     <strong>Modal Content Error</strong>
                     <p>There was an error rendering the content of this modal.</p>
-                    {/* FIX: Used 'this.state' to access the error message. */}
                     <pre><code>{this.state.error?.message}</code></pre>
                 </div>
             );
         }
-        // FIX: Used 'this.props' to access the component's children.
+        
         return this.props.children;
     }
 }
@@ -55,22 +53,39 @@ interface ModalProps {
 }
 
 export const Modal = ({ isOpen, onClose, title, children, footer, className }: ModalProps) => {
-    const modalRef = useRef<HTMLDivElement>(null);
-    const lastActiveElement = useRef<HTMLElement | null>(null);
+    const modalRef = React.useRef<HTMLDivElement>(null);
+    const overlayRef = React.useRef<HTMLDivElement>(null);
+    const lastActiveElement = React.useRef<HTMLElement | null>(null);
 
-    useEffect(() => {
+    React.useEffect(() => {
         if (isOpen) {
             lastActiveElement.current = document.activeElement as HTMLElement;
             
-            // Delay focus to allow for animation
-            setTimeout(() => {
-                const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
-                    `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
-                );
-                if (focusableElements && focusableElements.length > 0) {
-                    (focusableElements[0] as HTMLElement).focus();
-                }
-            }, 300); // Should match animation duration
+            // Animate in using anime.js
+            if (typeof anime !== 'undefined') {
+                anime.remove([overlayRef.current, modalRef.current]); // Clear any previous animations
+                anime({
+                    targets: overlayRef.current,
+                    opacity: [0, 1],
+                    duration: 300,
+                    easing: 'easeOutQuad'
+                });
+                anime({
+                    targets: modalRef.current,
+                    opacity: [0, 1],
+                    translateY: [20, 0],
+                    duration: 300,
+                    easing: 'easeOutQuad',
+                    complete: () => {
+                        const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
+                            `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
+                        );
+                        if (focusableElements && focusableElements.length > 0) {
+                            (focusableElements[0] as HTMLElement).focus();
+                        }
+                    }
+                });
+            }
 
             const handleKeyDown = (event: KeyboardEvent) => {
                 if (event.key === 'Escape') {
@@ -111,7 +126,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" onMouseDown={onClose}>
+        <div ref={overlayRef} className="modal-overlay" onMouseDown={onClose} style={{ opacity: 0 }}>
             <div 
                 ref={modalRef}
                 className={`modal-content-inner ${className || ''}`} 
@@ -119,6 +134,7 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
                 role="dialog"
                 aria-modal="true"
                 aria-label={title}
+                style={{ opacity: 0 }}
             >
                 <header className="modal-header">
                     {title}

@@ -277,4 +277,28 @@ ${uiComponentCode.trim()}
                 
                 <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">Overview</h4>
                 <p className="mb-3">
-                    The "Engineer Function" provides a direct interface for an external agent (a human developer or another AI) to modify the VFS. This is achieved by dispatching a specific action (`INGEST_CODE_CHANGE`) with
+                    The "Engineer Function" provides a direct interface for an external agent (a human developer or another AI) to modify the VFS. This is achieved by dispatching a specific action (`INGEST_CODE_CHANGE`) with the target file path and its new content.
+                </p>
+
+                <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">The Action: `INGEST_CODE_CHANGE`</h4>
+                <p className="mb-3">
+                    To initiate a change, this action must be dispatched. It is defined in `types.ts` and added to the main `Action` union type.
+                </p>
+                <CodeBlock title="File: types.ts" language="typescript" code={typesCode} />
+
+                <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">Reducer Logic</h4>
+                <p className="mb-3">
+                    The logic is split between two reducers to maintain separation of concerns. The `architectureReducer` handles the VFS update and safety logging, while the `coreReducer` records the event in Aura's developmental timeline.
+                </p>
+                <CodeBlock title="File: state/reducers/architecture.ts" language="typescript" code={architectureReducerCode} />
+                <CodeBlock title="File: state/reducers/core.ts" language="typescript" code={coreReducerCode} />
+
+                <h4 className="font-mono text-sm uppercase tracking-wider text-cyan-400 my-2">The UI Component: `CodeIngestionPanel.tsx`</h4>
+                <p className="mb-3">
+                    This component provides the user interface for the engineering function. It allows specifying the target file and pasting the new code, then dispatches the `INGEST_CODE_CHANGE` action after a confirmation.
+                </p>
+                <CodeBlock title="File: components/CodeIngestionPanel.tsx" language="typescript" code={uiComponentCode} />
+            </section>
+        </div>
+    );
+};
