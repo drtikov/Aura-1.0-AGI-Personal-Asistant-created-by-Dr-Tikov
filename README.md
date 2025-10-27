@@ -3,6 +3,8 @@ If you have any questions about Aura’s functionality, structure, or concept, y
 
 Aura 1.2 represents a major architectural evolution, introducing a multi-persona 'Agency' model. This version organizes specialist AI personas into collaborative Guilds and Agencies, each with a specific mandate, from software engineering to scientific research and creative co-creation. This allows Aura to tackle complex, multi-domain problems by simulating a team of experts working together.
 
+Fresh and detailed news on Aura`s reddit https://www.reddit.com/r/auragi/
+
 This update vastly expands Aura's knowledge base with over 25 new domains, including advanced sciences, engineering principles, and humanities. It also integrates a suite of new SDKs for computer vision, data science, and geospatial analysis, accessible through new interactive panels in the AuraOS Control Center.
 
 The new 'Collaborative Session' feature provides a transparent window into Aura's reasoning, showing a live transcript of how different personas brainstorm and develop solutions together. This version is a significant step towards a more robust, scalable, and transparent model for Symbiotic AGI.
