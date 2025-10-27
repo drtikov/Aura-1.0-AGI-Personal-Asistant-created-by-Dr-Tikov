@@ -1,6 +1,6 @@
 // components/CognitiveArchitecturePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
+import { useArchitectureState, useLocalization } from '../context/AuraContext';
 // FIX: Added '.ts' extension to satisfy module resolution.
 import { CognitiveModule, SynthesizedSkill, Coprocessor, CoprocessorArchitecture } from '../types.ts';
 
@@ -60,7 +60,7 @@ export const CognitiveArchitecturePanel = React.memo(() => {
     };
 
     // FIX: Explicitly type the parameter `c` as `Coprocessor` in the filter callback to resolve errors where `Object.values` was inferring it as `unknown`.
-    const activeCoprocessors = Object.values(architecture.coprocessors).filter((c: Coprocessor) => c.status === 'active');
+    const activeCoprocessors = Object.values(architecture.coprocessors).filter((c: any): c is Coprocessor => c.status === 'active');
     
     let coprocessorGroups: { [key: string]: Coprocessor[] } = {};
     const currentArch = architecture.coprocessorArchitecture;

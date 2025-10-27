@@ -1,6 +1,6 @@
 // components/CuriosityPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 // FIX: Corrected import path for types to resolve module error.
 import { KnownUnknown } from '../types.ts';
 import { useModal } from '../context/ModalContext.tsx';

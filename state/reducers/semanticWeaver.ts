@@ -1,5 +1,5 @@
 // state/reducers/semanticWeaver.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const semanticWeaverReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {

@@ -1,6 +1,6 @@
 // components/ManualControlPanel.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
+import { useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext.tsx';
 import { useModal } from '../context/ModalContext';
 
 export const ManualControlPanel = () => {
@@ -26,9 +26,11 @@ export const ManualControlPanel = () => {
         handleOrchestrateTask,
         handleExplainComponent,
         handleGenerateArchitecturalSchema,
+        handleToggleIdleThought, // Add the new handler
     } = useAuraDispatch();
     const { t } = useLocalization();
     const modal = useModal();
+    const { isIdleThoughtEnabled } = useCoreState(); // Get the state for the button
 
     
     return (
@@ -42,7 +44,13 @@ export const ManualControlPanel = () => {
                 <button className="control-button" onClick={() => modal.open('search', {})} title={t('tip_search')}>{t('search')}</button>
                 <button className="control-button" onClick={() => modal.open('strategicGoal', {})} title={t('tip_setGoal')}>{t('setGoal')}</button>
                 <button className="control-button" onClick={() => modal.open('forecast', {})} title={t('tip_forecast')}>{t('forecast')}</button>
-                <button className="control-button" onClick={() => modal.open('telosEngine', {})}>{t('telos_title')}</button>
+                <button
+                    className={`control-button visual-sense ${isIdleThoughtEnabled ? 'active' : ''}`}
+                    onClick={handleToggleIdleThought}
+                    title={isIdleThoughtEnabled ? 'Disable Aura\'s idle thoughts' : 'Enable Aura to post thoughts when idle'}
+                >
+                    {isIdleThoughtEnabled ? 'Thoughts On' : 'Thoughts Off'}
+                </button>
                 <button className={`control-button pause-button ${isPaused ? 'paused' : ''}`} onClick={handleTogglePause} title={isPaused ? t('tip_resume') : t('tip_pause')}>
                     {isPaused ? t('resume') : t('pause')}
                 </button>

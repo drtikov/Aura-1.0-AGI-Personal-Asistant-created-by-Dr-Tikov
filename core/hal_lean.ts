@@ -1,6 +1,7 @@
 // core/hal_lean.ts
 
-import { ATPProofStep, ProofResult } from '../types';
+// FIX: Corrected import to use the exported 'ProofStep' type.
+import { ProofStep, ProofResult } from '../types';
 
 // This is a MOCK implementation of a server-side Lean/Mathlib API.
 export const Lean = {
@@ -11,13 +12,13 @@ export const Lean = {
    * @param action Whether to 'verify' the proof or 'suggest_next_step'.
    * @returns A promise resolving to the structured proof result.
    */
-  prove: async (statement: string, steps: ATPProofStep[], action: 'verify' | 'suggest_next_step'): Promise<ProofResult> => {
+  prove: async (statement: string, steps: ProofStep[], action: 'verify' | 'suggest_next_step'): Promise<ProofResult> => {
     // Simulate API call latency
     await new Promise(resolve => setTimeout(resolve, 1500 + Math.random() * 1000));
 
     // Mock logic based on a known problem
     if (statement.toLowerCase().includes('sum of the first n odd numbers')) {
-        const inductionSteps: ATPProofStep[] = [
+        const inductionSteps: { step: number; action: string; result: string; strategy: string }[] = [
             { step: 1, action: "Base Case (n=1)", result: "LHS = 1. RHS = 1^2 = 1. Base case holds.", strategy: "Induction" },
             { step: 2, action: "Inductive Hypothesis", result: "Assume the statement is true for n=k: 1 + 3 + ... + (2k-1) = k^2.", strategy: "Induction" },
             { step: 3, action: "Inductive Step (n=k+1)", result: "We want to prove: 1 + 3 + ... + (2k-1) + (2k+1) = (k+1)^2.", strategy: "Induction" },
@@ -32,7 +33,7 @@ export const Lean = {
                     isValid: false,
                     isComplete: false,
                     explanation: "Continuing the proof by induction.",
-                    steps: steps,
+                    steps: steps.map(s => ({ step: s.stepNumber, action: s.statement, result: s.justification || '', strategy: '' })),
                     suggestedNextStep: `Based on the current strategy, the next step is: ${inductionSteps[nextStepIndex].action}. The expected result is: ${inductionSteps[nextStepIndex].result}.`
                 };
             }
@@ -52,7 +53,7 @@ export const Lean = {
         isValid: false,
         isComplete: false,
         explanation: "The provided steps are insufficient or the statement could not be verified with the available axioms.",
-        steps: steps,
+        steps: steps.map(s => ({ step: s.stepNumber, action: s.statement, result: s.justification || '', strategy: '' })),
         suggestedNextStep: "Consider applying a different lemma or reformulating the problem."
     };
   }

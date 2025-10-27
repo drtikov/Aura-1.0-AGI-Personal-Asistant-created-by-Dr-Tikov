@@ -11,7 +11,7 @@ import {
     LogsStateContext,
     SystemStateContext,
     LocalizationContext
-} from './AuraContext.tsx';
+} from './AuraContext';
 import { AuraState } from '../types.ts';
 
 export const AuraProvider = ({ children }: { children?: ReactNode }) => {
@@ -74,8 +74,16 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         modalRequest: state.modalRequest,
         uiCommandRequest: state.uiCommandRequest,
         prometheusState: state.prometheusState,
+        erisEngineState: state.erisEngineState,
         collaborativeSessionState: state.collaborativeSessionState,
         symbioticCanvasState: state.symbioticCanvasState,
+        logosState: state.logosState,
+        lagrangeEngineState: state.lagrangeEngineState,
+        artificialScientistState: state.artificialScientistState,
+        bennettEngineState: state.bennettEngineState,
+        ockhamEngineState: state.ockhamEngineState,
+        socraticAssessorState: state.socraticAssessorState,
+        axiomaticGenesisForgeState: state.axiomaticGenesisForgeState,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -90,7 +98,9 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.socialCognitionState, state.metaphoricalMapState,
         state.internalScientistState, state.metisSandboxState, state.spandaState, state.personaState, state.brainstormState,
         state.liveSessionState, state.proactiveUI, state.strategicCoreState, state.mycelialState, state.semanticWeaverState, state.modalRequest, state.uiCommandRequest,
-        state.prometheusState, state.collaborativeSessionState, state.symbioticCanvasState
+        state.prometheusState, state.erisEngineState, state.collaborativeSessionState, state.symbioticCanvasState, state.logosState,
+        state.lagrangeEngineState, state.artificialScientistState, state.bennettEngineState, state.ockhamEngineState, state.socraticAssessorState,
+        state.axiomaticGenesisForgeState,
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -134,6 +144,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         axiomaticCrucibleState: state.axiomaticCrucibleState,
         atpCoprocessorState: state.atpCoprocessorState,
         praxisCoreState: state.praxisCoreState,
+        daedalusLabyrinthState: state.daedalusLabyrinthState,
     }), [
         state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState,
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
@@ -142,7 +153,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.koniocortexSentinelState, state.cognitiveTriageState, state.psycheState, state.motorCortexState,
         state.praxisResonatorState, state.ontogeneticArchitectState, state.embodiedCognitionState,
         state.evolutionarySandboxState, state.hovaState, state.documentForgeState, state.wisdomIngestionState,
-        state.axiomaticCrucibleState, state.atpCoprocessorState, state.praxisCoreState
+        state.axiomaticCrucibleState, state.atpCoprocessorState, state.praxisCoreState, state.daedalusLabyrinthState
     ]);
 
     const planningStateValue = useMemo(() => ({
@@ -169,8 +180,9 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         cognitiveModeLog: state.cognitiveModeLog,
         cognitiveGainLog: state.cognitiveGainLog,
         cognitiveRegulationLog: state.cognitiveRegulationLog,
-        subsumptionLogState: state.subsumptionLogState
-    }), [state.history, state.performanceLogs, state.commandLog, state.cognitiveModeLog, state.cognitiveGainLog, state.cognitiveRegulationLog, state.subsumptionLogState]);
+        subsumptionLogState: state.subsumptionLogState,
+        polExecutionLog: state.polExecutionLog,
+    }), [state.history, state.performanceLogs, state.commandLog, state.cognitiveModeLog, state.cognitiveGainLog, state.cognitiveRegulationLog, state.subsumptionLogState, state.polExecutionLog]);
 
     const systemStateValue = useMemo(() => ({
         resourceMonitor: state.resourceMonitor, 

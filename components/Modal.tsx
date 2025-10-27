@@ -11,12 +11,11 @@ interface ErrorBoundaryState {
     hasError: boolean;
     error: Error | null;
 }
+
 class ModalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-    // FIX: Reverted to a standard constructor to ensure `this.props` is correctly initialized, as class properties were causing an issue.
-    constructor(props: ErrorBoundaryProps) {
-        super(props);
-        this.state = { hasError: false, error: null };
-    }
+    // FIX: Refactored to use class property syntax for state initialization.
+    // The constructor was causing incorrect type inference for `this.props` and `this.state`.
+    state: ErrorBoundaryState = { hasError: false, error: null };
 
     static getDerivedStateFromError(error: Error): ErrorBoundaryState {
         return { hasError: true, error };
@@ -37,7 +36,7 @@ class ModalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBounda
             );
         }
         
-        return this.props.children;
+        return <>{this.props.children}</>;
     }
 }
 

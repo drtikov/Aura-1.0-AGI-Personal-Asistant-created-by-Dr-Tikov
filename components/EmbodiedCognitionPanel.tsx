@@ -1,7 +1,7 @@
 // components/EmbodiedCognitionPanel.tsx
 import React from 'react';
 import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
-import { EmbodimentSimulationLog } from '../types';
+import { EmbodimentSimulationLog } from '../types.ts';
 
 export const EmbodiedCognitionPanel = React.memo(() => {
     const { embodiedCognitionState } = useArchitectureState();

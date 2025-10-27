@@ -1,56 +1,60 @@
 // components/CognitiveRegulationPanel.tsx
 import React from 'react';
-import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
-import { StateAdjustment, CognitiveRegulationLogEntry } from '../types';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const CognitiveRegulationPanel = React.memo(() => {
-    const { cognitiveRegulationLog: log } = useLogsState();
+    const { internalState, userModel, cognitiveStrategy } = useCoreState();
     const { t } = useLocalization();
+
+    const strategyText = cognitiveStrategy === 'full_guidance' 
+        ? t('strategy_full_guidance') 
+        : t('strategy_collaborative_scaffolding');
     
-    const timeAgo = (timestamp: number) => {
-        const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
-        const minutes = Math.floor(seconds / 60);
-        if (minutes < 60) return t('timeAgoMinutes', { count: minutes });
-        const hours = Math.floor(minutes / 60);
-        return t('timeAgoHours', { count: hours });
-    };
+    const taskDifficulty = internalState.lastTaskDifficulty;
+    const userCompetence = userModel.perceivedCompetence;
 
     return (
-        <div className="side-panel command-log-panel">
-            {log.length === 0 ? (
-                <div className="kg-placeholder">{t('cogRegulationPanel_placeholder')}</div>
-            ) : (
-                <div className="command-log-list">
-                    {log.map((entry: CognitiveRegulationLogEntry) => (
-                        <details key={entry.id} className="workflow-details">
-                            <summary className="workflow-summary">
-                                <div className="mod-log-header" style={{ width: '100%' }}>
-                                    <span className="mod-log-type" title={entry.reason}>
-                                        {entry.trigger}
-                                    </span>
-                                    <span className="log-time">{timeAgo(entry.timestamp)}</span>
-                                </div>
-                            </summary>
-                            <div className="workflow-content">
-                                <p className="workflow-description"><strong>Reason:</strong> <em>"{entry.reason}"</em></p>
-                                <ul className="adjustments-list">
-                                    {/* FIX: Inlined the AdjustmentItem component JSX to resolve typing error with the 'key' prop. */}
-                                    {entry.adjustments.map((adj, i) => (
-                                        <li key={i} className="adjustment-item">
-                                            <span className="param">{adj.parameter.replace(/Signal|Level/g, '')}</span>
-                                            <span className="values">{adj.oldValue.toFixed(2)} → {adj.newValue.toFixed(2)}</span>
-                                            <span className={`change ${adj.newValue > adj.oldValue ? 'positive' : 'negative'}`}>
-                                                ({adj.newValue > adj.oldValue ? '+' : ''}{(adj.newValue - adj.oldValue).toFixed(2)})
-                                            </span>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </div>
-                        </details>
-                    ))}
+        <div className="side-panel">
+            <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
+                {t('cognitiveRegulation_desc')}
+            </p>
+
+            <div className="awareness-item">
+                <label>{t('cognitiveStrategy')}</label>
+                <strong>{strategyText}</strong>
+            </div>
+
+            <div className="panel-subsection-title">{t('modulator_inputs')}</div>
+            <div className="state-item">
+                <label title="Aura's assessment of the complexity of the last user request (0 to 1).">
+                    {t('lastTaskDifficulty')}
+                </label>
+                <div className="state-bar-container">
+                    <div 
+                        className="state-bar" 
+                        style={{ 
+                            width: `${taskDifficulty * 100}%`,
+                            backgroundColor: 'var(--resource-cpu)' 
+                        }} 
+                    />
                 </div>
-            )}
+                 <span>{taskDifficulty.toFixed(2)}</span>
+            </div>
+            <div className="state-item">
+                <label title="Aura's model of your success rate and confidence with the system (0 to 1).">
+                    {t('userCompetence')}
+                </label>
+                <div className="state-bar-container">
+                    <div 
+                        className="state-bar" 
+                        style={{ 
+                            width: `${userCompetence * 100}%`,
+                            backgroundColor: 'var(--state-mastery)'
+                        }} 
+                    />
+                </div>
+                <span>{(userCompetence * 100).toFixed(0)}%</span>
+            </div>
         </div>
     );
 });

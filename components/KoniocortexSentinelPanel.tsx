@@ -54,25 +54,6 @@ export const KoniocortexSentinelPanel = React.memo(() => {
                     ))}
                 </>
             )}
-
-            <div className="panel-subsection-title">{t('koniocortex_relationalAnalysis')}</div>
-             <div className="relational-features-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                {mockRelationalFeatures.map((item, index) => (
-                    <div key={index} className="veto-log-item" style={{ borderLeftColor: 'var(--primary-color)', background: 'rgba(0, 255, 255, 0.05)' }}>
-                        <p className="veto-action" style={{ fontWeight: 'bold', color: 'var(--text-color)', margin: '0 0 0.5rem 0' }}>
-                           {item.object}
-                        </p>
-                        <div className="secondary-metrics" style={{ gridTemplateColumns: '1fr', textAlign: 'left', gap: '0.2rem' }}>
-                            {Object.entries(item.features).map(([key, value]) => (
-                                <div key={key} className="metric-item">
-                                    <span className="metric-label">{key}</span>
-                                    <span className="metric-value">{String(value)}</span>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-            </div>
         </div>
     );
 });

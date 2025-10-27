@@ -2,8 +2,8 @@
 import React from 'react';
 import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Added '.ts' extension to satisfy module resolution.
-import { CommandLogEntry } from '../types';
-import { formatTimestamp } from '../utils';
+import { CommandLogEntry } from '../types.ts';
+import { formatTimestamp } from '../utils.ts';
 
 export const CommandLogPanel = React.memo(() => {
     const { commandLog: log } = useLogsState();

@@ -1,7 +1,7 @@
 // components/CoprocessorArchitectureSwitcher.tsx
 import React from 'react';
 import { useAuraDispatch, useLocalization, useArchitectureState } from '../context/AuraContext.tsx';
-import { CoprocessorArchitecture } from '../types';
+import { CoprocessorArchitecture } from '../types.ts';
 
 export const CoprocessorArchitectureSwitcher = () => {
     const { syscall } = useAuraDispatch();

@@ -1,5 +1,6 @@
 // state/reducers/system.ts
-import { AuraState, Action, AGISDecision, MetacognitiveLink, CognitiveTask, ModificationLogEntry, KernelPatchProposal } from '../../types';
+// FIX: Replaced the incorrect 'CognitiveTask' with the correct 'KernelTask' type.
+import { AuraState, Action, AGISDecision, MetacognitiveLink, KernelTask, ModificationLogEntry, KernelPatchProposal } from '../../types';
 
 export const systemReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -103,8 +104,8 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
             };
 
         case 'KERNEL/ADD_TASK': {
-            // FIX: Correctly cast `args` to `CognitiveTask` to match the expected type, which uses the `CognitiveTaskType` enum.
-            const newTask = args as CognitiveTask;
+            // FIX: Correctly cast `args` to `KernelTask` to match the expected type.
+            const newTask = args as KernelTask;
             // Prevent adding duplicate tasks if one is already queued or running
             if (state.kernelState.runningTask?.type === newTask.type || state.kernelState.taskQueue.some(t => t.type === newTask.type)) {
                 return {};
@@ -118,8 +119,8 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
         }
 
         case 'KERNEL/SET_RUNNING_TASK': {
-            // FIX: Correctly cast `args` to `CognitiveTask` to match the type of `runningTask`.
-            const task = args as CognitiveTask | null;
+            // FIX: Correctly cast `args` to `KernelTask` to match the type of `runningTask`.
+            const task = args as KernelTask | null;
             let queue = state.kernelState.taskQueue;
             if (task) {
                 // Remove the task from the queue when it starts running

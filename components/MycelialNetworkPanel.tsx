@@ -1,7 +1,6 @@
 // components/MycelialNetworkPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-// FIX: Add MycelialModule to import from types.
+import { useCoreState, useLocalization } from '../context/AuraContext';
 import { MycelialModule } from '../types';
 
 const timeAgo = (timestamp: number, t: (key: string, options?: any) => string) => {
@@ -11,7 +10,6 @@ const timeAgo = (timestamp: number, t: (key: string, options?: any) => string) =
     return t('timeAgoMinutes', { count: minutes });
 };
 
-// FIX: Wrapped component in React.memo to correctly handle the `key` prop when used in a list.
 const ModuleCard = React.memo(({ module }: { module: MycelialModule }) => {
     const { name, description, accuracy, lastPrediction } = module;
 

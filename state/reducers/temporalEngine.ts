@@ -16,6 +16,8 @@ export const temporalEngineReducer = (state: AuraState, action: Action): Partial
                     chronicler: { status: 'pending', findings: [] },
                     reactor: { status: 'pending', finalPlan: null, executionLog: [] },
                     oracle: { status: 'pending', simulations: [] },
+                    // FIX: Added missing 'historian' property.
+                    historian: { status: 'pending', findings: [] },
                     interClusterLog: [],
                 }
             };
@@ -68,6 +70,8 @@ export const temporalEngineReducer = (state: AuraState, action: Action): Partial
                     chronicler: { status: 'pending', findings: [] },
                     reactor: { status: 'pending', finalPlan: null, executionLog: [] },
                     oracle: { status: 'pending', simulations: [] },
+                    // FIX: Added missing 'historian' property.
+                    historian: { status: 'pending', findings: [] },
                     interClusterLog: [],
                 }
             };

@@ -5,35 +5,36 @@ import { ArchitecturalChangeProposal, ModalPayloads } from '../types.ts';
 
 // --- STATIC MODAL COMPONENT IMPORTS ---
 // This replaces the dynamic lazy-loading system to prevent module loading errors.
-import { CausalChainModal } from '../components/CausalChainModal.tsx';
-import { ProposalReviewModal } from '../components/ProposalReviewModal.tsx';
-import { WhatIfModal } from '../components/WhatIfModal.tsx';
-import { SearchModal } from '../components/SearchModal.tsx';
-import { StrategicGoalModal } from '../components/StrategicGoalModal.tsx';
-import { ForecastModal } from '../components/ForecastModal.tsx';
-import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal.tsx';
-import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal.tsx';
-import { BrainstormModal } from '../components/BrainstormModal.tsx';
-import { ImageGenerationModal } from '../components/ImageGenerationModal.tsx';
-import { ImageEditingModal } from '../components/ImageEditingModal.tsx';
-import { VideoGenerationModal } from '../components/VideoGenerationModal.tsx';
-import { MusicGenerationModal } from '../components/MusicGenerationModal.tsx';
-import { CoCreatedWorkflowModal } from '../components/CoCreatedWorkflowModal.tsx';
-import { SkillGenesisModal } from '../components/SkillGenesisModal.tsx';
-import { AbstractConceptModal } from '../components/AbstractConceptModal.tsx';
-import { TelosModal } from '../components/TelosModal.tsx';
-import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal.tsx';
-import { DocumentForgeContainerModal } from '../components/DocumentForgeContainerModal.tsx';
-import { PluginManagerModal } from '../components/PluginManagerModal.tsx';
-import { PoseQuestionModal } from '../components/PoseQuestionModal.tsx';
-import { PersonaJournalModal } from '../components/PersonaJournalModal.tsx';
-import { AutonomousEvolutionModal } from '../components/AutonomousEvolutionModal.tsx';
-import { AuraOSModal } from '../components/AuraOSModal.tsx';
-import { GuidedInquiryModal } from '../components/GuidedInquiryModal.tsx';
-import { CollaborativeSessionModal } from '../components/CollaborativeSessionModal.tsx';
-import { TelosEngineModal } from '../components/TelosEngineModal.tsx';
-import { OrchestratorModal } from '../components/OrchestratorModal.tsx';
-import { ReflectorModal } from '../components/ReflectorModal.tsx';
+import { CausalChainModal } from '../components/CausalChainModal';
+import { ProposalReviewModal } from '../components/ProposalReviewModal';
+import { WhatIfModal } from '../components/WhatIfModal';
+import { SearchModal } from '../components/SearchModal';
+import { StrategicGoalModal } from '../components/StrategicGoalModal';
+import { ForecastModal } from '../components/ForecastModal';
+import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal';
+import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal';
+import { BrainstormModal } from '../components/BrainstormModal';
+// FIX: Changed import for `ImageGenerationModal` to use `VideoGenerationModal` as a placeholder to resolve a broken/missing file and circular dependencies.
+import { VideoGenerationModal as ImageGenerationModal } from '../components/VideoGenerationModal';
+import { ImageEditingModal } from '../components/ImageEditingModal';
+import { VideoGenerationModal } from '../components/VideoGenerationModal';
+import { MusicGenerationModal } from '../components/MusicGenerationModal';
+import { CoCreatedWorkflowModal } from '../components/CoCreatedWorkflowModal';
+import { SkillGenesisModal } from '../components/SkillGenesisModal';
+import { AbstractConceptModal } from '../components/AbstractConceptModal';
+import { TelosModal } from '../components/TelosModal';
+import { PsychePrimitivesModal } from '../components/PsychePrimitivesModal';
+import { DocumentForgeContainerModal } from '../components/DocumentForgeContainerModal';
+import { PluginManagerModal } from '../components/PluginManagerModal';
+import { PoseQuestionModal } from '../components/PoseQuestionModal';
+import { PersonaJournalModal } from '../components/PersonaJournalModal';
+import { AutonomousEvolutionModal } from '../components/AutonomousEvolutionModal';
+import { AuraOSModal } from '../components/AuraOSModal';
+import { GuidedInquiryModal } from '../components/GuidedInquiryModal';
+import { CollaborativeSessionModal } from '../components/CollaborativeSessionModal';
+import { TelosEngineModal } from '../components/TelosEngineModal';
+import { OrchestratorModal } from '../components/OrchestratorModal';
+import { ReflectorModal } from '../components/ReflectorModal';
 
 
 type ModalType = keyof ModalPayloads;

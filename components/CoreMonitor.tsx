@@ -1,11 +1,11 @@
 // components/CoreMonitor.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { GunaState } from '../types';
+import { GunaState } from '../types.ts';
 import { Sparkline } from './Sparkline.tsx';
 import { Gauge } from './Gauge.tsx';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis.ts';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 import { SystemVitals } from './SystemVitals.tsx';
 
 export const CoreMonitor = React.memo(() => {

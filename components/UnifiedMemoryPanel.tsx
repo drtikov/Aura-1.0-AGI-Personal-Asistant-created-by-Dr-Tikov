@@ -1,6 +1,6 @@
 // components/UnifiedMemoryPanel.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization, useMemoryState } from '../context/AuraContext.tsx';
+import { useAuraDispatch, useLocalization, useMemoryState } from '../context/AuraContext';
 import { Accordion } from './Accordion';
 import { EpisodicMemoryPanel } from './EpisodicMemoryPanel';
 import { KnowledgeGraphPanel } from './KnowledgeGraphPanel';

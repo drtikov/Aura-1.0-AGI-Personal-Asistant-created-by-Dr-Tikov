@@ -9,7 +9,7 @@ import { WorkingMemoryPanel } from './WorkingMemoryPanel.tsx';
 import { ProactiveUIPanel } from './ProactiveUIPanel.tsx'; // Import the new component
 import { SymbioticCanvas } from './SymbioticCanvas.tsx';
 // FIX: Corrected import path for types to resolve module error.
-import { HistoryEntry, PerformanceLogEntry, InternalState, TscError } from '../types';
+import { HistoryEntry, PerformanceLogEntry, InternalState, TscError } from '../types.ts';
 
 const getChromaStyle = (state?: InternalState): React.CSSProperties => {
     if (!state) return {};

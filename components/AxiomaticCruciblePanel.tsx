@@ -1,6 +1,6 @@
 // components/AxiomaticCruciblePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
+import { useArchitectureState, useLocalization } from '../context/AuraContext';
 import { ProposedAxiom } from '../types.ts';
 import { Accordion } from './Accordion.tsx';
 

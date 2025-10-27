@@ -1,5 +1,5 @@
 // state/reducers/autoCodeForge.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const autoCodeForgeReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {

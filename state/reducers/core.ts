@@ -10,6 +10,19 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'PROCESS_COMMAND':
+            return { commandToProcess: args };
+        case 'CLEAR_COMMAND_TO_PROCESS':
+            return { commandToProcess: null };
+
+        case 'COGNITIVE/SET_STRATEGY':
+            return {
+                cognitiveStrategy: args.strategy,
+            };
+
+        case 'TOGGLE_IDLE_THOUGHT':
+            return { isIdleThoughtEnabled: !state.isIdleThoughtEnabled };
+
         case 'EXECUTE_UI_HANDLER':
             return {
                 uiCommandRequest: {
@@ -54,6 +67,20 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                     ...args,
                 }
             };
+
+        case 'USER_MODEL/LOG_TASK_SUCCESS': {
+            const newHistory = [...state.userModel.taskSuccessHistory, { success: args.success, timestamp: Date.now() }].slice(-10);
+            const successCount = newHistory.filter(item => item.success).length;
+            const newCompetence = newHistory.length > 0 ? successCount / newHistory.length : 0.6; // Default to 0.6 if no history
+
+            return {
+                userModel: {
+                    ...state.userModel,
+                    taskSuccessHistory: newHistory,
+                    perceivedCompetence: newCompetence,
+                }
+            };
+        }
 
         case 'UPDATE_PERSONALITY_PORTRAIT':
             return {
@@ -174,7 +201,7 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             return {
                 telosEngine: {
                     ...state.telosEngine,
-                    candidateTelos: state.telosEngine.candidateTelos.filter(c => c.id !== args)
+                    candidateTelos: state.telosEngine.candidateTelos.filter(c => c.id !== args),
                 }
             };
 
@@ -208,7 +235,6 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
              return {
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    // FIX: Added a type guard and explicit typing to ensure the spread operation on the union type is safe.
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
                         if (p.id === args.id && p.proposalType === 'geniality') {
                             const updated: UnifiedProposal = { ...p, status: args.status };
@@ -330,157 +356,79 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             return {
                 personalityState: {
                     ...state.personalityState,
-                    ...args,
+                    ...args
                 }
-            };
-        }
-
-        case 'SOCIAL/ADD_NODE': {
-            const newNode = args;
-            if (state.socialCognitionState.socialGraph[newNode.id]) return {};
-            return {
-                socialCognitionState: {
-                    ...state.socialCognitionState,
-                    socialGraph: {
-                        ...state.socialCognitionState.socialGraph,
-                        [newNode.id]: newNode,
-                    }
-                }
-            };
-        }
-
-        case 'SOCIAL/ADD_RELATIONSHIP': {
-            const { sourceId, relationship } = args;
-            const sourceNode = state.socialCognitionState.socialGraph[sourceId];
-            if (!sourceNode) return {};
-            const updatedNode = {
-                ...sourceNode,
-                relationships: [...sourceNode.relationships, relationship],
-            };
-            return {
-                socialCognitionState: {
-                    ...state.socialCognitionState,
-                    socialGraph: {
-                        ...state.socialCognitionState.socialGraph,
-                        [sourceId]: updatedNode,
-                    }
-                }
-            };
+            }
         }
         
-        case 'SOCIAL/UPDATE_CULTURAL_MODEL': {
+        case 'ADD_GANKYIL_INSIGHT':
             return {
-                socialCognitionState: {
-                    ...state.socialCognitionState,
-                    culturalModel: {
-                        ...state.socialCognitionState.culturalModel,
-                        ...args,
-                    }
-                }
-            };
-        }
-        
-        case 'CURIOSITY/SET_DRIVE': {
-            return {
-                curiosityState: {
-                    ...state.curiosityState,
-                    motivationDrive: args,
-                }
-            };
-        }
-        
-        case 'CURIOSITY/SET_ACTIVE_INQUIRY':
-            return {
-                curiosityState: {
-                    ...state.curiosityState,
-                    activeInquiry: args.inquiry,
-                }
-            };
-            
-        case 'CURIOSITY/SET_ACTIVE_GOAL': {
-            return {
-                curiosityState: {
-                    ...state.curiosityState,
-                    activeCuriosityGoalId: args,
-                }
-            };
-        }
-
-        case 'INCREMENT_AUTONOMOUS_EVOLUTIONS':
-            return {
-                internalState: {
-                    ...state.internalState,
-                    autonomousEvolutions: state.internalState.autonomousEvolutions + 1,
+                gankyilInsights: {
+                    ...state.gankyilInsights,
+                    insights: [args, ...state.gankyilInsights.insights]
                 }
             };
 
-        case 'SITUATIONAL_AWARENESS/LOG_DOM_CHANGE': {
-            const newLogEntry = {
-                timestamp: Date.now(),
-                summary: args.summary,
+        case 'PROCESS_GANKYIL_INSIGHT':
+            return {
+                gankyilInsights: {
+                    ...state.gankyilInsights,
+                    insights: state.gankyilInsights.insights.map(i => i.id === args.id ? { ...i, isProcessedForEvolution: true } : i)
+                }
             };
+
+        case 'MULTIVERSE/SET_BRANCHES':
+            return {
+                noeticMultiverse: {
+                    ...state.noeticMultiverse,
+                    activeBranches: args,
+                    divergenceIndex: args.length > 1 ? state.noeticMultiverse.divergenceIndex + 0.05 : state.noeticMultiverse.divergenceIndex - 0.05
+                }
+            };
+        
+        case 'MULTIVERSE/LOG_PRUNING':
+             return {
+                noeticMultiverse: {
+                    ...state.noeticMultiverse,
+                    pruningLog: [args.log, ...state.noeticMultiverse.pruningLog].slice(0, 10)
+                }
+            };
+
+        case 'SELF_ADAPTATION/SET_ACTIVE':
+            return {
+                selfAdaptationState: {
+                    ...state.selfAdaptationState,
+                    activeAdaptation: args,
+                }
+            };
+
+        case 'SITUATIONAL_AWARENESS/UPDATE_FIELD':
             return {
                 situationalAwareness: {
                     ...state.situationalAwareness,
-                    domChangeLog: [newLogEntry, ...(state.situationalAwareness.domChangeLog || [])].slice(0, 20),
-                }
-            };
-        }
-        
-        case 'SHOW_PROACTIVE_UI':
-            return {
-                proactiveUI: {
-                    ...state.proactiveUI,
-                    ...args,
-                    isActive: true,
+                    attentionalField: { ...state.situationalAwareness.attentionalField, ...args }
                 }
             };
 
-        case 'HIDE_PROACTIVE_UI':
+        case 'SITUATIONAL_AWARENESS/LOG_DOM_CHANGE':
             return {
-                proactiveUI: {
-                    isActive: false,
-                    type: null,
-                    question: null,
-                    options: [],
-                    originalPrompt: null,
-                    originalFile: null,
-                }
-            };
-
-        case 'UPDATE_ATMAN_PROJECTOR': {
-            const newValues = args;
-            const currentProjector = state.atmanProjector;
-            let newCoherence = currentProjector.coherence;
-            
-            // If the narrative changes, coherence takes a hit.
-            if (newValues.dominantNarrative && newValues.dominantNarrative !== currentProjector.dominantNarrative) {
-                newCoherence = 0.7;
-            } else {
-                // Otherwise, it slowly recovers over time.
-                newCoherence = Math.min(1.0, currentProjector.coherence + 0.02);
-            }
-            
-            return {
-                atmanProjector: {
-                    ...currentProjector,
-                    ...newValues,
-                    coherence: newCoherence,
-                }
-            };
-        }
-
-        case 'MODAL/OPEN':
-            return {
-                modalRequest: {
-                    type: args.type,
-                    payload: args.payload,
+                situationalAwareness: {
+                    ...state.situationalAwareness,
+                    domChangeLog: [{ timestamp: Date.now(), summary: args.summary }, ...state.situationalAwareness.domChangeLog].slice(0, 20)
                 }
             };
 
+        case 'MODAL/OPEN':
+            return { modalRequest: args };
+        case 'MODAL/CLOSE':
         case 'CLEAR_MODAL_REQUEST':
             return { modalRequest: null };
 
+        case 'SHOW_PROACTIVE_UI':
+            return { proactiveUI: { ...args, isActive: true } };
+        case 'HIDE_PROACTIVE_UI':
+            return { proactiveUI: { ...state.proactiveUI, isActive: false } };
+            
         default:
             return {};
     }

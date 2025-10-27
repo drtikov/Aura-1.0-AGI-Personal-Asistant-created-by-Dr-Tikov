@@ -1,9 +1,10 @@
 // components/StrategicPlannerPanel.tsx
 import React from 'react';
-import { usePlanningState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-// FIX: Added '.ts' extension to satisfy module resolution.
+import { usePlanningState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+// FIX: Imported Goal from types.ts
 import { Goal } from '../types.ts';
 import { useModal } from '../context/ModalContext.tsx';
+import { personas } from '../state/personas.ts';
 
 export const StrategicPlannerPanel = React.memo(() => {
     const { goalTree, activeStrategicGoalId: activeGoalId } = usePlanningState();
@@ -25,6 +26,8 @@ export const StrategicPlannerPanel = React.memo(() => {
             }
         }
 
+        const assignedPersona = goal.personaId ? personas.find(p => p.id === goal.personaId) : null;
+
         return (
             <div key={goal.id} className="goal-node-wrapper">
                 <div className={`goal-tree-item status-${goal.status}`}>
@@ -32,6 +35,20 @@ export const StrategicPlannerPanel = React.memo(() => {
                         <span className="goal-tree-description">{goal.description}</span>
                         <span className={`goal-status status-${goal.status}`}>{t(getStatusKey(goal.status))}</span>
                     </div>
+                    {(assignedPersona || goal.type === 'RESEARCH') && (
+                        <div className="goal-tags">
+                            {assignedPersona && (
+                                <span className="skill-tag persona-tag">
+                                    Assigned: {assignedPersona.name}
+                                </span>
+                            )}
+                             {goal.type === 'RESEARCH' && (
+                                <span className="skill-tag research-tag">
+                                    Research Task
+                                </span>
+                            )}
+                        </div>
+                    )}
                     <div className="goal-tree-progress-container">
                         <div 
                             className="goal-tree-progress-bar"

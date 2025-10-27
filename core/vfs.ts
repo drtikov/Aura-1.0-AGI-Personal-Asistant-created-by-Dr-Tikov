@@ -73,6 +73,15 @@ All functions would be available under the \`window.codeAssistant\` object.
   - \`path\`: The full path of the file to open.
 - **Returns:** A promise that resolves when the action is completed.
 
+### 2.4. Long-Running Jobs (v2.1 Enhancement)
+
+#### \`submitLongRunningJob(jobDescription: object): Promise<{ jobId: string }>\`
+
+- **Description:** Submits a long-running, asynchronous job to a remote cluster or cloud service managed by the host. This is for computations that would exceed browser limits.
+- **Parameters:**
+  - \`jobDescription\`: A JSON object describing the job, e.g., \`{ tool: "computation_offload", script: "..." }\`.
+- **Returns:** A promise that resolves to an object containing a unique ID for the job, which can be used to check its status later.
+
 ## 3. Security Considerations
 
 The \`runCommand\` function introduces significant security risks. The host environment (the Code Assistant) MUST:

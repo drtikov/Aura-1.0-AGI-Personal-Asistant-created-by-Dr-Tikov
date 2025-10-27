@@ -65,7 +65,6 @@ import { SensoryIntegrationPanel } from './SensoryIntegrationPanel.tsx';
 import { SocialCognitionPanel } from './SocialCognitionPanel.tsx';
 import { MetaphoricalMapPanel } from './MetaphoricalMapPanel.tsx';
 import { AtmanProjectorPanel } from './AtmanProjectorPanel.tsx';
-import { SpandaEnginePanel } from './SpandaEnginePanel.tsx';
 import { TemporalEnginePanel } from './TemporalEnginePanel.tsx';
 import { AxiomaticCruciblePanel } from './AxiomaticCruciblePanel.tsx';
 import { KernelTaskPanel } from './KernelTaskPanel.tsx';
@@ -94,6 +93,7 @@ import { AutonomousReviewBoardPanel } from './AutonomousReviewBoardPanel.tsx';
 import { ATPCoprocessorPanel } from './ATP_CoprocessorPanel.tsx';
 import { ProofLandscapeExplorer } from './ProofLandscapeExplorer.tsx';
 import { PrometheusPanel } from './PrometheusPanel.tsx';
+import { RamanujanEnginePanel } from './RamanujanEnginePanel.tsx';
 import { ConceptualRosettaStonePanel } from './ConceptualRosettaStonePanel.tsx';
 import { ChroniclePanel } from './ChroniclePanel.tsx';
 import { SymbioticCoderPanel } from './SymbioticCoderPanel.tsx';
@@ -121,6 +121,15 @@ import { PersonaManualPanel } from './PersonaManualPanel.tsx';
 import { AutoCodeForgePanel } from './AutoCodeForgePanel.tsx';
 import { SciFiAiCouncilPanel } from './SciFiAiCouncilPanel.tsx';
 import { ResonanceFieldPanel } from './ResonanceFieldPanel.tsx';
+import { DaedalusLabyrinthPanel } from './DaedalusLabyrinthPanel.tsx';
+import { ErisEnginePanel } from './ErisEnginePanel.tsx';
+import { LagrangeEnginePanel } from './LagrangeEnginePanel.tsx';
+import { OckhamEnginePanel } from './OckhamEnginePanel.tsx';
+import { BennettEnginePanel } from './BennettEnginePanel.tsx';
+import { ArtificialScientistPanel } from './ArtificialScientistPanel.tsx';
+import { SocraticAssessorPanel } from './SocraticAssessorPanel.tsx';
+import { AxiomaticGenesisForgePanel } from './AxiomaticGenesisForgePanel.tsx';
+import { MotivationPanel } from './MotivationPanel.tsx';
 
 
 import { UseAuraResult } from '../types.ts';
@@ -142,6 +151,7 @@ export const mainControlDeckLayout: PanelConfig[] = [
             { id: 'selfAwareness', titleKey: 'selfAwareness', component: SelfAwarenessPanel },
             { id: 'worldModel', titleKey: 'worldModel', component: WorldModelPanel },
             { id: 'rie', titleKey: 'rie', component: ReflectiveInsightEnginePanel },
+            { id: 'cognitiveRegulation', titleKey: 'cognitiveRegulation', component: CognitiveRegulationPanel },
         ],
     },
     {
@@ -149,6 +159,7 @@ export const mainControlDeckLayout: PanelConfig[] = [
         titleKey: 'userAwareness',
         children: [
             { id: 'otherAwareness', titleKey: 'otherAwareness', component: OtherAwarenessPanel },
+            { id: 'symbioticMotivation', titleKey: 'symbiotic_motivation_panel_title', component: MotivationPanel },
             { id: 'curiosity', titleKey: 'curiosity', component: CuriosityPanel },
             { id: 'causalSelfModel', titleKey: 'causalSelfModel', component: CausalSelfModelPanel },
             { id: 'devHistory', titleKey: 'devHistory', component: DevelopmentalHistoryPanel },
@@ -186,7 +197,6 @@ export const mainControlDeckLayout: PanelConfig[] = [
             { id: 'commandLog', titleKey: 'commandLog', component: CommandLogPanel },
             { id: 'cogModes', titleKey: 'cogModes', component: CognitiveModesPanel },
             { id: 'cogGain', titleKey: 'cogGain', component: CognitiveGainPanel },
-            { id: 'cogRegulation', titleKey: 'cogRegulation', component: CognitiveRegulationPanel },
         ],
     },
     {
@@ -195,6 +205,7 @@ export const mainControlDeckLayout: PanelConfig[] = [
         children: [
             { id: 'resourceMonitor', titleKey: 'resourceMonitor', component: ResourceMonitorPanel },
             { id: 'homeostatic', titleKey: 'homeostatic', component: HomeostaticPanel },
+            { id: 'kernelTasks', titleKey: 'kernel_panel_title', component: KernelTaskPanel },
             { id: 'metacognitiveNexus', titleKey: 'metacognitiveNexus', component: MetacognitiveNexusPanel },
             { id: 'pluginManager', titleKey: 'pluginManager', component: PluginManagerPanel },
             { id: 'systemInfo', titleKey: 'systemInfo', component: SystemInfoPanel },
@@ -212,6 +223,18 @@ export const advancedControlsLayout: PanelConfig[] = [
             { id: 'selfEngineering', titleKey: 'self_engineering_panel_title', component: SelfEngineeringPanel },
             { id: 'autonomousReviewBoard', titleKey: 'reviewBoard', component: AutonomousReviewBoardPanel },
             { id: 'metisSandbox', titleKey: 'metis_sandbox_title', component: MetisSandboxPanel },
+            { id: 'hova', titleKey: 'hova_panel_title', component: HOVAPanel },
+            { id: 'daedalus', titleKey: 'daedalus_panel_title', component: DaedalusLabyrinthPanel },
+        ]
+    },
+    {
+        id: 'scientificMethod',
+        titleKey: 'scientific_method_group_title',
+        children: [
+            { id: 'artificialScientist', titleKey: 'artificial_scientist_panel_title', component: ArtificialScientistPanel },
+            { id: 'socraticAssessor', titleKey: 'socratic_assessor_panel_title', component: SocraticAssessorPanel },
+            { id: 'ockhamEngine', titleKey: 'ockham_engine_panel_title', component: OckhamEnginePanel },
+            { id: 'bennettEngine', titleKey: 'bennett_engine_panel_title', component: BennettEnginePanel },
         ]
     },
     {
@@ -226,8 +249,40 @@ export const advancedControlsLayout: PanelConfig[] = [
         id: 'metaphysicalEngines',
         titleKey: 'metaphysical_engines_group_title',
         children: [
-            { id: 'architecturalCrucible', titleKey: 'archCrucible_panel_title', component: ArchitecturalCruciblePanel },
-            { id: 'resonanceField', titleKey: 'tensegrityMesh_panel_title', component: ResonanceFieldPanel },
+             { id: 'synapticMatrix', titleKey: 'synaptic_matrix_panel_title', component: SynapticMatrixPanel },
+             { id: 'mycelialNetwork', titleKey: 'mycelial_network_panel_title', component: MycelialNetworkPanel },
+             { id: 'semanticWeaver', titleKey: 'semantic_weaver_panel_title', component: SemanticWeaverPanel },
+             { id: 'lagrangeEngine', titleKey: 'lagrange_engine_panel_title', component: LagrangeEnginePanel },
+             { id: 'resonanceField', titleKey: 'resonanceField_panel_title', component: ResonanceFieldPanel },
+             { id: 'architecturalCrucible', titleKey: 'archCrucible_panel_title', component: ArchitecturalCruciblePanel },
+             { id: 'erisEngine', titleKey: 'eris_engine_panel_title', component: ErisEnginePanel },
+             { id: 'axiomaticCrucible', titleKey: 'axiomatic_crucible_panel_title', component: AxiomaticCruciblePanel },
+             { id: 'phenomenology', titleKey: 'phenomenology_panel_title', component: PhenomenologyPanel },
+             { id: 'prometheus', titleKey: 'prometheus_panel_title', component: PrometheusPanel },
+        ]
+    },
+    {
+        id: 'computationalArchitecture',
+        titleKey: 'computational_architecture_group_title',
+        children: [
+             { id: 'kernelTasks', titleKey: 'kernel_panel_title', component: KernelTaskPanel },
+             { id: 'hostBridge', titleKey: 'host_bridge_panel_title', component: HostBridgePanel },
+        ]
+    },
+     {
+        id: 'interfaceLayer',
+        titleKey: 'interface_layer_group_title',
+        children: [
+             { id: 'koniocortex', titleKey: 'koniocortex_panel_title', component: KoniocortexSentinelPanel },
+             { id: 'motorCortex', titleKey: 'motor_cortex_panel_title', component: MotorCortexPanel },
+        ]
+    },
+    {
+        id: 'mathematicalResearch',
+        titleKey: 'mathematical_research_group_title',
+        children: [
+            { id: 'ramanujanEngine', titleKey: 'ramanujan_engine_panel_title', component: RamanujanEnginePanel },
+            { id: 'axiomaticGenesisForge', titleKey: 'axiomatic_genesis_forge_panel_title', component: AxiomaticGenesisForgePanel },
         ]
     },
     {

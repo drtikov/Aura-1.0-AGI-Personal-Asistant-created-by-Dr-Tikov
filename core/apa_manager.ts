@@ -8,9 +8,8 @@ class APAManager {
     private pendingRequests: Map<string, (result: GunaReasonResult) => void> = new Map();
 
     constructor() {
-        // FIX: The URL constructor with import.meta.url can be brittle in some environments.
-        // The simpler string path is more robust for creating a module worker.
-        this.worker = new Worker('./apa.worker.ts', { type: 'module' });
+        // FIX: The path should be relative to the root HTML file, not the current module.
+        this.worker = new Worker('/core/apa.worker.ts', { type: 'module' });
 
         this.worker.onmessage = (event: MessageEvent<{ id: string; type: string; payload: GunaReasonResult }>) => {
             const { id, payload } = event.data;
@@ -22,8 +21,7 @@ class APAManager {
         };
 
         this.worker.onerror = (error) => {
-            console.error("APA Worker Error:", error);
-            // Optionally, you could reject all pending promises here.
+            console.error("APA Worker Error:", error.message, `at ${error.filename}:${error.lineno}`);
         };
     }
 

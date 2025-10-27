@@ -1,5 +1,5 @@
 // state/reducers/doxastic.ts
-import { AuraState, Action } from '../../types.ts';
+import { AuraState, Action } from '../../types';
 
 export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -17,12 +17,52 @@ export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraS
             };
             
         case 'DOXASTIC/ADD_HYPOTHESIS':
+            // New hypotheses now start as 'untested'
+            const newHypothesis = { ...args, status: 'untested' };
             return {
                 doxasticEngineState: {
                     ...state.doxasticEngineState,
-                    hypotheses: [args, ...state.doxasticEngineState.hypotheses],
+                    hypotheses: [newHypothesis, ...state.doxasticEngineState.hypotheses],
                 }
             };
+        
+        case 'DOXASTIC/DESIGN_EXPERIMENT': {
+            const { hypothesisId, experiment } = args;
+            return {
+                doxasticEngineState: {
+                    ...state.doxasticEngineState,
+                    hypotheses: state.doxasticEngineState.hypotheses.map(h => 
+                        h.id === hypothesisId ? { ...h, status: 'designed' } : h
+                    ),
+                    experiments: [...state.doxasticEngineState.experiments, { id: `exp_${self.crypto.randomUUID()}`, hypothesisId, status: 'pending', ...experiment }],
+                }
+            };
+        }
+
+        case 'DOXASTIC/UPDATE_HYPOTHESIS_STATUS': {
+            const { hypothesisId, status } = args;
+            return {
+                doxasticEngineState: {
+                    ...state.doxasticEngineState,
+                    hypotheses: state.doxasticEngineState.hypotheses.map(h => 
+                        h.id === hypothesisId ? { ...h, status } : h
+                    ),
+                }
+            };
+        }
+        
+        case 'DOXASTIC/UPDATE_EXPERIMENT_STATUS': {
+            const { experimentId, status, result } = args;
+            return {
+                doxasticEngineState: {
+                    ...state.doxasticEngineState,
+                    experiments: state.doxasticEngineState.experiments.map(e => 
+                        e.id === experimentId ? { ...e, status, ...(result && { result }) } : e
+                    ),
+                }
+            };
+        }
+
 
         case 'DOXASTIC/START_SIMULATION': {
             const logEntry = { timestamp: Date.now(), message: `Simulation started for proposal: ${args.proposalId}` };
@@ -52,7 +92,6 @@ export const doxasticReducer = (state: AuraState, action: Action): Partial<AuraS
             return {
                 doxasticEngineState: {
                     ...state.doxasticEngineState,
-                    // FIX: Corrected typo from "completed" to "complete" to match the type definition.
                     simulationStatus: 'complete',
                     lastSimulationResult: result,
                     simulationLog: [...state.doxasticEngineState.simulationLog, logEntry].slice(-20),

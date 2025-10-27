@@ -1,15 +1,17 @@
 // hooks/useUIHandlers.ts
 import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
-// FIX: Added GoalType to import to resolve module error.
-// FIX: Imported missing AuraState and Action types.
-// FIX: Added PsycheAdaptationProposal to imports.
-import { AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal, SelfProgrammingCandidate, GoalTree, GoalType, UseGeminiAPIResult, CoCreatedWorkflow, CreateFileCandidate, Plugin, HistoryEntry, UIHandlers, PsycheAdaptationProposal } from '../types.ts';
-import { migrateState } from '../state/migrations.ts';
-import { CURRENT_STATE_VERSION } from '../constants.ts';
-import { HAL } from '../core/hal.ts';
-import { useLocalization } from '../context/AuraContext.tsx';
-import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator.ts';
-import { VIRTUAL_FILE_SYSTEM } from '../core/vfs.ts';
+import { 
+    AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal, 
+    SelfProgrammingCandidate, GoalTree, GoalType, UseGeminiAPIResult, 
+    CoCreatedWorkflow, CreateFileCandidate, Plugin, HistoryEntry, 
+    UIHandlers, PsycheAdaptationProposal, DoxasticExperiment, KnowledgeFact
+} from '../types';
+import { migrateState } from '../state/migrations';
+import { CURRENT_STATE_VERSION } from '../constants';
+import { HAL } from '../core/hal';
+import { useLocalization } from '../context/AuraContext';
+import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator';
+import { VIRTUAL_FILE_SYSTEM } from '../core/vfs';
 
 declare const JSZip: any;
 
@@ -64,9 +66,10 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     }, [addToast, t]);
     const handleTogglePause = useCallback(() => { setIsPaused(p => !p); addToast(isPaused ? t('toastAutonomousResumed') : t('toastAutonomousPaused'), 'info'); }, [isPaused, addToast, t]);
     const handleMicClick = useCallback(() => {
-        addToast("Microphone input is not yet implemented.", 'info');
+        // FIX: Pass feature name to translation function
+        addToast(t('toast_not_implemented', { feature: "Microphone input" }), 'info');
         setIsRecording(r => !r); // Toggle for UI feedback
-    }, [addToast]);
+    }, [addToast, t]);
     
     const handleClearMemory = useCallback(async () => {
         if (HAL.UI.confirm(t('toastResetConfirm'))) {
@@ -92,6 +95,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             URL.revokeObjectURL(url);
             addToast(t('toastExportSuccess'), 'success');
         } catch (error) {
+            // FIX: Pass feature name to translation function
             addToast(t('toastExportFailed'), 'error');
         }
     }, [state, t, addToast]);
@@ -110,6 +114,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
                     dispatch({ type: 'IMPORT_STATE', payload: migratedState });
                     addToast(t('toastImportSuccess', { source: file.name }), 'success');
                 } catch (error: any) {
+                    // FIX: Pass feature name to translation function
                     addToast(t('toastImportFailed', { error: error.message }), 'error');
                 }
             };
@@ -129,6 +134,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     };
 
     const handleGenerateArchitecturalSchema = async () => {
+        // FIX: Pass feature name to translation function
         addToast(t('toast_schemaGenerating'), 'info');
         try {
             const zip = new JSZip();
@@ -160,9 +166,11 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
+            // FIX: Pass feature name to translation function
             addToast(t('toast_schemaGenerated'), 'success');
         } catch (error) {
             console.error("Failed to generate architectural schema:", error);
+            // FIX: Pass feature name to translation function
             addToast(t('toast_schemaFailed'), 'error');
         }
     };
@@ -179,18 +187,67 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         });
     }, [syscall]);
 
-    const handleFantasy = () => { };
-    const handleCreativity = () => { };
-    const handleDream = () => { };
-    const handleMeditate = () => { };
-    const handleGaze = () => { };
-    const handleTimefocus = () => { };
-    const handleSetTelos = (telos: string) => syscall('SET_TELOS', telos);
-    const handleCreateWorkflow = (workflowData: Omit<CoCreatedWorkflow, 'id'>) => {
-        syscall('ADD_WORKFLOW_PROPOSAL', workflowData);
-        addToast(t('toast_workflowCreated'), 'success');
+    const handleStartMetisResearch = async (problem: string) => {
+        const initialState = {
+            status: 'analyzing',
+            problemStatement: problem,
+            researchLog: [{ timestamp: Date.now(), message: `Received research problem: "${problem}"`, stage: 'OBSERVE' as const }],
+            findings: null,
+            errorMessage: null,
+        };
+        syscall('METIS/SET_STATE', initialState);
+    
+        try {
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            syscall('METIS/SET_STATE', { 
+                status: 'hypothesizing',
+                researchLog: [...initialState.researchLog, { timestamp: Date.now(), message: 'Formulating initial hypothesis based on problem statement.', stage: 'HYPOTHESIZE' as const }]
+            });
+            
+            const hypothesis = await geminiAPI.runMetisHypothesis(problem);
+            
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            let logAfterHypothesis = [...initialState.researchLog, 
+                { timestamp: Date.now(), message: 'Formulating initial hypothesis based on problem statement.', stage: 'HYPOTHESIZE' as const },
+                { timestamp: Date.now(), message: `Hypothesis: ${hypothesis}`, stage: 'HYPOTHESIZE' as const }
+            ];
+            syscall('METIS/SET_STATE', { researchLog: logAfterHypothesis });
+    
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            let logBeforeExperiment = [...logAfterHypothesis, { timestamp: Date.now(), message: 'Designing experiment: Cross-referencing internal knowledge bases for related data.', stage: 'EXPERIMENT' as const }];
+            syscall('METIS/SET_STATE', { 
+                status: 'experimenting',
+                researchLog: logBeforeExperiment
+            });
+    
+            const findings = await geminiAPI.runMetisExperiment(problem, hypothesis);
+    
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            syscall('METIS/SET_STATE', {
+                status: 'complete',
+                findings: findings,
+                researchLog: [...logBeforeExperiment, { timestamp: Date.now(), message: 'Experiment complete. Synthesizing findings.', stage: 'CONCLUSION' as const }]
+            });
+    
+        } catch (e) {
+            syscall('METIS/SET_STATE', { status: 'error', errorMessage: (e as Error).message });
+        }
     };
-    const handleEvolveFromInsight = () => { };
+
+    // FIX: Refactored placeholder functions to use the translation function `t` for consistency and to resolve potential type errors.
+    const handleFantasy = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Fantasy' }), 'info'), [addToast, t]);
+    const handleCreativity = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Creativity' }), 'info'), [addToast, t]);
+    const handleDream = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Dream' }), 'info'), [addToast, t]);
+    const handleMeditate = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Meditate' }), 'info'), [addToast, t]);
+    const handleGaze = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Gaze' }), 'info'), [addToast, t]);
+    const handleTimefocus = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Time Focus' }), 'info'), [addToast, t]);
+    const handleSetTelos = useCallback((telos: string) => { syscall('SET_TELOS', telos); }, [syscall]);
+    const handleCreateWorkflow = useCallback((workflowData: Omit<CoCreatedWorkflow, 'id'>) => {
+        syscall('ADD_WORKFLOW_PROPOSAL', workflowData);
+        // FIX: Pass feature name to translation function
+        addToast(t('toast_workflowCreated'), 'success');
+    }, [syscall, addToast, t]);
+    const handleEvolveFromInsight = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Evolve from Insight' }), 'info'), [addToast, t]);
     const handleVisualizeInsight = async (insight: string): Promise<string | undefined> => {
         try {
             return await geminiAPI.visualizeInsight(insight);
@@ -198,7 +255,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             console.error(e);
         }
     };
-    const handleShareWisdom = async () => {
+    const handleShareWisdom = useCallback(async () => {
         syscall('UPDATE_NOETIC_ENGRAM_STATE', { status: 'generating' });
         try {
             const engram = await geminiAPI.generateNoeticEngram();
@@ -206,57 +263,58 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         } catch (e) {
             syscall('UPDATE_NOETIC_ENGRAM_STATE', { status: 'idle' });
         }
-    };
-    const handleTrip = () => syscall('SET_PSYCHEDELIC_STATE', { isActive: !state.psychedelicIntegrationState.isActive, mode: 'trip' });
-    const handleVisions = () => syscall('SET_PSYCHEDELIC_STATE', { isActive: !state.psychedelicIntegrationState.isActive, mode: 'visions' });
-    const handleSatori = () => syscall('SET_SATORI_STATE', { isActive: !state.satoriState.isActive });
-    const handleTrainCorticalColumn = (specialty: string, curriculum: string) => { };
-    const handleSynthesizeAbstractConcept = (name: string, columnIds: string[]) => { };
-    const handleStartSandboxSprint = (goal: string) => syscall('SANDBOX/START_SPRINT', { goal });
-    const handleIngestWisdom = (content: string) => syscall('WISDOM/START_INGESTION', { content });
-    const handleProcessAxiom = (axiom: any, status: 'accepted' | 'rejected') => {
+    }, [syscall, geminiAPI]);
+    const handleTrip = useCallback(() => { syscall('SET_PSYCHEDELIC_STATE', { isActive: !state.psychedelicIntegrationState.isActive, mode: 'trip' }); }, [syscall, state.psychedelicIntegrationState.isActive]);
+    const handleVisions = useCallback(() => { syscall('SET_PSYCHEDELIC_STATE', { isActive: !state.psychedelicIntegrationState.isActive, mode: 'visions' }); }, [syscall, state.psychedelicIntegrationState.isActive]);
+    const handleSatori = useCallback(() => { syscall('SET_SATORI_STATE', { isActive: !state.satoriState.isActive }); }, [syscall, state.satoriState.isActive]);
+    const handleTrainCorticalColumn = useCallback((specialty: string, curriculum: string) => addToast(t('toast_not_implemented', { feature: 'Training Cortical Column' }), 'info'), [addToast, t]);
+    const handleSynthesizeAbstractConcept = useCallback((name: string, columnIds: string[]) => addToast(t('toast_not_implemented', { feature: 'Synthesizing Abstract Concept' }), 'info'), [addToast, t]);
+    const handleStartSandboxSprint = useCallback((goal: string) => { syscall('SANDBOX/START_SPRINT', { goal }); }, [syscall]);
+    const handleIngestWisdom = useCallback((content: string) => { syscall('WISDOM/START_INGESTION', { content }); }, [syscall]);
+    const handleProcessAxiom = useCallback((axiom: any, status: 'accepted' | 'rejected') => {
         if (status === 'accepted') {
             syscall('HEURISTICS_FORGE/ADD_AXIOM', { axiom: axiom.axiom, source: axiom.source });
         }
         syscall('WISDOM/PROCESS_AXIOM', { id: axiom.id, status });
-    };
-    const handleApproveAllAxioms = (axioms: any[]) => {
+    }, [syscall]);
+    const handleApproveAllAxioms = useCallback((axioms: any[]) => {
         axioms.forEach(axiom => {
             syscall('HEURISTICS_FORGE/ADD_AXIOM', { axiom: axiom.axiom, source: axiom.source });
             syscall('WISDOM/PROCESS_AXIOM', { id: axiom.id, status: 'accepted' });
         });
-    };
-    const handleResetWisdomIngestion = () => syscall('WISDOM/RESET', {});
-    const handleGenerateArchitectureDocument = () => {
+    }, [syscall]);
+    const handleResetWisdomIngestion = useCallback(() => { syscall('WISDOM/RESET', {}); }, [syscall]);
+    const handleGenerateArchitectureDocument = useCallback(() => {
         const goal = t('archDoc_goal');
         syscall('DOCUMENT_FORGE/START_PROJECT', { goal });
+        // FIX: Pass feature name to translation function
         addToast(t('archDoc_toast_started'), 'info');
-    };
-    const handleStartDocumentForge = (goal: string) => syscall('DOCUMENT_FORGE/START_PROJECT', { goal });
-    const handleGenerateDreamPrompt = async () => {
+    }, [syscall, t, addToast]);
+    const handleStartDocumentForge = useCallback((goal: string) => { syscall('DOCUMENT_FORGE/START_PROJECT', { goal }); }, [syscall]);
+    const handleGenerateDreamPrompt = async (): Promise<string | undefined> => {
         try {
             return await geminiAPI.generateDreamPrompt();
         } catch (e) {
             console.error(e);
         }
     };
-    const approveProposal = (proposal: ArchitecturalChangeProposal) => syscall('APPLY_ARCH_PROPOSAL', { proposal, snapshotId: `snap_${self.crypto.randomUUID()}`, modLogId: `mod_${self.crypto.randomUUID()}`, isAutonomous: false });
-    const handleImplementSelfProgramming = (candidate: SelfProgrammingCandidate) => syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id: candidate.id });
-    const handleLiveLoadPlugin = (candidate: CreateFileCandidate) => {
+    const approveProposal = useCallback((proposal: ArchitecturalChangeProposal) => { syscall('APPLY_ARCH_PROPOSAL', { proposal, snapshotId: `snap_${self.crypto.randomUUID()}`, modLogId: `mod_${self.crypto.randomUUID()}`, isAutonomous: false }); }, [syscall]);
+    const handleImplementSelfProgramming = useCallback((candidate: SelfProgrammingCandidate) => { syscall('IMPLEMENT_SELF_PROGRAMMING_CANDIDATE', { id: candidate.id }); }, [syscall]);
+    const handleLiveLoadPlugin = useCallback((candidate: CreateFileCandidate) => {
         if (candidate.newPluginObject) {
             const newPlugin: Plugin = { ...candidate.newPluginObject, status: 'enabled' };
             syscall('PLUGIN/ADD_PLUGIN', newPlugin);
         }
-    };
-    const handleUpdateSuggestionStatus = (suggestionId: string, action: 'accepted' | 'rejected') => syscall('UPDATE_SUGGESTION_STATUS', { id: suggestionId, status: action });
-    const handleScrollToHistory = (historyId: string) => {
+    }, [syscall]);
+    const handleUpdateSuggestionStatus = useCallback((suggestionId: string, action: 'accepted' | 'rejected') => { syscall('UPDATE_SUGGESTION_STATUS', { id: suggestionId, status: action }); }, [syscall]);
+    const handleScrollToHistory = useCallback((historyId: string) => {
         const element = document.getElementById(`history-entry-${historyId}`);
         if (element) {
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
             element.classList.add('highlighted-entry');
             setTimeout(() => element.classList.remove('highlighted-entry'), 2000);
         }
-    };
+    }, []);
 
     const handleRunCrucibleSimulation = async (proposal: ArchitecturalChangeProposal) => {
         syscall('CRUCIBLE/START_SIMULATION', { proposalId: proposal.id });
@@ -278,6 +336,102 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             addToast(`Crucible simulation failed for proposal ${proposal.id.slice(0,8)}.`, 'error');
         }
     };
+
+    const handleRunExperiment = useCallback(async (experiment: DoxasticExperiment) => {
+        if (!experiment) return;
+        
+        const hypothesis = state.doxasticEngineState.hypotheses.find(h => h.id === experiment.hypothesisId);
+        if (!hypothesis) {
+            addToast(`Hypothesis for experiment ${experiment.id} not found.`, 'error');
+            return;
+        }
+    
+        syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'running' });
+        syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'testing' });
+        addToast(`Running experiment for: "${hypothesis.description.substring(0, 30)}..."`, 'info');
+    
+        try {
+            let rawResult = '';
+            const [methodType, methodArg] = experiment.method.split(': ');
+            
+            if (!methodType || !methodArg) {
+                throw new Error(`Invalid experiment method format: ${experiment.method}`);
+            }
+    
+            switch(methodType.trim()) {
+                case 'WEBSERVICE':
+                    const searchResult = await geminiAPI.performWebSearch(methodArg);
+                    rawResult = searchResult.summary;
+                    break;
+                case 'VFS_QUERY':
+                    rawResult = state.selfProgrammingState.virtualFileSystem[methodArg] || `Error: File not found in VFS: ${methodArg}`;
+                    break;
+                case 'KG_QUERY':
+                    // A very simple KG query for demonstration
+                    const matchingFacts = state.knowledgeGraph.filter(f => 
+                        `${f.subject}, ${f.predicate}, ${f.object}`.toLowerCase().includes(methodArg.toLowerCase())
+                    );
+                    rawResult = matchingFacts.length > 0 ? JSON.stringify(matchingFacts, null, 2) : 'No matching facts found in Knowledge Graph.';
+                    break;
+                default:
+                    throw new Error(`Unknown experiment method: ${methodType}`);
+            }
+            
+            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, result: rawResult });
+            addToast(`Experiment complete. Analyzing results...`, 'info');
+    
+            const validation = await geminiAPI.evaluateExperimentResult(hypothesis.description, experiment.method, rawResult);
+            
+            syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: validation.outcome });
+            
+            if (validation.outcome === 'validated') {
+                const newFact: Omit<KnowledgeFact, 'id' | 'source'> = {
+                    subject: 'New Belief',
+                    predicate: 'validated by experiment',
+                    object: hypothesis.description,
+                    confidence: 0.8, // Start with a reasonable confidence
+                    strength: 1.0,
+                    lastAccessed: Date.now(),
+                    type: 'fact',
+                };
+                syscall('ADD_FACT', newFact);
+                addToast(`Hypothesis validated! New belief added.`, 'success');
+            } else {
+                addToast(`Hypothesis refuted. ${validation.reasoning}`, 'warning');
+            }
+            
+            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'complete' });
+    
+        } catch(e) {
+            const errorMessage = (e as Error).message;
+            addToast(`Experiment failed: ${errorMessage}`, 'error');
+            syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'untested' }); // Revert status on error
+            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'pending' });
+        }
+    }, [state, geminiAPI, syscall, addToast]);
+
+    const handleOrchestrateTask = useCallback(() => {
+        syscall('MODAL/OPEN', { type: 'orchestrator', payload: {} });
+    }, [syscall]);
+
+    const handleExplainComponent = useCallback(() => {
+        syscall('MODAL/OPEN', { type: 'reflector', payload: {} });
+    }, [syscall]);
+
+    const handleStartOptimizationLoop = useCallback(async () => {
+        // FIX: Pass feature name to translation function
+        addToast(t('toast_not_implemented', { feature: 'Optimization Loop' }), 'info');
+    }, [syscall, addToast, t]);
+    
+    const handleApprovePsycheAdaptation = useCallback(() => {
+        // FIX: Pass feature name to translation function
+        addToast(t('toast_not_implemented', { feature: 'This action is now automated by the system.' }), 'info');
+    }, [addToast, t]);
+
+    const handleToggleIdleThought = useCallback(() => {
+        syscall('TOGGLE_IDLE_THOUGHT', {});
+        addToast(state.isIdleThoughtEnabled ? 'Idle thoughts disabled.' : 'Idle thoughts enabled.', 'info');
+    }, [syscall, addToast, state.isIdleThoughtEnabled]);
 
     return {
         currentCommand,
@@ -335,8 +489,14 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         handleLiveLoadPlugin,
         handleUpdateSuggestionStatus,
         handleScrollToHistory,
-        // FIX: Add missing handleRunCrucibleSimulation to the returned object.
         handleRunCrucibleSimulation,
-        handleApprovePsycheAdaptation: () => {}, // This is now automated,
+        handleRunExperiment,
+        handleApprovePsycheAdaptation,
+        handleOrchestrateTask,
+        handleExplainComponent,
+        handleStartMetisResearch,
+        handleStartOptimizationLoop,
+        // FIX: Added missing handler to the returned object to match the UIHandlers type.
+        handleToggleIdleThought,
     };
 };

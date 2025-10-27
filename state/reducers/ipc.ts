@@ -1,5 +1,5 @@
 // state/reducers/ipc.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const ipcReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {

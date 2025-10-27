@@ -3,7 +3,7 @@ import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
 import { SyscallCall } from '../types';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useMemoryState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+import { useMemoryState, useLocalization, useAuraDispatch } from '../context/AuraContext';
 
 export const WorkingMemoryPanel = React.memo(() => {
     const { workingMemory: memory } = useMemoryState();

@@ -2,9 +2,9 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Updated import to use PersonaActivation instead of the collided Persona type.
-import { PersonalityState, PersonaActivation, Persona } from '../types';
-import { useModal } from '../context/ModalContext';
-import { personas } from '../state/personas';
+import { PersonalityState, PersonaActivation, Persona } from '../types.ts';
+import { useModal } from '../context/ModalContext.tsx';
+import { personas } from '../state/personas.ts';
 
 
 interface TraitBarProps {

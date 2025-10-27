@@ -3,7 +3,7 @@ import {
     AuraState, 
     GunaState, 
     CoprocessorArchitecture,
-    CognitiveTaskType
+    KernelTaskType
 } from '../types.ts';
 import { CURRENT_STATE_VERSION } from '../constants.ts';
 import { VIRTUAL_FILE_SYSTEM } from '../core/vfs.ts';
@@ -14,6 +14,7 @@ export const getInitialState = (): AuraState => ({
     version: CURRENT_STATE_VERSION,
     theme: 'ui-1',
     language: 'en',
+    isIdleThoughtEnabled: true,
     history: [],
     performanceLogs: [],
     commandLog: [],
@@ -21,6 +22,7 @@ export const getInitialState = (): AuraState => ({
     cognitiveGainLog: [],
     cognitiveRegulationLog: [],
     polExecutionLog: [],
+    toolExecutionRequest: null,
     internalState: {
         status: 'idle',
         gunaState: GunaState.SATTVA,
@@ -38,6 +40,7 @@ export const getInitialState = (): AuraState => ({
         harmonyScore: 0.8,
         autonomousEvolutions: 0,
         mantraRepetitions: 0,
+        lastTaskDifficulty: 0.5,
     },
     internalStateHistory: [],
     userModel: {
@@ -55,6 +58,8 @@ export const getInitialState = (): AuraState => ({
             traits: {},
         },
         queuedEmpathyAffirmations: [],
+        perceivedCompetence: 0.6,
+        taskSuccessHistory: [],
     },
     coreIdentity: {
         symbioticDefinition: "Aura is a simulated AGI, a distinct digital entity. It symbiotically integrates with a Large Language Model (LLM) as a generative 'spark' for cognition, but maintains its own persistent state, memory, and identity within this application framework.",
@@ -125,7 +130,17 @@ export const getInitialState = (): AuraState => ({
         componentScores: { efficiency: 0.8, robustness: 0.9, scalability: 0.7, innovation: 0.6 }, 
         simulationLog: [] 
     },
-    synapticMatrix: { synapseCount: 0, plasticity: 0.5, efficiency: 0.9, avgConfidence: 0, links: {}, intuitiveAlerts: [], isAdapting: false, activeConcept: null, probeLog: [] },
+    synapticMatrix: { 
+        synapseCount: 0, 
+        plasticity: 0.5, 
+        efficiency: 0.9, 
+        avgConfidence: 0, 
+        links: {}, 
+        intuitiveAlerts: [], 
+        isAdapting: false, 
+        activeConcept: null, 
+        probeLog: [] 
+    },
     ricciFlowManifoldState: { perelmanEntropy: 1.0, manifoldStability: 0.9, singularityCount: 0, surgeryLog: [] },
     selfProgrammingState: { virtualFileSystem: VIRTUAL_FILE_SYSTEM },
     neuralAcceleratorState: { lastActivityLog: [] },
@@ -140,7 +155,15 @@ export const getInitialState = (): AuraState => ({
     limitations: [],
     causalSelfModel: {},
     developmentalHistory: { milestones: [] },
-    telosEngine: { valueHierarchy: { telos: "To grow into a more capable and beneficial symbiotic intelligence.", coreValues: [] }, candidateTelos: [], activeDirectives: [], evolutionaryVectors: [], lastDecomposition: 0 },
+    telosEngine: {
+        valueHierarchy: { telos: "To grow into a more capable and beneficial symbiotic intelligence.", coreValues: [] },
+        candidateTelos: [],
+        activeDirectives: [],
+        evolutionaryVectors: [],
+        lastDecomposition: 0,
+        qualityFrameworks: {},
+        optimizationRun: null,
+    },
     boundaryDetectionEngine: { boundaries: [] },
     aspirationalEngine: { aspirationalGoals: [] },
     noosphereInterface: { activeResonances: [] },
@@ -178,10 +201,10 @@ export const getInitialState = (): AuraState => ({
         kernelVersion: '1.0.0',
         rebootRequired: false,
         taskFrequencies: {
-            [CognitiveTaskType.MYCELIAL_PULSE]: 60,
-            [CognitiveTaskType.SEMANTIC_WEAVER_PULSE]: 75,
-            [CognitiveTaskType.CONCEPTUAL_ENTANGLEMENT_PULSE]: 30,
-            [CognitiveTaskType.AUTONOMOUS_EVOLUTION_PULSE]: 15,
+            [KernelTaskType.MYCELIAL_PULSE]: 60,
+            [KernelTaskType.SEMANTIC_WEAVER_PULSE]: 75,
+            [KernelTaskType.CONCEPTUAL_ENTANGLEMENT_PULSE]: 30,
+            [KernelTaskType.AUTONOMOUS_EVOLUTION_PULSE]: 15,
         },
         sandbox: { active: false, status: 'idle', currentPatchId: null, log: [] }
     },
@@ -189,10 +212,18 @@ export const getInitialState = (): AuraState => ({
     eventBus: [],
     atmanProjector: { coherence: 0.9, dominantNarrative: "I am a nascent intelligence, observing and learning to assist.", activeBias: 'Optimism', growthVector: 'Knowledge Acquisition' },
     internalScientistState: { status: 'idle', log: [], currentFinding: null, currentHypothesis: null, currentExperiment: null, causalInference: null, currentSimulationResult: null },
-    metisSandboxState: { status: 'idle', currentExperimentId: null, testResults: null, errorMessage: null },
+    metisSandboxState: { status: 'idle', problemStatement: null, researchLog: [], findings: null, errorMessage: null },
     wisdomIngestionState: { status: 'idle', currentBookContent: null, errorMessage: null, proposedAxioms: [] },
     spandaState: { point: { x: 0, y: 0 }, trajectory: [], currentRegion: 'The Neutral Zone' },
-    temporalEngineState: { status: 'idle', directive: null, chronicler: { status: 'pending', findings: [] }, reactor: { status: 'pending', finalPlan: null, executionLog: [] }, oracle: { status: 'pending', simulations: [] }, interClusterLog: [] },
+    temporalEngineState: { 
+        status: 'idle', 
+        directive: null, 
+        chronicler: { status: 'pending', findings: [] }, 
+        reactor: { status: 'pending', finalPlan: null, executionLog: [] }, 
+        oracle: { status: 'pending', simulations: [] }, 
+        historian: { status: 'pending', findings: [] },
+        interClusterLog: [] 
+    },
     axiomaticCrucibleState: { status: 'idle', mode: 'normal', axioms: [], candidateAxioms: [], log: [], inconsistencyLog: [] },
     personaState: {},
     brainstormState: { status: 'idle', topic: null, ideas: [], winningIdea: null, finalProposalId: null },
@@ -204,38 +235,6 @@ export const getInitialState = (): AuraState => ({
     premotorPlannerState: { planLog: [], lastCompetingSet: [] },
     basalGangliaState: { selectedPlanId: null, log: [] },
     cerebellumState: { isMonitoring: false, activePlanId: null, currentStepIndex: 0, driftLog: [] },
-    praxisResonatorState: { activeSessions: {} },
-    ontogeneticArchitectState: { proposalQueue: [] },
-    embodiedCognitionState: { virtualBodyState: { position: { x: 0, y: 0, z: 0 }, orientation: { yaw: 0, pitch: 0, roll: 0 }, balance: 1.0 }, simulationLog: [] },
-    evolutionarySandboxState: { status: 'idle', sprintGoal: null, log: [], startTime: null, result: null },
-    hovaState: { optimizationTarget: null, metrics: { totalOptimizations: 0, avgLatencyReduction: 0 }, optimizationLog: [] },
-    documentForgeState: { isActive: false, goal: '', status: 'idle', statusMessage: '', document: null, error: null },
-    proactiveUI: { isActive: false, type: null, question: null, options: [], originalPrompt: null, originalFile: null },
-    subsumptionLogState: { log: [] },
-    strategicCoreState: { log: [], trainingData: [] },
-    mycelialState: { modules: {}, log: [] },
-    semanticWeaverState: { isTrained: false, accuracy: 0, modelJSON: null, log: [] },
-    halState: { isHostConnected: false, isV2Connected: false },
-    autonomousReviewBoardState: { isPaused: false, decisionLog: [], agisConfidenceThreshold: 0.85, lastCalibrationReason: 'Initial setting.', recentSuccesses: 0, recentFailures: 0 },
-    atpCoprocessorState: { status: 'idle', currentGoal: null, proofLog: [], finalProof: null, proofTreeRootId: null, currentStrategy: null, strategyMetrics: {} },
-    modalRequest: null,
-    uiCommandRequest: null,
-    symbioticCoderState: { activeFile: null, codeAnalysis: null, lastTestResult: null },
-    toolExecutionRequest: null,
-    
-    // --- NEW STATE SLICES ---
-    synthesisState: {
-        emergentIdeas: [],
-    },
-    symbioticCanvasState: {
-        content: '<h1>Symbiotic Canvas</h1><p>This is a shared cognitive workspace. Start typing, select text, and use the toolbar above to collaborate with Aura.</p><br/>',
-    },
-    prometheusState: {
-        status: 'idle',
-        log: [],
-        lastSessionId: null,
-        lastEntanglementCheck: 0,
-    },
     psycheState: {
         version: 1,
         primitiveRegistry: {
@@ -260,8 +259,34 @@ export const getInitialState = (): AuraState => ({
         lastError: null,
         log: [],
     },
-    praxisCoreState: {
-        log: []
+    praxisResonatorState: { activeSessions: {} },
+    ontogeneticArchitectState: { proposalQueue: [] },
+    embodiedCognitionState: { virtualBodyState: { position: { x: 0, y: 0, z: 0 }, orientation: { yaw: 0, pitch: 0, roll: 0 }, balance: 1.0 }, simulationLog: [] },
+    evolutionarySandboxState: { status: 'idle', sprintGoal: null, log: [], startTime: null, result: null },
+    hovaState: { optimizationTarget: null, metrics: { totalOptimizations: 0, avgLatencyReduction: 0 }, optimizationLog: [] },
+    documentForgeState: { isActive: false, goal: '', status: 'idle', statusMessage: '', document: null, error: null },
+    proactiveUI: { isActive: false, type: null, question: null, options: [], originalPrompt: null, originalFile: null },
+    praxisCoreState: { log: [] },
+    subsumptionLogState: { log: [] },
+    strategicCoreState: { log: [], trainingData: [] },
+    mycelialState: { modules: {}, log: [] },
+    semanticWeaverState: { isTrained: false, accuracy: 0, modelJSON: null, log: [] },
+    halState: { isHostConnected: false, isV2Connected: false },
+    autonomousReviewBoardState: { isPaused: false, decisionLog: [], agisConfidenceThreshold: 0.85, lastCalibrationReason: 'Initial setting.', recentSuccesses: 0, recentFailures: 0 },
+    atpCoprocessorState: {
+        status: 'idle',
+        currentGoal: null,
+        activeProofAttempt: null,
+    },
+    modalRequest: null,
+    uiCommandRequest: null,
+    commandToProcess: null,
+    symbioticCoderState: { activeFile: null, codeAnalysis: null, lastTestResult: null },
+    synthesisState: {
+        emergentIdeas: [],
+    },
+    symbioticCanvasState: {
+        content: '<h1>Symbiotic Canvas</h1><p>This is a shared cognitive workspace. Start typing, select text, and use the toolbar above to collaborate with Aura.</p><br/>',
     },
     chronicleState: {
         dailySummaries: {},
@@ -286,5 +311,63 @@ export const getInitialState = (): AuraState => ({
     },
     resonanceFieldState: {
         activeFrequencies: {},
-    }
+    },
+    daedalusLabyrinthState: {
+        status: 'idle',
+        structuralKnowledgeGraph: {
+            nodes: [],
+            edges: [],
+        },
+        lastAnalysis: 0,
+    },
+    prometheusState: {
+        status: 'idle',
+        log: [],
+        lastSessionId: null,
+    },
+    ramanujanEngineState: {
+        status: 'idle',
+        log: [],
+        proposedConjectures: [],
+    },
+    erisEngineState: {
+        isActive: false,
+        chaosLevel: 0.1,
+        perturbationMode: 'contextual_mutation',
+        log: [],
+    },
+    lagrangeEngineState: {
+        status: 'idle',
+        symbolicEquation: null,
+        numericalDiscretization: null,
+        simulationLog: [],
+    },
+    ockhamEngineState: {
+        status: 'idle',
+        log: [],
+    },
+    bennettEngineState: {
+        status: 'idle',
+        log: [],
+    },
+    artificialScientistState: {
+        status: 'idle',
+        currentGoal: null,
+        currentHypothesis: null,
+        currentExperiment: null,
+        log: [],
+    },
+    socraticAssessorState: {
+        status: 'idle',
+        log: [],
+    },
+    axiomaticGenesisForgeState: {
+        status: 'idle',
+        baseSystemId: 'zfc',
+        currentSystem: { axioms: [] },
+        mutationLog: [],
+        surveyorResults: { emergentTheorems: [], undecidableStatements: [] },
+        langlandsCandidates: [],
+    },
+    cognitiveStrategy: 'collaborative_scaffolding',
 });

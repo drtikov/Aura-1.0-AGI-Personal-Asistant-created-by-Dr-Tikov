@@ -1,5 +1,5 @@
 // state/knowledge/mathlibCore.ts
-import { KnowledgeFact } from '../../types.ts';
+import { KnowledgeFact } from '../../types';
 
 // A small, curated subset of concepts from Lean's Mathlib, focusing on Group Theory.
 // This serves as a foundational seed for formal mathematical reasoning.

@@ -8,29 +8,13 @@ export const metisSandboxReducer = (state: AuraState, action: Action): Partial<A
     const { call, args } = action.payload;
 
     switch (call) {
-        case 'SANDBOX/TEST_PROPOSAL': {
-            const { experimentId } = args;
+        case 'METIS/SET_STATE': {
             return {
                 metisSandboxState: {
                     ...state.metisSandboxState,
-                    status: 'running',
-                    currentExperimentId: experimentId,
-                    testResults: null,
-                    errorMessage: null,
+                    ...args
                 }
-            };
-        }
-
-        case 'SANDBOX/REPORT_RESULTS': {
-            const { results, error } = args;
-            return {
-                metisSandboxState: {
-                    ...state.metisSandboxState,
-                    status: error ? 'error' : 'complete',
-                    testResults: results,
-                    errorMessage: error,
-                }
-            };
+            }
         }
 
         default:

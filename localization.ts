@@ -89,6 +89,7 @@ export const translations = {
             theme_psychedelic: 'Psychedelic',
             theme_raver: 'Raver',
             theme_tokyo: 'Tokyo Night',
+            theme_gravitational: 'Gravitational Geometry',
 
             // Toast Messages
             toast_autonomousPaused: 'Autonomous systems paused.',
@@ -126,6 +127,7 @@ export const translations = {
             toast_amai_analyzing: "AMAI is analyzing the architecture for weaknesses...",
             toast_amai_proposing: "Analysis complete. AMAI is formulating a proposal...",
             toast_amai_complete: "AMAI has generated a new architectural proposal.",
+            toast_not_implemented: '{{feature}} mode is not yet implemented.',
 
             // AuraOS Modal
             auraOS_header: 'Aura Symbiotic OS',
@@ -147,6 +149,15 @@ export const translations = {
             evolution_group_title: 'Evolution & Growth',
             manuals_group_title: 'System Manuals',
             metaphysical_engines_group_title: 'Metaphysical Engines',
+            agi_core_group_title: 'AGI Core',
+            telos_engine_panel_title: 'Telos Engine & Quality Frameworks',
+            scientific_method_group_title: 'Scientific Method',
+
+            // New Scientist Panels
+            artificial_scientist_panel_title: "Artificial Scientist",
+            socratic_assessor_panel_title: "Socratic Assessor",
+            ockham_engine_panel_title: "Ockham Engine (Simp-Max)",
+            bennett_engine_panel_title: "Bennett Engine (W-Max)",
             
             // Manual Titles
             vfs_manual_title: 'VFS & Engineer Manual',
@@ -182,6 +193,24 @@ export const translations = {
             performanceLog_placeholder: 'No performance logs recorded yet.',
             performanceLog_duration: 'Duration',
             performanceLog_gain: 'Gain',
+
+            // Cognitive Regulation Panel
+            cognitiveRegulation: 'Cognitive Regulation',
+            cognitiveRegulation_desc: "This panel shows the real-time state of the Cognitive Load Modulator, which adapts Aura's interaction style based on task difficulty and your expertise.",
+            cognitiveStrategy: 'Cognitive Strategy',
+            strategy_full_guidance: 'Full Guidance (Tutor)',
+            strategy_collaborative_scaffolding: 'Collaborative (Expert)',
+            lastTaskDifficulty: 'Last Task Difficulty',
+            userCompetence: 'User Competence',
+            modulator_inputs: 'Modulator Inputs',
+
+            // Kernel Task Manager Panel
+            kernel_panel_title: 'Kernel Task Manager',
+            kernel_description: 'Provides a real-time view of the asynchronous task scheduler, showing the current workload and processing status.',
+            kernel_tick: 'Kernel Tick',
+            kernel_queued: 'Tasks Queued',
+            kernel_running: 'Running Task',
+            kernel_noTask: 'No task is currently running.',
             
             // TypeScript Compiler Panel
             tsc_panel_title: 'TypeScript Compiler',
@@ -255,11 +284,24 @@ export const translations = {
             plugin_knowledge_database_management_desc: "Knowledge about SQL vs NoSQL, query optimization, indexing, and administration.",
             plugin_knowledge_backend_implementation_name: "Backend Implementation Patterns",
             plugin_knowledge_backend_implementation_desc: "Knowledge about authentication (JWT, OAuth), RESTful API design, and connection pooling.",
+            plugin_knowledge_pde_name: 'Partial Differential Equations',
+            plugin_knowledge_pde_desc: 'Formal definitions and theorems related to PDEs, including the Navier-Stokes equations.',
+            plugin_knowledge_functional_analysis_name: 'Functional Analysis',
+            plugin_knowledge_functional_analysis_desc: 'Knowledge about vector spaces like Hilbert, Banach, and Sobolev spaces.',
+            plugin_knowledge_fluid_dynamics_name: 'Fluid Dynamics',
+            plugin_knowledge_fluid_dynamics_desc: 'Concepts related to the motion of fluids, such as turbulence and vorticity.',
+
 
             // New Persona Keys
             personality_aura_core_name: 'Aura Core',
             personality_aura_core_desc: 'The default, integrating persona of Aura. It serves as the primary conversational interface, coordinating with specialized personas when necessary.',
-            
+            personality_terence_tao_name: 'The Analyst (Terence Tao)',
+            personality_terence_tao_desc: 'Focuses on PDE and harmonic analysis techniques.',
+            personality_grigori_perelman_name: 'The Geometer (Grigori Perelman)',
+            personality_grigori_perelman_desc: 'Looks for underlying topological or geometric structures.',
+            personality_stanislav_smirnov_name: 'The Probabilist (Stanislav Smirnov)',
+            personality_stanislav_smirnov_desc: 'Attempts to reframe the problem in terms of stochastic processes.',
+
             // Sci-Fi Council
             guilds_and_councils_group_title: 'Guilds & Councils',
             sciFiAiCouncil_panel_title: 'Sci-Fi AI Council',
@@ -295,6 +337,23 @@ export const translations = {
             archCrucible_simulation_log: "Simulation Log",
             archCrucible_no_proposals: "No active Crucible proposals.",
             archCrucible_no_logs: "No simulation logs yet.",
+
+            // Eris Engine
+            eris_engine_panel_title: "Eris Engine (Chaos)",
+            eris_description: "The Eris Engine introduces controlled chaos and serendipity into Aura's cognitive processes to generate novel, unexpected insights by breaking established patterns.",
+            eris_chaos_level: "Chaos Level",
+            eris_perturbation_mode: "Perturbation Mode",
+            eris_induce_chaos: "Induce Chaos",
+            eris_chaos_active: "Chaos Active",
+            
+            // Doxastic Crucible
+            doxastic_untested_hypotheses: "Untested Hypotheses",
+            doxastic_no_untested: "No new conjectures from Prometheus or Eris.",
+            doxastic_design_experiment: "Design Experiment",
+            doxastic_designed_experiments: "Designed Experiments",
+            doxastic_no_designed: "No experiments have been designed.",
+            doxastic_run_experiment: "Run Experiment",
+            doxastic_validated_beliefs: "Validated Beliefs",
             
             // Resonance Field
             resonanceField_panel_title: "Resonance Field",
@@ -302,6 +361,26 @@ export const translations = {
             resonanceField_tensegrityIndex: "Tensegrity Index",
             resonanceField_activeFrequencies: "Active Frequencies",
             resonanceField_placeholder: "No cognitive resonance detected.",
+
+            // HOVA Panel
+            hova_panel_title: "Hephaestus Forge (HOVA)",
+            hova_description: "The Hephaestus Optimization & Validation Algorithm. This coprocessor autonomously fine-tunes Aura's internal parameters using a Quantum-Inspired Chimpanzee Optimization algorithm to maximize the Flourishing Index.",
+            hova_totalOptimizations: "Total Optimizations",
+            hova_avgLatencyReduction: "Avg. Latency Reduction",
+            hova_runCycle: "Run Manual Cycle",
+            hova_evolutionLog: "Evolution Log",
+            hova_noLogs: "No optimization cycles have been logged.",
+            hova_metric: "Metric: {{metric}}",
+
+            // Daedalus Labyrinth Panel
+            daedalus_panel_title: "Daedalus Labyrinth",
+            daedalus_description: "The Daedalus Engine maintains a Structural Knowledge Graph (SKG) of Aura's own codebase, enabling advanced self-analysis and more intelligent self-programming.",
+            daedalus_status: "Engine Status",
+            daedalus_last_analysis: "Last Analysis",
+            daedalus_run_analysis: "Run Full Analysis",
+            daedalus_nodes: "Nodes",
+            daedalus_edges: "Edges",
+            daedalus_graph_placeholder: "Structural Knowledge Graph is empty. Run an analysis to populate it.",
 
             // New Architecture Panels
             koniocortex_relationalAnalysis: 'Relational Analysis (Mock)',
@@ -314,8 +393,69 @@ export const translations = {
             perceptual_cortex_panel_title: 'Perceptual Cortex',
 
             // Autonomous Evolution
-            autoevolution_reviewing: 'Auto-Evolution: Reviewing proposal {{proposalId}}...',
             autoevolution_approving: 'Auto-Evolution: Automatically approving and implementing proposal {{proposalId}}.',
+
+            // New Math Plugins/Panels
+            plugin_tool_lean_prover_name: 'Lean Prover',
+            plugin_tool_lean_prover_desc: 'A mock interface to the Lean 4 proof assistant for formal verification.',
+            plugin_tool_computation_offload_name: 'Computation Offload',
+            plugin_tool_computation_offload_desc: 'Offloads long-running computational jobs to a remote server.',
+            lagrange_engine_panel_title: 'Lagrange Engine',
+            lagrange_description: 'A symbolic-numeric hybrid engine for complex physics and math problems.',
+            mathematical_research_group_title: 'Mathematical Research & Symbolic Logic',
+
+            // Socratic Assessor
+            // socratic_assessor_panel_title: "Socratic Assessor",
+
+            // New ATP Coprocessor keys
+            atp_description: "An internal proof verification system that orchestrates a Triumvirate of Truth: the Euclid, Gödel, and Tarski engines. It deconstructs conjectures, applies logical transformations, and validates each step to build a rigorous proof.",
+            atp_goal: "Conjecture to Prove",
+            atp_goal_placeholder: "e.g., Prove that the square root of 2 is irrational.",
+            atp_initiate_program: "Initiate Proof Program",
+            atp_proving: "Proving...",
+            atp_reset: "Reset",
+            atp_program_status: "Program Status",
+            atp_status_idle: "Idle",
+            atp_status_orchestrating: "Orchestrating",
+            atp_status_planning: "Planning (Euclid)",
+            atp_status_proving: "Proving (Gödel/Tarski)",
+            atp_status_success: "Success",
+            atp_status_failed: "Failed",
+            atp_view_landscape: "View Proof Landscape",
+            atp_attempt_status: "Attempt Status",
+            atp_proof_plan: "Proof Plan",
+            atp_triumvirate_log: "Triumvirate Log",
+            atp_step_pending: "Pending",
+            atp_step_proving: "Proving",
+            atp_step_proven: "Proven",
+            atp_step_failed: "Failed",
+
+            // Mycelial Network
+            mycelial_network_panel_title: 'Mycelial Network',
+            mycelial_description: 'Simulates the growth and pruning of conceptual pathways based on successful cognitive processes, reinforcing effective patterns.',
+            mycelial_modules: 'Learned Modules',
+            mycelial_log: 'Network Activity Log',
+            mycelial_noLog: 'No network activity logged yet.',
+
+            // Semantic Weaver
+            semantic_weaver_panel_title: 'Semantic Weaver',
+            semantic_weaver_description: 'A predictive model that learns the relationships between system events (syscalls) to anticipate cognitive flow and detect anomalies.',
+            semantic_weaver_model_name: 'Syscall Autoencoder',
+            semantic_weaver_model_desc: 'A neural network that learns to compress and reconstruct sequences of system calls.',
+            semantic_weaver_status_trained: 'Trained',
+            semantic_weaver_status_untrained: 'Untrained',
+            semantic_weaver_reconstruction_accuracy: 'Reconstruction Accuracy',
+            semantic_weaver_log: 'Training Log',
+            semantic_weaver_noLog: 'No training activity logged yet.',
+            
+            // Spanda Engine
+            spanda_panel_title: 'Spanda Engine',
+            spanda_description: 'Visualizes the high-dimensional internal state of Aura on a 2D manifold, representing the "spanda" or primordial vibration of the system.',
+            spanda_currentRegion: 'Current Region',
+            
+            // Lagrange Engine
+            lagrange_symbolic: "Symbolic Equation",
+            lagrange_numerical: "Numerical Discretization",
         }
     }
 };

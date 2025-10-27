@@ -1,10 +1,7 @@
-
-
-
-
+// components/IngenuityPanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useEngineState, useLocalization } from '../context/AuraContext.tsx';
+import { useEngineState, useLocalization } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext.tsx';
 
 export const IngenuityPanel = React.memo(() => {

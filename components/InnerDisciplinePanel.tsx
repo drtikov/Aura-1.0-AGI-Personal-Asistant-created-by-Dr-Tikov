@@ -1,10 +1,7 @@
-
-
-
-
+// components/InnerDisciplinePanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { usePlanningState, useLocalization } from '../context/AuraContext.tsx';
+import { usePlanningState, useLocalization } from '../context/AuraContext';
 
 export const InnerDisciplinePanel = React.memo(() => {
     const { disciplineState: discipline } = usePlanningState();

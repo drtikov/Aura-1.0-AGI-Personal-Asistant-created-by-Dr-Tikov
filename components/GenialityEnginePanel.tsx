@@ -1,7 +1,7 @@
 // components/GenialityEnginePanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
-import { GenialityImprovementProposal } from '../types';
+import { GenialityImprovementProposal } from '../types.ts';
 
 const RadialBar = ({ percentage, color, label, size = 40, stroke = 4 }: { percentage: number, color: string, label: string, size?: number, stroke?: number }) => {
     const radius = (size - stroke) / 2;
@@ -24,7 +24,6 @@ const RadialBar = ({ percentage, color, label, size = 40, stroke = 4 }: { percen
                     fill="transparent"
                     strokeWidth={stroke}
                     strokeDasharray={circumference}
-                    strokeDashoffset={offset}
                     strokeLinecap="round"
                     r={radius}
                     cx={size / 2}

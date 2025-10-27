@@ -69,6 +69,7 @@ import {
     EvolutionarySandboxState,
     HovaState,
     DocumentForgeState,
+    DaedalusLabyrinthState,
     Goal,
     GoalTree,
     DisciplineState,
@@ -113,6 +114,10 @@ import {
     AutonomousReviewBoardState,
     ATPCoprocessorState,
     SymbioticCanvasState,
+    ErisEngineState,
+    LagrangeEngineState,
+    // FIX: Imported missing type
+    AxiomaticGenesisForgeState,
 } from '../types.ts';
 
 // --- Context for the main dispatcher ---
@@ -149,8 +154,11 @@ type CoreState = Pick<AuraState,
     | 'sensoryIntegration' | 'narrativeSummary' | 'socialCognitionState' | 'metaphoricalMapState' | 'atmanProjector'
     | 'internalScientistState' | 'metisSandboxState' | 'spandaState' | 'personaState' | 'brainstormState'
     | 'liveSessionState' | 'proactiveUI' | 'strategicCoreState' | 'mycelialState' | 'semanticWeaverState'
-    | 'modalRequest' | 'uiCommandRequest' | 'prometheusState'
-    | 'collaborativeSessionState' | 'symbioticCanvasState'
+    | 'modalRequest' | 'uiCommandRequest' | 'prometheusState' | 'collaborativeSessionState' | 'symbioticCanvasState'
+    | 'logosState' | 'erisEngineState' | 'lagrangeEngineState'
+    | 'artificialScientistState' | 'bennettEngineState' | 'ockhamEngineState' | 'socraticAssessorState'
+    // FIX: Added missing state slice
+    | 'axiomaticGenesisForgeState'
 >;
 export const [CoreStateContext, useCoreState] = createStateContext<CoreState>('CoreStateContext');
 
@@ -168,6 +176,7 @@ type ArchitectureState = Pick<AuraState,
     | 'hovaState' | 'documentForgeState' | 'wisdomIngestionState' | 'axiomaticCrucibleState'
     | 'atpCoprocessorState'
     | 'praxisCoreState'
+    | 'daedalusLabyrinthState'
 >;
 export const [ArchitectureStateContext, useArchitectureState] = createStateContext<ArchitectureState>('ArchitectureStateContext');
 
@@ -180,7 +189,7 @@ type EngineState = Pick<AuraState, 'proactiveEngineState' | 'ethicalGovernorStat
 export const [EngineStateContext, useEngineState] = createStateContext<EngineState>('EngineStateContext');
 
 // Logs State
-type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 'cognitiveModeLog' | 'cognitiveGainLog' | 'cognitiveRegulationLog' | 'subsumptionLogState'>;
+type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 'cognitiveModeLog' | 'cognitiveGainLog' | 'cognitiveRegulationLog' | 'subsumptionLogState' | 'polExecutionLog'>;
 export const [LogsStateContext, useLogsState] = createStateContext<LogsState>('LogsStateContext');
 
 // System State

@@ -1,19 +1,20 @@
 // core/stateDerivation.ts
-import { AuraState } from '../types.ts';
-import { clamp } from '../utils';
-import { AuraConfig } from '../constants';
+// FIX: Imported missing types AuraState, Goal, and PerformanceLogEntry
+import { AuraState, Goal, PerformanceLogEntry } from '../types.ts';
+import { clamp } from '../utils.ts';
+import { AuraConfig } from '../constants.ts';
 
 const calculateGoalCompletionRate = (state: AuraState): number => {
     const goals = Object.values(state.goalTree);
     if (goals.length === 0) return 0.5; // Neutral if no goals
-    const completed = goals.filter(g => g.status === 'completed').length;
+    const completed = goals.filter((g: Goal) => g.status === 'completed').length;
     return completed / goals.length;
 };
 
 const calculatePerformanceSuccessRate = (state: AuraState): number => {
     const logs = state.performanceLogs;
     if (logs.length < 5) return 0.5; // Not enough data
-    const successes = logs.filter(l => l.success).length;
+    const successes = logs.filter((l: PerformanceLogEntry) => l.success).length;
     return successes / logs.length;
 };
 
@@ -91,7 +92,7 @@ export const deriveInternalState = (currentState: AuraState): Partial<AuraState[
     const boredom = clamp(Math.max(decayedState.boredomLevel, (1 - novelty) * 0.5 + (mastery > 0.8 ? (mastery - 0.8) : 0)));
 
     // Load: System resources and cognitive task load
-    const activeGoals = Object.values(goalTree).filter(g => g.status === 'in_progress').length;
+    const activeGoals = Object.values(goalTree).filter((g: Goal) => g.status === 'in_progress').length;
     const cognitiveLoad = clamp(Math.log1p(activeGoals) / Math.log1p(10)); // Scale to 10 active goals
     const load = clamp((resourceMonitor.cpu_usage * 0.5) + (cognitiveLoad * 0.5));
     

@@ -7,6 +7,7 @@ import { PanelConfig, mainControlDeckLayout, advancedControlsLayout } from './co
 interface AuraOSModalProps {
     isOpen: boolean;
     onClose: () => void;
+    initialPanel?: string;
 }
 
 const flattenPanels = (panels: PanelConfig[]): PanelConfig[] => {
@@ -26,20 +27,46 @@ const flattenPanels = (panels: PanelConfig[]): PanelConfig[] => {
     return allPanels;
 };
 
+const getAllPanels = (layout: PanelConfig[]): PanelConfig[] => {
+    const all: PanelConfig[] = [];
+    const recurse = (panels: PanelConfig[]) => {
+        for (const panel of panels) {
+            if (panel.component) {
+                all.push(panel);
+            }
+            if (panel.children) {
+                recurse(panel.children);
+            }
+        }
+    };
+    recurse(layout);
+    return all;
+};
 
-export const AuraOSModal = ({ isOpen, onClose }: AuraOSModalProps) => {
+
+export const AuraOSModal = ({ isOpen, onClose, initialPanel }: AuraOSModalProps) => {
     const { t } = useLocalization();
     const handlers = useAuraDispatch();
 
     const [searchQuery, setSearchQuery] = useState('');
     const [activePanel, setActivePanel] = useState<PanelConfig | null>(null);
 
+    const allPanelConfigs = useMemo(() => [
+        ...getAllPanels(mainControlDeckLayout),
+        ...getAllPanels(advancedControlsLayout)
+    ], []);
+
     useEffect(() => {
         if (isOpen) {
-            setActivePanel(null);
+            if (initialPanel) {
+                const panelToOpen = allPanelConfigs.find(p => p.id === initialPanel);
+                setActivePanel(panelToOpen || null);
+            } else {
+                setActivePanel(null);
+            }
             setSearchQuery('');
         }
-    }, [isOpen]);
+    }, [isOpen, initialPanel, allPanelConfigs]);
 
     const panelGroups = useMemo(() => ([
         { titleKey: 'selfAwareness', panels: flattenPanels(mainControlDeckLayout.filter(p => p.id === 'self')) },
@@ -78,7 +105,7 @@ export const AuraOSModal = ({ isOpen, onClose }: AuraOSModalProps) => {
     const allPanels = useMemo(() => {
         const panelMap: { [key: string]: React.ComponentType<any> } = {};
         // FIX: Flatten the advanced layout to correctly build the map of all available panels.
-        const allConfigs = [...flattenPanels(mainControlDeckLayout), ...flattenPanels(advancedControlsLayout)];
+        const allConfigs = [...getAllPanels(mainControlDeckLayout), ...getAllPanels(advancedControlsLayout)];
         allConfigs.forEach(p => {
             if(p.component) {
                 panelMap[p.id] = p.component;

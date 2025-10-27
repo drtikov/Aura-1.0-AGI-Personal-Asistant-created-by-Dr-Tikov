@@ -14,6 +14,7 @@ const themes = [
     { id: 'ui-9', nameKey: 'theme_psychedelic' },
     { id: 'ui-10', nameKey: 'theme_raver' },
     { id: 'ui-11', nameKey: 'theme_tokyo' },
+    { id: 'ui-12', nameKey: 'theme_gravitational' },
 ];
 
 export const ThemeSwitcher = () => {

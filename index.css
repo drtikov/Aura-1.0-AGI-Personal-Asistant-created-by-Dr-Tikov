@@ -337,6 +337,45 @@
   --cognitive-confused: var(--secondary-color);
 }
 
+/* --- UI 12: Gravitational Aura Geometry --- */
+.ui-12 {
+  --background: #020011;
+  --panel-bg: rgba(10, 5, 30, 0.85);
+  --border-color: rgba(170, 100, 255, 0.3);
+  --border-glow: rgba(170, 100, 255, 0.6);
+  --text-color: #d1d1e0;
+  --text-muted: #8a7f9a;
+  --primary-color: #ffdd44; /* Gravitational Gold */
+  --secondary-color: #aa64ff; /* Conceptual Violet */
+  --accent-color: #00f0ff; /* Energy Cyan */
+  --font-heading: 'Orbitron', sans-serif;
+  --font-body: 'Roboto Mono', monospace;
+  --success-color: #4caf50;
+  --failure-color: #f44336;
+  --warning-color: #ffc107;
+
+  /* Guna States */
+  --guna-sattva: var(--primary-color);
+  --guna-rajas: var(--secondary-color);
+  --guna-tamas: #6a89cc;
+  --guna-dharma: #a977ff;
+  --guna-teeta: #ffffff;
+  
+   /* Cognitive Resonance Colors */
+  --cognitive-focused: var(--primary-color);
+  --cognitive-exploring: var(--accent-color);
+  --cognitive-confused: var(--secondary-color);
+}
+.ui-12 body {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 10% 20%, rgba(170, 100, 255, 0.15), transparent 35%),
+    radial-gradient(circle at 85% 75%, rgba(255, 221, 68, 0.12), transparent 30%),
+    radial-gradient(circle at 50% 50%, rgba(0, 240, 255, 0.05), transparent 40%);
+  background-attachment: fixed;
+}
+
+
 @keyframes psychedelic-bg {
     0% { background-position: 0% 50%; }
     50% { background-position: 100% 50%; }
@@ -430,6 +469,64 @@
     100% { border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
 }
 
+/* --- Axiomatic Genesis Forge Panel --- */
+.genesis-forge-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+.axiom-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 250px;
+    overflow-y: auto;
+    padding: 0.5rem;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border-color);
+}
+.axiom-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    padding: 0.4rem;
+    border: 1px solid transparent;
+}
+.axiom-item-text {
+    flex-grow: 1;
+}
+.axiom-item-text.status-negated { text-decoration: line-through; color: var(--failure-color); }
+.axiom-item-text.status-removed { opacity: 0.4; text-decoration: line-through; }
+.axiom-item-text.status-added { color: var(--success-color); font-weight: bold; }
+.axiom-mutation-controls {
+    display: flex;
+    gap: 0.3rem;
+}
+.axiom-mutation-btn {
+    font-family: var(--font-body);
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--border-color);
+    color: var(--text-muted);
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    font-size: 0.8rem;
+    transition: all 0.2s ease;
+}
+.axiom-mutation-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: var(--background);
+}
+.surveyor-results-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+
 /* --- Semantic Weaver & Mycelial Network Panel --- */
 .mycelial-module-card,
 .semantic-weaver-card {
@@ -465,8 +562,8 @@
     font-size: 0.8rem;
 }
 
-/* --- Spanda Engine Panel --- */
-.spanda-manifold-container {
+/* --- Lagrange Engine Panel --- */
+.lagrange-manifold-container {
     width: 100%;
     aspect-ratio: 1 / 1;
     background: rgba(0,0,0,0.2);
@@ -474,22 +571,22 @@
     margin: 1rem 0;
     position: relative;
 }
-.spanda-manifold-svg {
+.lagrange-manifold-svg {
     width: 100%;
     height: 100%;
 }
-.spanda-point {
+.lagrange-point {
     filter: drop-shadow(0 0 3px var(--accent-color));
     transition: all 0.5s ease-out;
 }
-.spanda-axes-legend {
+.lagrange-axes-legend {
     display: flex;
     justify-content: space-between;
     font-size: 0.7rem;
     color: var(--text-muted);
     padding: 0 0.5rem;
 }
-.spanda-axes-legend.vertical {
+.lagrange-axes-legend.vertical {
     position: absolute;
     writing-mode: vertical-rl;
     transform: rotate(180deg);
@@ -499,7 +596,34 @@
     align-items: center;
     justify-content: space-between;
 }
+.lagrange-dominant-force {
+    text-align: center;
+    font-family: var(--font-heading);
+    color: var(--primary-color);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-size: 0.9rem;
+}
 
+/* --- Ramanujan Engine Panel --- */
+.axiom-card {
+    border: 1px solid var(--border-color);
+    border-left-width: 3px;
+    background: rgba(0,0,0,0.2);
+    margin-bottom: 1rem;
+}
+.axiom-card.accepted { border-left-color: var(--success-color); }
+.axiom-card.rejected { border-left-color: var(--failure-color); }
+.axiom-card.unvalidated { border-left-color: var(--warning-color); }
+.axiom-card-text {
+    padding: 0.75rem;
+    font-style: italic;
+}
+.axiom-card-source {
+    padding: 0 0.75rem 0.75rem 0.75rem;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
 
 /* --- Temporal Engine Panel --- */
 .temporal-engine-directive {
@@ -842,6 +966,55 @@ body {
 .ui-1 .control-deck-container {
   box-shadow: inset 0 0 15px rgba(0, 255, 255, 0.1);
   clip-path: polygon(5px 0, 100% 0, 100% calc(100% - 5px), calc(100% - 5px) 100%, 0 100%, 0 5px);
+}
+
+.ui-12 .left-column, .ui-12 .control-deck-container {
+  box-shadow: 0 0 20px var(--border-glow);
+  border-radius: 0;
+  border: 1px solid;
+  border-image-slice: 1;
+  border-image-source: linear-gradient(to bottom right, var(--secondary-color), var(--primary-color));
+}
+.ui-12 .left-column {
+   clip-path: polygon(0 0, 100% 0, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+}
+.ui-12 .control-deck-container {
+   clip-path: polygon(20px 0, 100% 0, 100% 100%, 0 100%, 0 20px);
+}
+.ui-12 .chat-header h1 {
+    text-shadow: 0 0 8px var(--primary-color), 0 0 12px var(--secondary-color);
+}
+.ui-12 .history-entry .entry-content {
+   border-radius: 0;
+   background: rgba(0,0,0,0.3);
+}
+.ui-12 .history-entry.from-user .entry-content {
+  background: rgba(255, 221, 68, 0.05);
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+.ui-12 .history-entry.from-bot .entry-content {
+  background: rgba(170, 100, 255, 0.05);
+  clip-path: polygon(8px 0, 100% 0, 100% 100%, 0 100%, 0 8px);
+}
+.ui-12 .tab-button.active {
+  text-shadow: 0 0 5px var(--background);
+  box-shadow: inset 0 0 10px var(--background);
+}
+.ui-12 .control-button:hover:not(:disabled) {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: var(--background);
+  box-shadow: 0 0 10px var(--primary-color);
+}
+.ui-12 .modal-content-inner {
+    box-shadow: 0 0 20px var(--border-glow);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+.ui-12 .input-area-content {
+    clip-path: polygon(0 5px, 5px 0, 100% 0, 100% 100%, 0 100%);
+}
+.ui-12 .working-memory-panel li {
+    clip-path: polygon(0 0, calc(100% - 5px) 0, 100% 5px, 100% 100%, 0 100%);
 }
 
 /* --- VFS Explorer Panel --- */
@@ -3102,12 +3275,6 @@ body {
     flex-direction: column;
     gap: 0.5rem;
 }
-.localization-panel label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
 .sentiment-score-bar {
   --sentiment-color: #888; /* Neutral default */
   --sentiment-color: #f44336; /* Red for negative */
@@ -3834,4 +4001,20 @@ input:checked + .toggle-slider:before {
 }
 .adjustment-item .change.negative {
     color: var(--failure-color);
+}
+
+.persona-tag {
+    background: rgba(0, 255, 255, 0.1);
+    border-color: var(--border-color);
+    color: var(--primary-color);
+}
+.research-tag {
+    background: rgba(255, 255, 0, 0.1);
+    border-color: var(--accent-color);
+    color: var(--accent-color);
+}
+.goal-tags {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }

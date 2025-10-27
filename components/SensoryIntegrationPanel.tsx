@@ -1,7 +1,7 @@
 // components/SensoryIntegrationPanel.tsx
 import React from 'react';
 import { useCoreState, useLocalization, useArchitectureState } from '../context/AuraContext.tsx';
-import { CoprocessorArchitecture } from '../types';
+import { CoprocessorArchitecture } from '../types.ts';
 
 export const SensoryIntegrationPanel = () => {
     const { sensoryIntegration } = useCoreState();

@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 // FIX: Added missing ToastMessage and ToastType to the import from ../types to resolve module not found errors.
-import { ToastMessage, ToastType } from '../types';
+import { ToastMessage, ToastType } from '../types.ts';
 
 interface ToastProps {
     message: string;

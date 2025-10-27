@@ -1,6 +1,7 @@
 // state/reducers/reducer.ts
+// FIX: Added missing imports for AuraState, Action, EventBusMessage, and HistoryEntry from types.ts to resolve module errors.
 import { AuraState, Action, EventBusMessage, HistoryEntry } from '../../types.ts';
-import { getInitialState } from './initialState.ts';
+import { getInitialState } from '../initialState.ts';
 import { coreReducer } from './core.ts';
 import { memoryReducer } from './memory.ts';
 import { architectureReducer } from './architecture.ts';
@@ -43,6 +44,8 @@ import { mycelialReducer } from './mycelial.ts';
 import { semanticWeaverReducer } from './semanticWeaver.ts';
 import { atpCoprocessorReducer } from './atpCoprocessor.ts';
 import { prometheusReducer } from './prometheus.ts';
+// FIX: Import missing reducers
+import { ramanujanReducer } from './ramanujan.ts';
 import { symbioticCoderReducer } from './symbioticCoder.ts';
 import { collaborativeSessionReducer } from './collaborativeSession.ts';
 import { toolReducer } from './toolReducer.ts';
@@ -52,6 +55,14 @@ import { somaticCrucibleReducer } from './somaticCrucible.ts';
 import { autoCodeForgeReducer } from './autoCodeForge.ts';
 import { resonanceReducer } from './resonanceReducer.ts';
 import { crucibleReducer } from './crucibleReducer.ts';
+import { daedalusReducer } from './daedalus.ts';
+import { erisReducer } from './eris.ts';
+import { lagrangeEngineReducer } from './lagrangeEngine.ts';
+import { ockhamEngineReducer } from './ockhamEngine.ts';
+import { bennettEngineReducer } from './bennettEngine.ts';
+import { artificialScientistReducer } from './artificialScientist.ts';
+import { socraticAssessorReducer } from './socraticAssessor.ts';
+import { axiomaticGenesisForgeReducer } from './axiomaticGenesisForge.ts';
 
 const reducers = [
     coreReducer,
@@ -96,6 +107,7 @@ const reducers = [
     semanticWeaverReducer,
     atpCoprocessorReducer,
     prometheusReducer,
+    ramanujanReducer,
     symbioticCoderReducer,
     collaborativeSessionReducer,
     toolReducer,
@@ -105,6 +117,15 @@ const reducers = [
     autoCodeForgeReducer,
     resonanceReducer,
     crucibleReducer,
+    daedalusReducer,
+    erisReducer,
+    lagrangeEngineReducer,
+    // FIX: Add missing reducers to the array
+    ockhamEngineReducer,
+    bennettEngineReducer,
+    artificialScientistReducer,
+    socraticAssessorReducer,
+    axiomaticGenesisForgeReducer,
 ];
 
 export const auraReducer = (state: AuraState, action: Action): AuraState => {

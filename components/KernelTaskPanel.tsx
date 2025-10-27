@@ -1,6 +1,5 @@
 // components/KernelTaskPanel.tsx
 import React from 'react';
-// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 
 export const KernelTaskPanel = React.memo(() => {
@@ -32,6 +31,20 @@ export const KernelTaskPanel = React.memo(() => {
             ) : (
                 <div className="kg-placeholder">{t('kernel_noTask')}</div>
             )}
+
+            <div className="panel-subsection-title">Task Queue</div>
+            <div className="command-log-list">
+                {taskQueue.length > 0 ? (
+                    taskQueue.map(task => (
+                        <div key={task.id} className="command-log-item log-type-info">
+                            <span className="log-icon">⏳</span>
+                            <span className="log-text">{task.type.replace(/_/g, ' ')}</span>
+                        </div>
+                    ))
+                ) : (
+                    <div className="kg-placeholder">Queue is empty.</div>
+                )}
+            </div>
         </div>
     );
 });

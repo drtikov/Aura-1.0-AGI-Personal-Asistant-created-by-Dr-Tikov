@@ -56,20 +56,12 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
                     const similarity = cosineSimilarity(vectorA, vectorB);
                     if (similarity < 0.2) { // Only connect distant concepts
                         const newConnection = { weight: 0.01 }; // Very weak initial connection
-                        const logMessage = {
-                            timestamp: Date.now(),
-                            message: `Probing new connection: ${conceptA} ↔ ${conceptB}`
-                        };
-
+                        
                         return {
                             conceptConnections: {
                                 ...state.conceptConnections,
                                 [linkKey]: newConnection,
                             },
-                            synapticMatrix: {
-                                ...state.synapticMatrix,
-                                probeLog: [logMessage, ...state.synapticMatrix.probeLog].slice(0, 10)
-                            }
                         };
                     }
                 }

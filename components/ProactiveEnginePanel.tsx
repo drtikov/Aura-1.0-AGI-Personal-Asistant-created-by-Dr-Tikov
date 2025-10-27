@@ -1,6 +1,6 @@
 // components/ProactiveEnginePanel.tsx
 import React from 'react';
-import { useEngineState, useLocalization } from '../context/AuraContext.tsx';
+import { useEngineState, useLocalization } from '../context/AuraContext';
 
 interface ProactiveEnginePanelProps {
     onSuggestionAction: (suggestionId: string, action: 'accepted' | 'rejected') => void;

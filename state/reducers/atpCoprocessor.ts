@@ -1,5 +1,5 @@
 // state/reducers/atpCoprocessor.ts
-import { AuraState, Action } from '../../types.ts';
+import { AuraState, Action, ProofAttempt, ProofStep } from '../../types.ts';
 
 export const atpCoprocessorReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -8,90 +8,83 @@ export const atpCoprocessorReducer = (state: AuraState, action: Action): Partial
     const { call, args } = action.payload;
 
     switch (call) {
-        case 'ATP/START_ORCHESTRATION':
-             return {
-                atpCoprocessorState: {
-                    ...state.atpCoprocessorState,
-                    status: 'orchestrating',
-                    currentGoal: args.goal,
-                    proofLog: [],
-                    finalProof: null,
-                    proofTreeRootId: null,
-                    currentStrategy: null,
-                }
+        case 'ATP/START_PROOF_ATTEMPT': {
+            const newAttempt: ProofAttempt = {
+                id: `proof_${self.crypto.randomUUID()}`,
+                conjecture: args.goal,
+                status: 'planning',
+                plan: [],
+                log: [{ timestamp: Date.now(), engine: 'Euclid', message: 'Received conjecture. Devising proof strategy...' }],
             };
-
-        case 'ATP/SET_STRATEGY':
             return {
                 atpCoprocessorState: {
                     ...state.atpCoprocessorState,
                     status: 'orchestrating',
-                    currentStrategy: args.strategy,
-                }
-            };
-
-        case 'ATP/SET_PROOF_TREE_ROOT':
-            return {
-                atpCoprocessorState: {
-                    ...state.atpCoprocessorState,
-                    proofTreeRootId: args.rootId,
-                }
-            };
-
-        case 'ATP/START_PROOF':
-            return {
-                atpCoprocessorState: {
-                    ...state.atpCoprocessorState,
-                    status: 'proving',
                     currentGoal: args.goal,
-                    proofLog: [],
-                    finalProof: null,
-                }
-            };
-
-        case 'ATP/LOG_STEP': {
-            const newStep = args;
-            return {
-                atpCoprocessorState: {
-                    ...state.atpCoprocessorState,
-                    proofLog: [...state.atpCoprocessorState.proofLog, newStep],
+                    activeProofAttempt: newAttempt,
                 }
             };
         }
 
-        case 'ATP/SUCCEED': {
-            const { proof, strategy } = args;
-            const currentMetrics = state.atpCoprocessorState.strategyMetrics[strategy] || { successes: 0, failures: 0 };
+        case 'ATP/SET_PROOF_PLAN': {
+            if (!state.atpCoprocessorState.activeProofAttempt) return {};
             return {
                 atpCoprocessorState: {
                     ...state.atpCoprocessorState,
-                    status: 'success',
-                    finalProof: proof,
-                    strategyMetrics: {
-                        ...state.atpCoprocessorState.strategyMetrics,
-                        [strategy]: {
-                            ...currentMetrics,
-                            successes: currentMetrics.successes + 1,
-                        }
+                    activeProofAttempt: {
+                        ...state.atpCoprocessorState.activeProofAttempt,
+                        status: 'proving',
+                        plan: args.plan, // The plan is an array of ProofStep objects
+                        log: [
+                            ...state.atpCoprocessorState.activeProofAttempt.log,
+                            { timestamp: Date.now(), engine: 'Euclid', message: `Proof plan generated with ${args.plan.length} steps.` }
+                        ],
                     }
                 }
             };
         }
 
-        case 'ATP/FAIL': {
-            const { reason, strategy } = args;
-            const currentMetrics = state.atpCoprocessorState.strategyMetrics[strategy] || { successes: 0, failures: 0 };
+        case 'ATP/UPDATE_STEP_STATUS': {
+            if (!state.atpCoprocessorState.activeProofAttempt) return {};
+            const { stepNumber, status, justification, validationLog } = args;
             return {
                 atpCoprocessorState: {
                     ...state.atpCoprocessorState,
-                    status: 'failed',
-                    proofLog: [...state.atpCoprocessorState.proofLog, { step: -1, action: 'Failure', result: reason, strategy }],
-                    strategyMetrics: {
-                        ...state.atpCoprocessorState.strategyMetrics,
-                        [strategy]: {
-                            ...currentMetrics,
-                            failures: currentMetrics.failures + 1,
-                        }
+                    activeProofAttempt: {
+                        ...state.atpCoprocessorState.activeProofAttempt,
+                        plan: state.atpCoprocessorState.activeProofAttempt.plan.map(step =>
+                            step.stepNumber === stepNumber ? { ...step, status, justification, validationLog } : step
+                        ),
+                    }
+                }
+            };
+        }
+        
+        case 'ATP/ADD_LOG_ENTRY': {
+             if (!state.atpCoprocessorState.activeProofAttempt) return {};
+             const newLogEntry = { timestamp: Date.now(), ...args.logEntry };
+             return {
+                 atpCoprocessorState: {
+                     ...state.atpCoprocessorState,
+                     activeProofAttempt: {
+                         ...state.atpCoprocessorState.activeProofAttempt,
+                         log: [...state.atpCoprocessorState.activeProofAttempt.log, newLogEntry].slice(-50),
+                     }
+                 }
+             };
+        }
+
+        case 'ATP/CONCLUDE_ATTEMPT': {
+            if (!state.atpCoprocessorState.activeProofAttempt) return {};
+            const { status, finalMessage } = args; // status is 'proven' or 'failed'
+            return {
+                atpCoprocessorState: {
+                    ...state.atpCoprocessorState,
+                    status: status === 'proven' ? 'success' : 'failed',
+                    activeProofAttempt: {
+                        ...state.atpCoprocessorState.activeProofAttempt,
+                        status: status,
+                        log: [...state.atpCoprocessorState.activeProofAttempt.log, { timestamp: Date.now(), engine: 'Euclid', message: finalMessage }],
                     }
                 }
             };
@@ -103,10 +96,7 @@ export const atpCoprocessorReducer = (state: AuraState, action: Action): Partial
                     ...state.atpCoprocessorState,
                     status: 'idle',
                     currentGoal: null,
-                    proofLog: [],
-                    finalProof: null,
-                    proofTreeRootId: null,
-                    currentStrategy: null,
+                    activeProofAttempt: null,
                 }
             };
 

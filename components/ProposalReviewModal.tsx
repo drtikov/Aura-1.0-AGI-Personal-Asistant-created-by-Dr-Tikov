@@ -1,10 +1,10 @@
 // components/ProposalReviewModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { ArchitecturalChangeProposal } from '../types';
+import { ArchitecturalChangeProposal } from '../types.ts';
 import { Modal } from './Modal.tsx';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useLocalization } from '../context/AuraContext.tsx';
+import { useLocalization } from '../context/AuraContext';
 
 export const ProposalReviewModal = ({ proposal, onApprove, onReject, onClose }: { proposal: ArchitecturalChangeProposal | null, onApprove: (proposal: ArchitecturalChangeProposal) => void, onReject: (id: string) => void, onClose: () => void }) => {
     const { t } = useLocalization();

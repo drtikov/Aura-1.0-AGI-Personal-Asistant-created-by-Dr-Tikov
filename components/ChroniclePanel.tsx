@@ -41,4 +41,4 @@ export const ChroniclePanel = React.memo(() => {
             )}
         </div>
     );
-});
+};

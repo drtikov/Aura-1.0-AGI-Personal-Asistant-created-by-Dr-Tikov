@@ -1,3 +1,3 @@
-// This file is a duplicate due to its casing.
-// It has been emptied to resolve build errors.
-export {};
+// FIX: This file is a duplicate due to its casing.
+// Re-exporting from the canonical component to resolve module resolution errors.
+export * from './AdvancedControlsModal.tsx';

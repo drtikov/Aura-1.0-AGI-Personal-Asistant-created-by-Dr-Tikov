@@ -1,7 +1,7 @@
 // hooks/useGunaAnalysis.ts
 import { useState, useEffect } from 'react';
 import { InternalState } from '../types.ts';
-import { useLocalization } from '../context/AuraContext.tsx';
+import { useLocalization } from '../context/AuraContext';
 import { apaManager } from '../core/apa_manager.ts';
 
 export const useGunaAnalysis = (internalState: InternalState, t: (key: string, options?: any) => string): string => {

@@ -236,6 +236,35 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 }
             };
         }
+        
+        case 'SYNAPTIC_MATRIX/UPDATE_METRICS': {
+            const { conceptConnections } = state;
+            const synapseCount = Object.keys(conceptConnections).length;
+            const weights = Object.values(conceptConnections).map(c => (c as any).weight);
+            const avgWeight = weights.length > 0 ? weights.reduce((a, b) => a + b, 0) / weights.length : 0;
+            
+            // Plasticity could be a moving average of connection changes, for now, let's use a placeholder
+            const plasticity = state.synapticMatrix.plasticity * 0.99 + (Math.random() * 0.01);
+            
+            return {
+                synapticMatrix: {
+                    ...state.synapticMatrix,
+                    synapseCount,
+                    avgConfidence: avgWeight, // Use avgWeight as a proxy for confidence
+                    plasticity,
+                }
+            };
+        }
+        case 'SYNAPTIC_MATRIX/SET_ADAPTING':
+            return { synapticMatrix: { ...state.synapticMatrix, isAdapting: args.isAdapting } };
+        case 'SYNAPTIC_MATRIX/SET_ACTIVE_CONCEPT':
+            return { synapticMatrix: { ...state.synapticMatrix, activeConcept: args.concept } };
+        case 'SYNAPTIC_MATRIX/ADD_INTUITIVE_ALERT':
+            return { synapticMatrix: { ...state.synapticMatrix, intuitiveAlerts: [args, ...state.synapticMatrix.intuitiveAlerts].slice(0, 5) } };
+        case 'SYNAPTIC_MATRIX/LOG_PROBE': {
+            const newLog = { timestamp: Date.now(), message: args.message };
+            return { synapticMatrix: { ...state.synapticMatrix, probeLog: [newLog, ...state.synapticMatrix.probeLog].slice(0, 10) } };
+        }
 
         default:
             return {};

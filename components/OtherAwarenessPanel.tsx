@@ -1,13 +1,10 @@
-
-
-
-
+// components/OtherAwarenessPanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 import { Sparkline } from './Sparkline.tsx';
 // FIX: Import PersonalityPortrait for type casting.
-import { PersonalityPortrait } from '../types';
+import { PersonalityPortrait } from '../types.ts';
 
 export const OtherAwarenessPanel = React.memo(() => {
     const { userModel: model } = useCoreState();
@@ -16,7 +13,7 @@ export const OtherAwarenessPanel = React.memo(() => {
 
     const topTraits = Object.entries(personalityPortrait.traits)
         // FIX: Cast the trait data to access its properties safely.
-        .sort(([, a], [, b]) => (b as PersonalityPortrait['traits'][string]).score - (a as PersonalityPortrait['traits'][string]).score)
+        .sort(([, a], [, b]) => (b as { score: number }).score - (a as { score: number }).score)
         .slice(0, 5);
 
     return (

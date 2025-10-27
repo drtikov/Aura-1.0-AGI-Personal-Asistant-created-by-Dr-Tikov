@@ -1,5 +1,6 @@
 // state/reducers/reducer.ts
-import { AuraState, Action, EventBusMessage, HistoryEntry } from '../types.ts';
+// FIX: Added missing imports for AuraState, Action, EventBusMessage, and HistoryEntry from types.ts to resolve module errors.
+import { AuraState, Action, EventBusMessage, HistoryEntry } from '../../types.ts';
 import { getInitialState } from './initialState.ts';
 import { coreReducer } from './reducers/core.ts';
 import { memoryReducer } from './reducers/memory.ts';
@@ -43,6 +44,8 @@ import { mycelialReducer } from './reducers/mycelial.ts';
 import { semanticWeaverReducer } from './reducers/semanticWeaver.ts';
 import { atpCoprocessorReducer } from './reducers/atpCoprocessor.ts';
 import { prometheusReducer } from './reducers/prometheus.ts';
+// FIX: Import missing reducers
+import { ramanujanReducer } from './reducers/ramanujan.ts';
 import { symbioticCoderReducer } from './reducers/symbioticCoder.ts';
 import { collaborativeSessionReducer } from './reducers/collaborativeSession.ts';
 import { toolReducer } from './reducers/toolReducer.ts';
@@ -52,6 +55,14 @@ import { somaticCrucibleReducer } from './reducers/somaticCrucible.ts';
 import { autoCodeForgeReducer } from './reducers/autoCodeForge.ts';
 import { resonanceReducer } from './reducers/resonanceReducer.ts';
 import { crucibleReducer } from './reducers/crucibleReducer.ts';
+import { daedalusReducer } from './reducers/daedalus.ts';
+import { erisReducer } from './reducers/eris.ts';
+import { lagrangeEngineReducer } from './reducers/lagrangeEngine.ts';
+import { ockhamEngineReducer } from './reducers/ockhamEngine.ts';
+import { bennettEngineReducer } from './reducers/bennettEngine.ts';
+import { artificialScientistReducer } from './reducers/artificialScientist.ts';
+import { socraticAssessorReducer } from './reducers/socraticAssessor.ts';
+import { axiomaticGenesisForgeReducer } from './reducers/axiomaticGenesisForge.ts';
 
 const reducers = [
     coreReducer,
@@ -96,6 +107,7 @@ const reducers = [
     semanticWeaverReducer,
     atpCoprocessorReducer,
     prometheusReducer,
+    ramanujanReducer,
     symbioticCoderReducer,
     collaborativeSessionReducer,
     toolReducer,
@@ -105,6 +117,15 @@ const reducers = [
     autoCodeForgeReducer,
     resonanceReducer,
     crucibleReducer,
+    daedalusReducer,
+    erisReducer,
+    lagrangeEngineReducer,
+    // FIX: Add missing reducers to the array
+    ockhamEngineReducer,
+    bennettEngineReducer,
+    artificialScientistReducer,
+    socraticAssessorReducer,
+    axiomaticGenesisForgeReducer,
 ];
 
 export const auraReducer = (state: AuraState, action: Action): AuraState => {
@@ -116,8 +137,35 @@ export const auraReducer = (state: AuraState, action: Action): AuraState => {
         return action.payload;
     }
 
+    let intermediateState = state;
+
+    // --- SYSCALL INTERCEPTION FOR RESONANCE ---
+    if (action.type === 'SYSCALL') {
+        const { call } = action.payload;
+        const frequency = call.split('/')[0];
+
+        // Dispatch resonance pings for relevant syscalls
+        if (frequency && frequency !== call && !call.startsWith('RESONANCE/')) {
+            const pingAction: Action = {
+                type: 'SYSCALL',
+                payload: { call: 'RESONANCE/PING_FREQUENCY', args: { frequency } }
+            };
+            intermediateState = { ...intermediateState, ...resonanceReducer(intermediateState, pingAction) };
+        }
+
+        // Dispatch decay on kernel tick
+        if (call === 'KERNEL/TICK') {
+            const decayAction: Action = {
+                type: 'SYSCALL',
+                payload: { call: 'RESONANCE/DECAY_FREQUENCIES', args: {} }
+            };
+            intermediateState = { ...intermediateState, ...resonanceReducer(intermediateState, decayAction) };
+        }
+    }
+    // --- END RESONANCE INTERCEPTION ---
+    
     // Process the action through all slice reducers, accumulating changes
-    let nextState = state;
+    let nextState = intermediateState;
     for (const reducer of reducers) {
         // Reducers now return partial state, so we merge them.
         const partialState = reducer(nextState, action);

@@ -1,5 +1,6 @@
 // core/heuristicClassifier.ts
-import { PuzzleFeatures, PuzzleArchetype } from '../types';
+// FIX: Imported missing types PuzzleFeatures and PuzzleArchetype
+import { PuzzleFeatures, PuzzleArchetype } from '../types.ts';
 
 interface HeuristicResult {
     archetype: PuzzleArchetype;

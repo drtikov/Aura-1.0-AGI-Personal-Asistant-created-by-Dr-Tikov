@@ -1,9 +1,9 @@
 // components/CognitiveGainDetailModal.tsx
 import React from 'react';
 // FIX: Corrected import path for types to resolve module error.
-import { CognitiveGainLogEntry } from '../types';
+import { CognitiveGainLogEntry } from '../types.ts';
 import { Modal } from './Modal.tsx';
-import { useLocalization } from '../context/AuraContext.tsx';
+import { useLocalization } from '../context/AuraContext';
 
 export const CognitiveGainDetailModal = ({ log, onClose }: { log: CognitiveGainLogEntry | null; onClose: () => void }) => {
     const { t } = useLocalization();

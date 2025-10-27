@@ -1,142 +1,105 @@
 // components/DoxasticEnginePanel.tsx
-import React from 'react';
-import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-// FIX: Changed import from CausalHypothesis to DoxasticHypothesis to match type definitions.
-import { DoxasticHypothesis } from '../types';
-import { Accordion } from './Accordion';
+import React, { useState } from 'react';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { DoxasticHypothesis, DoxasticExperiment } from '../types.ts';
+import { Accordion } from './Accordion.tsx';
 
 export const DoxasticEnginePanel = () => {
     const { doxasticEngineState } = useCoreState();
-    const { t } = useLocalization();
-    const { syscall } = useAuraDispatch();
-    const { hypotheses, unverifiedHypotheses, experiments, simulationStatus, simulationLog, lastSimulationResult } = doxasticEngineState;
+    const { t, geminiAPI, syscall, addToast, handleRunExperiment } = useAuraDispatch();
+    const { hypotheses, experiments } = doxasticEngineState;
+    const [designingHypoId, setDesigningHypoId] = useState<string | null>(null);
 
     const getStatusColor = (status: DoxasticHypothesis['status']) => {
         switch(status) {
             case 'validated': return 'var(--success-color)';
             case 'refuted': return 'var(--failure-color)';
-            case 'testing': return 'var(--warning-color)';
+            case 'testing':
+            case 'designed':
+                return 'var(--warning-color)';
             default: return 'var(--text-muted)';
         }
     };
-
-    const timeAgo = (timestamp: number) => {
-        const seconds = Math.floor((Date.now() - timestamp) / 1000);
-        if (seconds < 2) return `now`;
-        if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
-        const minutes = Math.floor(seconds / 60);
-        return t('timeAgoMinutes', { count: minutes });
+    
+    const handleDesignExperiment = async (hypothesis: DoxasticHypothesis) => {
+        setDesigningHypoId(hypothesis.id);
+        addToast(`Designing experiment for hypothesis: ${hypothesis.id.slice(0,8)}...`, 'info');
+        try {
+            const experiment = await geminiAPI.designDoxasticExperiment(hypothesis.description);
+            syscall('DOXASTIC/DESIGN_EXPERIMENT', { hypothesisId: hypothesis.id, experiment });
+            addToast('Experiment designed successfully.', 'success');
+        } catch (e) {
+            addToast(`Failed to design experiment: ${(e as Error).message}`, 'error');
+            syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'untested' });
+        } finally {
+            setDesigningHypoId(null);
+        }
     };
 
-    const renderResultValue = (label: string, value: number) => {
-        const isPositive = value > 0;
-        const isNegative = value < 0;
-        const color = isPositive ? 'var(--success-color)' : isNegative ? 'var(--failure-color)' : 'var(--text-muted)';
-        const sign = isPositive ? '+' : '';
+    const untestedHypotheses = hypotheses.filter(h => h.status === 'untested');
+    const designedExperiments = experiments.filter(e => {
+        const hypo = hypotheses.find(h => h.id === e.hypothesisId);
+        return hypo && hypo.status === 'designed';
+    });
+    const validatedOrRefuted = hypotheses.filter(h => h.status === 'validated' || h.status === 'refuted');
 
-        return (
-            <div className="metric-item">
-                <span className="metric-label">{label}</span>
-                <span className="metric-value" style={{ color }}>{sign}{(value * 100).toFixed(1)}%</span>
-            </div>
-        );
-    };
 
     return (
         <div className="side-panel doxastic-engine-panel">
-            <Accordion title={t('doxastic_sandbox_title')} defaultOpen={false}>
-                <div className="awareness-item">
-                    <label>{t('doxastic_sandbox_status')}</label>
-                    <strong className={`status-${simulationStatus}`}>{simulationStatus}</strong>
-                </div>
-
-                <div className="panel-subsection-title">{t('doxastic_sandbox_log')}</div>
-                <div className="command-log-list">
-                    {simulationLog.length === 0 ? (
-                        <div className="kg-placeholder">{t('doxastic_sandbox_noLog')}</div>
-                    ) : (
-                        simulationLog.map(entry => (
-                            <div key={entry.timestamp} className="command-log-item log-type-info">
-                                <span className="log-icon">{'>'}</span>
-                                <span className="log-text">{entry.message}</span>
-                                <span className="log-time">{timeAgo(entry.timestamp)}</span>
-                            </div>
-                        ))
-                    )}
-                </div>
-
-                <div className="panel-subsection-title">{t('doxastic_sandbox_lastResult')}</div>
-                {lastSimulationResult ? (
-                    <div className="simulation-result-display">
-                        <p className="reason-text" style={{ fontStyle: 'italic', marginBottom: '0.75rem' }}>
-                            "{lastSimulationResult.summary}"
-                        </p>
-                        <div className="secondary-metrics" style={{ gridTemplateColumns: '1fr 1fr', textAlign: 'left' }}>
-                            {renderResultValue(t('doxastic_sandbox_projectedGain'), lastSimulationResult.projectedCognitiveGain)}
-                            {renderResultValue(t('doxastic_sandbox_projectedTrust'), lastSimulationResult.projectedTrustChange)}
-                            {renderResultValue(t('doxastic_sandbox_projectedHarmony'), lastSimulationResult.projectedHarmonyChange)}
-                            <div className="metric-item">
-                                <span className="metric-label">{t('doxastic_sandbox_safetyCheck')}</span>
-                                <span className="metric-value" style={{ color: lastSimulationResult.isSafe ? 'var(--success-color)' : 'var(--failure-color)' }}>
-                                    {lastSimulationResult.isSafe ? t('doxastic_sandbox_isSafe') : t('doxastic_sandbox_isNotSafe')}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
+            <Accordion title={t('doxastic_untested_hypotheses')} defaultOpen={true} hasNotifications={untestedHypotheses.length > 0}>
+                 {untestedHypotheses.length === 0 ? (
+                    <div className="kg-placeholder">{t('doxastic_no_untested')}</div>
                 ) : (
-                    <div className="kg-placeholder">{t('doxastic_sandbox_noResult')}</div>
+                    untestedHypotheses.map(hypo => {
+                        const isDesigning = designingHypoId === hypo.id;
+                        return (
+                            <div key={hypo.id} className="proposal-card">
+                                <div className="proposal-card-body">
+                                    <p><em>"{hypo.description}"</em></p>
+                                </div>
+                                <div className="proposal-actions-footer">
+                                    <button className="control-button" onClick={() => handleDesignExperiment(hypo)} disabled={isDesigning}>
+                                        {isDesigning ? <><div className="spinner-small" /> Designing...</> : t('doxastic_design_experiment')}
+                                    </button>
+                                </div>
+                            </div>
+                        );
+                    })
+                )}
+            </Accordion>
+
+            <Accordion title={t('doxastic_designed_experiments')} defaultOpen={true} hasNotifications={designedExperiments.length > 0}>
+                {designedExperiments.length === 0 ? (
+                    <div className="kg-placeholder">{t('doxastic_no_designed')}</div>
+                ) : (
+                     designedExperiments.map(exp => {
+                         const hypo = hypotheses.find(h => h.id === exp.hypothesisId);
+                         const isTesting = hypo?.status === 'testing';
+                         return (
+                            <div key={exp.id} className="proposal-card">
+                                <div className="proposal-card-body">
+                                    <p><strong>Hypothesis:</strong> <em>"{hypo?.description}"</em></p>
+                                    <p style={{marginTop: '0.5rem'}}><strong>Method:</strong> {exp.method}</p>
+                                </div>
+                                 <div className="proposal-actions-footer">
+                                    <button className="control-button implement-button" onClick={() => handleRunExperiment(exp)} disabled={isTesting}>
+                                        {isTesting ? <><div className="spinner-small" /> Testing...</> : t('doxastic_run_experiment')}
+                                    </button>
+                                </div>
+                            </div>
+                         );
+                    })
                 )}
             </Accordion>
             
-            <Accordion title={t('doxastic_hypotheses')} defaultOpen={true}>
-                 {hypotheses.length === 0 ? (
+            <Accordion title={t('doxastic_validated_beliefs')} defaultOpen={false}>
+                 {validatedOrRefuted.length === 0 ? (
                     <div className="kg-placeholder">{t('doxastic_noHypotheses')}</div>
                 ) : (
-                    hypotheses.map(hypo => (
+                    validatedOrRefuted.map(hypo => (
                         <div key={hypo.id} className="gde-status" style={{ borderLeftColor: getStatusColor(hypo.status) }}>
-                            <p title={hypo.description}>
-                                <strong>{hypo.linkKey.replace('internalState.', '').replace('event.','')}</strong>
-                            </p>
-                            <div className="mod-log-header" style={{ justifyContent: 'space-between' }}>
-                                <small style={{ textTransform: 'capitalize' }}>Source: {hypo.source}</small>
-                                <small>{t('cogArchPanel_status')}: <span style={{ color: getStatusColor(hypo.status), fontWeight: 'bold' }}>{hypo.status}</span></small>
-                            </div>
+                            <p><em>"{hypo.description}"</em> ({hypo.status})</p>
                         </div>
-                    ))
-                )}
-            </Accordion>
-
-            <Accordion title={t('doxastic_unverified')} defaultOpen={true} hasNotifications={unverifiedHypotheses.length > 0}>
-                {unverifiedHypotheses.length === 0 ? (
-                    <div className="kg-placeholder">{t('doxastic_noUnverified')}</div>
-                ) : (
-                    unverifiedHypotheses.map(hypo => (
-                        <div key={hypo.id} className="gde-status" style={{ borderLeftColor: getStatusColor(hypo.status) }}>
-                            <p><em>"{hypo.description}"</em></p>
-                        </div>
-                    ))
-                )}
-            </Accordion>
-            
-            <Accordion title={t('doxastic_experiments')} defaultOpen={false}>
-                {experiments.length === 0 ? (
-                    <div className="kg-placeholder">{t('doxastic_noExperiments')}</div>
-                ) : (
-                    experiments.map(exp => (
-                        <div key={exp.id} className="rie-insight-item">
-                            <div className="rie-insight-header">
-                               <span className="mod-log-type" title={exp.hypothesisId}>{t('doxastic_experimentFor')} #{exp.hypothesisId.substring(0,4)}</span>
-                               <small>{exp.method.replace('_', ' ')}</small>
-                           </div>
-                           <p className="mod-log-description" style={{fontStyle: 'italic', fontSize: '0.8rem'}}>
-                               {exp.description}
-                           </p>
-                           {exp.result && (
-                               <div className="code-snippet-container" style={{ marginTop: '0.5rem' }}>
-                                   <pre><code>{t('doxastic_result')}: {exp.result}</code></pre>
-                               </div>
-                           )}
-                       </div>
                     ))
                 )}
             </Accordion>

@@ -1,7 +1,7 @@
 // components/CodeIngestionPanel.tsx
 import React, { useState } from 'react';
 import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
-import { HAL } from '../core/hal';
+import { HAL } from '../core/hal.ts';
 
 export const CodeIngestionPanel = React.memo(() => {
     const { syscall, addToast } = useAuraDispatch();

@@ -48,6 +48,22 @@ export const somaticCrucibleReducer = (state: AuraState, action: Action): Partia
             };
         }
 
+        case 'SOMATIC/UPDATE_ENERGY_STATE': {
+            const { possibleFutureSelves } = state.somaticCrucible;
+            const validatedCount = possibleFutureSelves.filter(pfs => pfs.status === 'validated').length;
+            const rejectedCount = possibleFutureSelves.filter(pfs => pfs.status === 'rejected').length;
+
+            // Simple energy calculation: more validated selves increase energy, rejections decrease it.
+            const newEnergy = Math.max(0, state.somaticCrucible.cognitiveFreeEnergy + (validatedCount * 0.1) - (rejectedCount * 0.05));
+
+            return {
+                somaticCrucible: {
+                    ...state.somaticCrucible,
+                    cognitiveFreeEnergy: newEnergy,
+                }
+            }
+        }
+
         default:
             return {};
     }

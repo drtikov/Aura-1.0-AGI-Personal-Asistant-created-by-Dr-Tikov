@@ -1,16 +1,17 @@
 // App.tsx
 import React, { useEffect } from 'react';
-import { AuraProvider } from './context/AuraProvider.tsx';
-import { useAuraDispatch, useCoreState } from './context/AuraContext.tsx';
-import { ModalProvider, useModal } from './context/ModalContext.tsx';
-import { ToastContainer } from './components/Toast.tsx';
-import { LeftColumnComponent } from './components/LeftColumnComponent.tsx';
-import { LiveTranscriptOverlay } from './components/LiveTranscriptOverlay.tsx';
-import { Header } from './components/Header.tsx';
-import { VisualAnalysisFeed } from './components/VisualAnalysisFeed.tsx';
-// FIX: Standardized import to use PascalCase 'ControlDeckComponent.tsx' to resolve module ambiguity and casing conflicts caused by duplicate filenames.
-import { ControlDeckComponent } from './components/ControlDeckComponent.tsx';
-import { ModalPayloads } from './types.ts';
+// FIX: Corrected import path for AuraProvider to resolve module not found error.
+import { AuraProvider } from './context/AuraProvider';
+import { useAuraDispatch, useCoreState } from './context/AuraContext';
+import { ModalProvider, useModal } from './context/ModalContext';
+import { ToastContainer } from './components/Toast';
+// FIX: Corrected import path for ControlDeckComponent to resolve module casing ambiguity.
+import { ControlDeckComponent } from './components/ControlDeckComponent';
+// import { LiveTranscriptOverlay } from './components/LiveTranscriptOverlay'; // File not provided
+import { Header } from './components/Header';
+import { VisualAnalysisFeed } from './components/VisualAnalysisFeed';
+import { ModalPayloads } from './types';
+import { LeftColumnComponent } from './components/LeftColumnComponent';
 
 const AppContent: React.FC = () => {
     // The useAuraDispatch hook is used to access state and handlers provided by AuraProvider.
@@ -36,7 +37,7 @@ const AppContent: React.FC = () => {
             </div>
             {/* These components are positioned absolutely */}
             <VisualAnalysisFeed videoRef={videoRef} isAnalysisActive={isVisualAnalysisActive} />
-            <LiveTranscriptOverlay />
+            {/* <LiveTranscriptOverlay /> */}
             <ToastContainer toasts={toasts} removeToast={removeToast} />
         </div>
     );

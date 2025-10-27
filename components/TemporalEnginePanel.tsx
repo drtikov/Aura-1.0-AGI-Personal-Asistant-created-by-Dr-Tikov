@@ -1,6 +1,6 @@
 // components/TemporalEnginePanel.tsx
 import React from 'react';
-import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
+import { useSystemState, useLocalization } from '../context/AuraContext';
 import { SEDLDirective } from '../types.ts';
 
 export const TemporalEnginePanel = () => {
@@ -69,7 +69,7 @@ export const TemporalEnginePanel = () => {
                 <div className="temporal-cluster">
                     <div className="cluster-header historian-header">{t('temporal_historian')}</div>
                     <div className="cluster-content">
-                         {historian.findings.map((finding, i) => (
+                         {historian && historian.findings.map((finding, i) => (
                             <div key={i} className="log-item">
                                 <span className="log-icon">⏳</span>
                                 <span className="log-text">{finding}</span>

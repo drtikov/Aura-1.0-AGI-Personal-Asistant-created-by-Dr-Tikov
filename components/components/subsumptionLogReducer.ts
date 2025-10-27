@@ -1,26 +1,3 @@
-// state/reducers/subsumptionLogReducer.ts
-import { AuraState, Action } from '../../types';
-
-export const subsumptionLogReducer = (state: AuraState, action: Action): Partial<AuraState> => {
-    if (action.type !== 'SYSCALL') {
-        return {};
-    }
-    const { call, args } = action.payload;
-
-    switch (call) {
-        case 'SUBSUMPTION/LOG_EVENT': {
-            const newLogEntry = {
-                timestamp: Date.now(),
-                message: args.message,
-            };
-            return {
-                subsumptionLogState: {
-                    ...state.subsumptionLogState,
-                    log: [newLogEntry, ...state.subsumptionLogState.log].slice(0, 20),
-                }
-            };
-        }
-        default:
-            return {};
-    }
-};
+// This file is a duplicate of 'state/reducers/subsumptionLog.ts' and is in the wrong directory.
+// It has been emptied to resolve build errors.
+export {};

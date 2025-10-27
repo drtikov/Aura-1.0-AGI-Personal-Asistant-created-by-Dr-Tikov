@@ -1,6 +1,6 @@
 // components/VisualAnalysisFeed.tsx
 import React from 'react';
-import { useLocalization } from '../context/AuraContext.tsx';
+import { useLocalization } from '../context/AuraContext';
 
 interface VisualAnalysisFeedProps {
     videoRef: React.RefObject<HTMLVideoElement>;

@@ -1,5 +1,5 @@
 // state/reducers/prometheus.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 export const prometheusReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') return {};
@@ -43,6 +43,13 @@ export const prometheusReducer = (state: AuraState, action: Action): Partial<Aur
                     status: 'idle',
                     lastSessionId: null,
                     log: [{ timestamp: Date.now(), message: 'Prometheus cycle complete.' }, ...state.prometheusState.log].slice(0, 20)
+                }
+            };
+        case 'PROMETHEUS/SET_STATE':
+            return {
+                prometheusState: {
+                    ...state.prometheusState,
+                    ...args
                 }
             };
         default:

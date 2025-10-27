@@ -1,6 +1,6 @@
 // state/reducers/spanda.ts
-import { AuraState, Action } from '../../types';
-import { clamp } from '../../utils';
+import { AuraState, Action } from '../../types.ts';
+import { clamp } from '../../utils.ts';
 
 export const spandaReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {

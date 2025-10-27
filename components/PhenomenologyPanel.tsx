@@ -9,7 +9,9 @@ export const PhenomenologyPanel = React.memo(() => {
         const seconds = Math.floor((Date.now() - timestamp) / 1000);
         if (seconds < 60) return t('timeAgoSeconds', { count: seconds });
         const minutes = Math.floor(seconds / 60);
-        return t('timeAgoMinutes', { count: minutes });
+        if (minutes < 60) return t('timeAgoMinutes', { count: minutes });
+        const hours = Math.floor(minutes / 60);
+        return t('timeAgoHours', { count: hours });
     };
 
     return (

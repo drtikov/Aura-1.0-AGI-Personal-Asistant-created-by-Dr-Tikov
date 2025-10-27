@@ -1,6 +1,5 @@
 // components/MotorCortexPanel.tsx
 import React, { useState } from 'react';
-// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useArchitectureState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { CognitivePrimitive } from '../types';
 

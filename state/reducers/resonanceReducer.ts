@@ -1,5 +1,5 @@
 // state/reducers/resonanceReducer.ts
-import { AuraState, Action } from '../../types';
+import { AuraState, Action } from '../../types.ts';
 
 const RESONANCE_DECAY_RATE = 0.92;
 const RESONANCE_PING_INTENSITY = 1.0;

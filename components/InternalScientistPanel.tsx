@@ -2,7 +2,7 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Imported missing types
-import { DiagnosticFinding, InternalScientistExperiment, InternalScientistHypothesis, SelfProgrammingCandidate, CreateFileCandidate, ModifyFileCandidate } from '../types';
+import { DiagnosticFinding, InternalScientistExperiment, InternalScientistHypothesis, SelfProgrammingCandidate, CreateFileCandidate, ModifyFileCandidate } from '../types.ts';
 
 const timeAgo = (timestamp: number, t: (key: string, options?: any) => string) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);
@@ -28,10 +28,10 @@ const HypothesisCard = ({ hypothesis }: { hypothesis: InternalScientistHypothesi
 // FIX: Added a type guard to correctly display code information from the SelfProgrammingCandidate union type.
 const ExperimentCard = ({ experiment }: { experiment: InternalScientistExperiment }) => {
     let codeInfo = 'Unknown code change';
-    if (experiment.design.proposalType === 'self_programming_modify') {
+    if ('targetFile' in experiment.design) { // ModifyFileCandidate
         const modifyCandidate = experiment.design as ModifyFileCandidate;
         codeInfo = `// Target: ${modifyCandidate.targetFile}\n${modifyCandidate.codeSnippet}`;
-    } else if (experiment.design.proposalType === 'self_programming_create') {
+    } else if ('newFile' in experiment.design) { // CreateFileCandidate
         const createCandidate = experiment.design as CreateFileCandidate;
         codeInfo = `// New File: ${createCandidate.newFile.path}\n${createCandidate.newFile.content}`;
     }

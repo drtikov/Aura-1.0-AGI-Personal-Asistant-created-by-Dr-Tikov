@@ -1,7 +1,7 @@
 // state/reducers/kernel.ts
 import React from 'react';
 // FIX: Added 'AuraState' to import to resolve 'Cannot find name' error.
-import { AuraState, Action, SyscallCall, SyscallPayload, CognitiveTask, ModificationLogEntry, KernelPatchProposal } from '../../types.ts';
+import { AuraState, Action, SyscallCall, SyscallPayload, KernelTask, ModificationLogEntry, KernelPatchProposal } from '../../types.ts';
 
 export const kernelReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -19,9 +19,9 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
             };
         }
 
-        case 'KERNEL/ADD_TASK': {
+        case 'KERNEL/QUEUE_TASK': {
             // FIX: Correctly cast `args` to `CognitiveTask` to match the expected type, which uses the `CognitiveTaskType` enum.
-            const newTask = args as CognitiveTask;
+            const newTask = args as KernelTask;
             // Prevent adding duplicate tasks if one is already queued or running
             if (state.kernelState.runningTask?.type === newTask.type || state.kernelState.taskQueue.some(t => t.type === newTask.type)) {
                 return {};
@@ -36,7 +36,7 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
 
         case 'KERNEL/SET_RUNNING_TASK': {
             // FIX: Correctly cast `args` to `CognitiveTask` to match the type of `runningTask`.
-            const task = args as CognitiveTask | null;
+            const task = args as KernelTask | null;
             let queue = state.kernelState.taskQueue;
             if (task) {
                 // Remove the task from the queue when it starts running
@@ -61,7 +61,8 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
             
         case 'KERNEL/BEGIN_SANDBOX_TEST': {
             const patchId = args.patchId as string;
-            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === patchId) as KernelPatchProposal | undefined;
+            // FIX: Added type guard to ensure `id` property exists for comparison.
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => 'id' in p && p.id === patchId) as KernelPatchProposal | undefined;
             if (!proposal) return {};
 
             return {
@@ -93,7 +94,8 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
 
         case 'KERNEL/APPLY_PATCH': {
             const patchId = state.kernelState.sandbox.currentPatchId;
-            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === patchId) as KernelPatchProposal | undefined;
+            // FIX: Added type guard to ensure `id` property exists for comparison.
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => 'id' in p && p.id === patchId) as KernelPatchProposal | undefined;
             if (!proposal || state.kernelState.sandbox.status !== 'passed') return {};
 
             const { task, newFrequency } = proposal.patch.payload;
