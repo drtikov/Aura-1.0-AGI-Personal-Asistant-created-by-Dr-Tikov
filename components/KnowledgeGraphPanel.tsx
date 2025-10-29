@@ -1,9 +1,9 @@
 // components/KnowledgeGraphPanel.tsx
 import React from 'react';
 // FIX: Add '.ts' extension to satisfy module resolution.
-import { SyscallCall, KnowledgeFact } from '../types';
+import { SyscallCall, KnowledgeFact } from '../types.ts';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useMemoryState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useMemoryState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 const FactTypeBadge = ({ type }: { type: KnowledgeFact['type'] }) => {
     if (!type || type === 'fact') return null;

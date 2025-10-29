@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { Modal } from './Modal.tsx';
 import { useLocalization, useAuraDispatch, useArchitectureState } from '../context/AuraContext.tsx';
+import { loadSdk } from '../core/sdkLoader';
 
-// The jsPDF library is loaded from CDN in index.html
+// The jsPDF library is loaded dynamically now
 declare const jspdf: any;
 
 export const DocumentForgeContainerModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
@@ -25,8 +26,14 @@ export const DocumentForgeContainerModal = ({ isOpen, onClose }: { isOpen: boole
         setLocalGoal('');
     }
 
-    const handleDownloadPdf = () => {
+    const handleDownloadPdf = async () => {
         if (!document) return;
+        
+        await loadSdk('jspdf');
+        if (typeof jspdf === 'undefined') {
+            console.error("jspdf library not loaded.");
+            return;
+        }
 
         const { jsPDF } = jspdf;
         const doc = new jsPDF({

@@ -1,4 +1,5 @@
 // core/hal_mathjs.ts
+import { loadSdk } from './sdkLoader';
 
 // This tells TypeScript that the 'math' object will be available globally from the CDN script.
 declare const math: any;
@@ -12,6 +13,7 @@ export const MathJS = {
    * @returns A promise resolving to the structured result.
    */
   execute: async (command: 'simplify' | 'solve' | 'differentiate', expression: string, variable?: string): Promise<{ final_result: string | string[]; steps: { description: string, equation: string }[] }> => {
+    await loadSdk('mathjs');
     if (typeof math === 'undefined') {
       throw new Error("math.js library is not loaded.");
     }

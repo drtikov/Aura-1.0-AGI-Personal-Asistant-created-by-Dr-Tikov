@@ -1,6 +1,7 @@
 // components/SpandaEnginePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { clamp } from '../utils.ts';
 
 // FIX: Made the 'children' prop optional to resolve a TypeScript error where it was not being correctly inferred from JSX.
 const RegionLabel = ({ x, y, children }: { x: number, y: number, children?: React.ReactNode }) => (

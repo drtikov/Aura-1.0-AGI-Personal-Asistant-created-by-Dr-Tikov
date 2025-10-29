@@ -1,6 +1,6 @@
 // components/MemoryCrystallizationViewer.tsx
 import React, { useMemo } from 'react';
-import { useMemoryState, useLocalization } from '../context/AuraContext.tsx';
+import { useAuraDispatch, useLocalization, useMemoryState } from '../context/AuraContext.tsx';
 
 export const MemoryCrystallizationViewer = React.memo(() => {
     const { memoryNexus: nexus } = useMemoryState();

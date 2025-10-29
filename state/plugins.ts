@@ -78,6 +78,7 @@ import { workflowDesignKnowledge } from './knowledge/workflowDesign';
 import { pdeKnowledge } from './knowledge/pde';
 import { functionalAnalysisKnowledge } from './knowledge/functionalAnalysis';
 import { fluidDynamicsKnowledge } from './knowledge/fluidDynamics';
+import { cloudInfrastructureKnowledge } from './knowledge/cloudInfrastructure';
 import { Type } from '@google/genai';
 
 export const plugins: Plugin[] = [
@@ -97,6 +98,9 @@ export const plugins: Plugin[] = [
   { id: 'knowledge_cloud_services', name: 'plugin_knowledge_cloud_services_name', description: 'plugin_knowledge_cloud_services_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: cloudServicesKnowledge },
   { id: 'knowledge_database_management', name: 'plugin_knowledge_database_management_name', description: 'plugin_knowledge_database_management_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: databaseManagementKnowledge },
   { id: 'knowledge_backend_implementation', name: 'plugin_knowledge_backend_implementation_name', description: 'plugin_knowledge_backend_implementation_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: backendImplementationKnowledge },
+  { id: 'knowledge_devops', name: 'plugin_knowledge_devops_name', description: 'plugin_knowledge_devops_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: devopsKnowledge },
+  { id: 'knowledge_web_servers', name: 'plugin_knowledge_web_servers_name', description: 'plugin_knowledge_web_servers_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: webServersKnowledge },
+  { id: 'knowledge_cloud_infrastructure', name: 'plugin_knowledge_cloud_infrastructure_name', description: 'plugin_knowledge_cloud_infrastructure_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: cloudInfrastructureKnowledge },
   
   // --- NEW MATH PLUGINS ---
   { id: 'knowledge_pde', name: 'plugin_knowledge_pde_name', description: 'plugin_knowledge_pde_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: pdeKnowledge },
@@ -324,54 +328,49 @@ export const plugins: Plugin[] = [
     defaultStatus: 'enabled',
     toolSchema: {
       name: 'executeHostCommand',
-      description: 'Executes a shell command in the host IDE environment using the Host Bridge API. Use with extreme caution for system-level interactions like running tests or linters.',
+      description: 'Executes a shell command in the host IDE environment. Use for system-level tasks like running Terraform, kubectl, git, npm, or cloud provider CLIs (aws, gcloud, az).',
       parameters: {
         type: Type.OBJECT,
         properties: {
           command: {
             type: Type.STRING,
-            description: 'The primary command to execute (e.g., "npm", "git").',
+            description: 'The primary command to execute (e.g., "terraform", "npm", "git").',
           },
           commandArgs: {
             type: Type.ARRAY,
-            description: 'An array of string arguments for the command (e.g., ["run", "test"]). Defaults to an empty array.',
+            description: 'An array of string arguments for the command (e.g., ["apply", "-auto-approve"]).',
             items: { type: Type.STRING }
           }
         },
-        required: ['command'],
+        required: ['command', 'commandArgs'],
       },
     },
   },
   {
-    id: 'tool_metis_sandbox',
-    name: 'plugin_tool_metis_sandbox_name',
-    description: 'plugin_tool_metis_sandbox_desc',
+    id: 'tool_write_file',
+    name: 'plugin_tool_write_file_name',
+    description: 'plugin_tool_write_file_desc',
     type: 'TOOL',
     status: 'enabled',
     defaultStatus: 'enabled',
     toolSchema: {
-      name: 'metis_sandbox',
-      description: 'A secure sandbox to test self-generated code changes. It can lint, run tests, and perform a dry-run build on a modified file from the Virtual File System (VFS).',
-      parameters: {
-        type: Type.OBJECT,
-        properties: {
-          filePath: {
-            type: Type.STRING,
-            description: "The full path of the file being tested (e.g., 'hooks/useAura.ts')."
-          },
-          modifiedCode: {
-            type: Type.STRING,
-            description: "The complete, new source code for the file that will be tested."
-          },
-          testCommands: {
-            type: Type.ARRAY,
-            description: "An array of shell commands to run for testing (e.g., ['npm run lint', 'npm run test']).",
-            items: { type: Type.STRING }
-          }
-        },
-        required: ['filePath', 'modifiedCode', 'testCommands'],
-      },
-    },
+        name: 'writeFile',
+        description: 'Writes or overwrites a file in the virtual file system (VFS) or host environment. Use for creating configuration files like Dockerfile, nginx.conf, or Terraform .tf files.',
+        parameters: {
+            type: Type.OBJECT,
+            properties: {
+                filePath: {
+                    type: Type.STRING,
+                    description: "The full path of the file to write (e.g., 'Dockerfile', 'src/config.json')."
+                },
+                content: {
+                    type: Type.STRING,
+                    description: "The full content to write to the file."
+                }
+            },
+            required: ['filePath', 'content']
+        }
+    }
   },
   {
     id: 'tool_host_list_files',

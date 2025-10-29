@@ -1,6 +1,6 @@
 // components/CognitiveModesPanel.tsx
 import React from 'react';
-import { useLogsState, useLocalization } from '../context/AuraContext';
+import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
 
 export const CognitiveModesPanel = React.memo(() => {
     const { cognitiveModeLog: log } = useLogsState();

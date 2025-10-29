@@ -6,10 +6,10 @@ import {
     CoCreatedWorkflow, CreateFileCandidate, Plugin, HistoryEntry, 
     UIHandlers, PsycheAdaptationProposal, DoxasticExperiment, KnowledgeFact
 } from '../types';
-import { migrateState } from '../state/migrations';
-import { CURRENT_STATE_VERSION } from '../constants';
-import { HAL } from '../core/hal';
-import { useLocalization } from '../context/AuraContext';
+import { migrateState } from '../state/migrations.ts';
+import { CURRENT_STATE_VERSION } from '../constants.ts';
+import { HAL } from '../core/hal.ts';
+import { useLocalization } from '../context/AuraContext.tsx';
 import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator';
 import { VIRTUAL_FILE_SYSTEM } from '../core/vfs';
 
@@ -233,6 +233,78 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
             syscall('METIS/SET_STATE', { status: 'error', errorMessage: (e as Error).message });
         }
     };
+    
+    const handleRunExperiment = useCallback(async (experiment: DoxasticExperiment) => {
+        if (!experiment) return;
+        
+        const hypothesis = state.doxasticEngineState.hypotheses.find(h => h.id === experiment.hypothesisId);
+        if (!hypothesis) {
+            addToast(`Hypothesis for experiment ${experiment.id} not found.`, 'error');
+            return;
+        }
+    
+        syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'running' });
+        syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'testing' });
+        addToast(`Running experiment for: "${hypothesis.description.substring(0, 30)}..."`, 'info');
+    
+        try {
+            let rawResult = '';
+            const [methodType, methodArg] = experiment.method.split(': ');
+            
+            if (!methodType || !methodArg) {
+                throw new Error(`Invalid experiment method format: ${experiment.method}`);
+            }
+    
+            switch(methodType.trim()) {
+                case 'WEBSERVICE': {
+                    const searchResult = await geminiAPI.performWebSearch(methodArg);
+                    rawResult = searchResult.summary;
+                    break;
+                }
+                case 'VFS_QUERY': {
+                    rawResult = state.selfProgrammingState.virtualFileSystem[methodArg] || `Error: File not found in VFS: ${methodArg}`;
+                    break;
+                }
+                case 'KG_QUERY': {
+                    const [key, value] = methodArg.split('=').map(s => s.trim());
+                    if (!key || !value) {
+                        rawResult = "Error: Invalid KG_QUERY format. Expected key=value.";
+                    } else {
+                        const results = state.knowledgeGraph.filter((fact: KnowledgeFact) => (fact as any)[key] === value);
+                        rawResult = JSON.stringify(results, null, 2);
+                    }
+                    break;
+                }
+            }
+            
+            const evaluation = await geminiAPI.evaluateExperimentResult(hypothesis.description, experiment.method, rawResult);
+            
+            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'complete', result: rawResult });
+            syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: evaluation.outcome });
+            
+            if (evaluation.outcome === 'validated') {
+                addToast(`Hypothesis validated: ${hypothesis.description.substring(0,30)}...`, 'success');
+                if (hypothesis.linkKey) {
+                    syscall('ADD_CAUSAL_LINK', {
+                        cause: hypothesis.linkKey.split('->')[0],
+                        effect: hypothesis.linkKey.split('->')[1],
+                        confidence: 0.7,
+                        source: 'doxastic_crucible',
+                    });
+                }
+            } else {
+                addToast(`Hypothesis refuted: ${hypothesis.description.substring(0,30)}...`, 'warning');
+            }
+    
+        } catch(e) {
+            addToast(`Experiment failed: ${(e as Error).message}`, 'error');
+            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'pending' }); // Reset on error
+            if(hypothesis) {
+                syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'designed' });
+            }
+        }
+    }, [state, syscall, addToast, geminiAPI]);
+
 
     // FIX: Refactored placeholder functions to use the translation function `t` for consistency and to resolve potential type errors.
     const handleFantasy = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Fantasy' }), 'info'), [addToast, t]);
@@ -337,101 +409,12 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         }
     };
 
-    const handleRunExperiment = useCallback(async (experiment: DoxasticExperiment) => {
-        if (!experiment) return;
-        
-        const hypothesis = state.doxasticEngineState.hypotheses.find(h => h.id === experiment.hypothesisId);
-        if (!hypothesis) {
-            addToast(`Hypothesis for experiment ${experiment.id} not found.`, 'error');
-            return;
-        }
-    
-        syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'running' });
-        syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'testing' });
-        addToast(`Running experiment for: "${hypothesis.description.substring(0, 30)}..."`, 'info');
-    
-        try {
-            let rawResult = '';
-            const [methodType, methodArg] = experiment.method.split(': ');
-            
-            if (!methodType || !methodArg) {
-                throw new Error(`Invalid experiment method format: ${experiment.method}`);
-            }
-    
-            switch(methodType.trim()) {
-                case 'WEBSERVICE':
-                    const searchResult = await geminiAPI.performWebSearch(methodArg);
-                    rawResult = searchResult.summary;
-                    break;
-                case 'VFS_QUERY':
-                    rawResult = state.selfProgrammingState.virtualFileSystem[methodArg] || `Error: File not found in VFS: ${methodArg}`;
-                    break;
-                case 'KG_QUERY':
-                    // A very simple KG query for demonstration
-                    const matchingFacts = state.knowledgeGraph.filter(f => 
-                        `${f.subject}, ${f.predicate}, ${f.object}`.toLowerCase().includes(methodArg.toLowerCase())
-                    );
-                    rawResult = matchingFacts.length > 0 ? JSON.stringify(matchingFacts, null, 2) : 'No matching facts found in Knowledge Graph.';
-                    break;
-                default:
-                    throw new Error(`Unknown experiment method: ${methodType}`);
-            }
-            
-            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, result: rawResult });
-            addToast(`Experiment complete. Analyzing results...`, 'info');
-    
-            const validation = await geminiAPI.evaluateExperimentResult(hypothesis.description, experiment.method, rawResult);
-            
-            syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: validation.outcome });
-            
-            if (validation.outcome === 'validated') {
-                const newFact: Omit<KnowledgeFact, 'id' | 'source'> = {
-                    subject: 'New Belief',
-                    predicate: 'validated by experiment',
-                    object: hypothesis.description,
-                    confidence: 0.8, // Start with a reasonable confidence
-                    strength: 1.0,
-                    lastAccessed: Date.now(),
-                    type: 'fact',
-                };
-                syscall('ADD_FACT', newFact);
-                addToast(`Hypothesis validated! New belief added.`, 'success');
-            } else {
-                addToast(`Hypothesis refuted. ${validation.reasoning}`, 'warning');
-            }
-            
-            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'complete' });
-    
-        } catch(e) {
-            const errorMessage = (e as Error).message;
-            addToast(`Experiment failed: ${errorMessage}`, 'error');
-            syscall('DOXASTIC/UPDATE_HYPOTHESIS_STATUS', { hypothesisId: hypothesis.id, status: 'untested' }); // Revert status on error
-            syscall('DOXASTIC/UPDATE_EXPERIMENT_STATUS', { experimentId: experiment.id, status: 'pending' });
-        }
-    }, [state, geminiAPI, syscall, addToast]);
+    const handleApprovePsycheAdaptation = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Psyche Adaptation' }), 'info'), [addToast, t]);
+    const handleOrchestrateTask = useCallback(() => syscall('MODAL/OPEN', { type: 'orchestrator', payload: {} }), [syscall]);
+    const handleExplainComponent = useCallback(() => syscall('MODAL/OPEN', { type: 'reflector', payload: {} }), [syscall]);
+    const handleStartOptimizationLoop = useCallback((goal: string) => { syscall('TELOS/START_OPTIMIZATION', { goal }); }, [syscall]);
+    const handleToggleIdleThought = useCallback(() => { syscall('TOGGLE_IDLE_THOUGHT', {}); }, [syscall]);
 
-    const handleOrchestrateTask = useCallback(() => {
-        syscall('MODAL/OPEN', { type: 'orchestrator', payload: {} });
-    }, [syscall]);
-
-    const handleExplainComponent = useCallback(() => {
-        syscall('MODAL/OPEN', { type: 'reflector', payload: {} });
-    }, [syscall]);
-
-    const handleStartOptimizationLoop = useCallback(async () => {
-        // FIX: Pass feature name to translation function
-        addToast(t('toast_not_implemented', { feature: 'Optimization Loop' }), 'info');
-    }, [syscall, addToast, t]);
-    
-    const handleApprovePsycheAdaptation = useCallback(() => {
-        // FIX: Pass feature name to translation function
-        addToast(t('toast_not_implemented', { feature: 'This action is now automated by the system.' }), 'info');
-    }, [addToast, t]);
-
-    const handleToggleIdleThought = useCallback(() => {
-        syscall('TOGGLE_IDLE_THOUGHT', {});
-        addToast(state.isIdleThoughtEnabled ? 'Idle thoughts disabled.' : 'Idle thoughts enabled.', 'info');
-    }, [syscall, addToast, state.isIdleThoughtEnabled]);
 
     return {
         currentCommand,
@@ -496,7 +479,6 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         handleExplainComponent,
         handleStartMetisResearch,
         handleStartOptimizationLoop,
-        // FIX: Added missing handler to the returned object to match the UIHandlers type.
         handleToggleIdleThought,
     };
 };

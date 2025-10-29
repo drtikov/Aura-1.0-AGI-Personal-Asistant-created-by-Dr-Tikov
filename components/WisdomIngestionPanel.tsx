@@ -2,6 +2,7 @@
 import React, { useState, useCallback, DragEvent } from 'react';
 import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { SafeMarkdown } from './SafeMarkdown.tsx';
+import { loadSdk } from '../core/sdkLoader';
 
 declare const pdfjsLib: any;
 
@@ -23,6 +24,11 @@ export const WisdomIngestionPanel = React.memo(() => {
     };
 
     const extractImagesFromPdf = async (file: File): Promise<string[]> => {
+        await loadSdk('pdfjs');
+        if (typeof pdfjsLib === 'undefined') {
+            throw new Error("pdf.js library not loaded.");
+        }
+        
         const reader = new FileReader();
         return new Promise((resolve, reject) => {
             reader.onload = async (event) => {

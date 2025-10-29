@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
 import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
-import { useModal } from '../context/ModalContext';
+import { useModal } from '../context/ModalContext.tsx';
 // FIX: Imported missing types
-import { CorticalColumn, AbstractConcept, NeuroSimulation, GlobalErrorSignal, ProtoSymbol } from '../types';
-import { Accordion } from './Accordion';
+import { CorticalColumn, AbstractConcept, NeuroSimulation, GlobalErrorSignal, ProtoSymbol } from '../types.ts';
+import { Accordion } from './Accordion.tsx';
 
 export const NeuroCortexPanel = React.memo(() => {
     const { neuroCortexState } = useArchitectureState();

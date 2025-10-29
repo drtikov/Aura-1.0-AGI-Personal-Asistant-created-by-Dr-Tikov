@@ -1,9 +1,9 @@
-// components/MetacognitiveNexusPanel.tsx
+// components/components/MetacognitiveCausalModelPanel.tsx
 import React from 'react';
 // FIX: Added '.ts' extension to satisfy module resolution.
-import { MetacognitiveLink } from '../types.ts';
+import { MetacognitiveLink } from '../../types.ts';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
-import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
+import { useSystemState, useLocalization } from '../../context/AuraContext.tsx';
 
 const formatKey = (key: string) => key.replace(/_/g, ' ').replace(/([A-Z])/g, ' $1').trim();
 
@@ -13,7 +13,7 @@ const CorrelationArrow = ({ correlation, t }: { correlation: number, t: (key: st
     return <span style={{ color: 'var(--text-muted)' }}>- {t('metaCausal_noEffect')}</span>;
 };
 
-export const MetacognitiveNexusPanel = React.memo(() => {
+export const MetacognitiveCausalModelPanel = React.memo(() => {
     const { metacognitiveCausalModel: model } = useSystemState();
     const { t } = useLocalization();
     const links = Object.values(model).sort((a, b) => (b as MetacognitiveLink).lastUpdated - (a as MetacognitiveLink).lastUpdated);

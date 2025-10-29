@@ -5,18 +5,14 @@ import { AuraState, TscError } from '../types.ts';
 import { MathJS } from './hal_mathjs.ts';
 import { NumericJS } from './hal_numericjs.ts';
 import { Lean } from './hal_lean.ts';
+import { loadSdk } from './sdkLoader.ts';
+import { HostBridge } from './hostBridge.ts';
 
 // This tells TypeScript that these objects will be available globally from the CDN scripts.
 declare const ts: any;
 declare const THREE: any;
 declare const polygonClipping: any;
 declare const p5: any;
-declare const d3: any;
-declare const Tone: any;
-declare const Papa: any;
-declare const Tesseract: any;
-declare const pdfLib: any;
-declare const cocoSsd: any;
 
 
 let ai: GoogleGenAI | null = null;
@@ -129,6 +125,7 @@ export const HAL = {
     },
     Tools: {
         typescript_check_types: async (vfs: { [filePath: string]: string }, filePaths: string[]): Promise<TscError[]> => {
+            await loadSdk('typescript');
             if (typeof ts === 'undefined') {
                 throw new Error("TypeScript compiler is not loaded.");
             }
@@ -170,14 +167,30 @@ export const HAL = {
             });
         },
     },
+    Host: {
+        runCommand: (command: string, args: string[]): Promise<{ stdout: string; stderr: string; exitCode: number }> => {
+            return HostBridge.runCommand(command, args);
+        },
+        writeFile: (filePath: string, content: string): Promise<void> => {
+            return HostBridge.writeFile(filePath, content);
+        },
+        listFiles: (path: string): Promise<string[]> => {
+            return HostBridge.listFiles(path);
+        },
+        openFile: (path: string): Promise<void> => {
+            return HostBridge.openFile(path);
+        },
+    },
     Geometry: {
         runBooleanOp: async (polyA: number[][], polyB: number[][], operation: 'union' | 'intersection' | 'difference' | 'xor') => {
+            await loadSdk('polygonClipping');
             if (typeof polygonClipping === 'undefined') {
                 throw new Error("polygon-clipping library is not loaded.");
             }
             return polygonClipping[operation]([polyA], [polyB]);
         },
         runMeshAnalysis: async (meshType: 'box' | 'sphere', parameters: any) => {
+            await loadSdk('three');
             if (typeof THREE === 'undefined') {
                 throw new Error("Three.js library is not loaded.");
             }

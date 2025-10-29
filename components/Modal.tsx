@@ -1,5 +1,6 @@
 // components/Modal.tsx
 import React from 'react';
+import { loadSdk } from '../core/sdkLoader';
 
 declare const anime: any;
 
@@ -13,8 +14,7 @@ interface ErrorBoundaryState {
 }
 
 class ModalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
-    // FIX: Refactored to use class property syntax for state initialization.
-    // The constructor was causing incorrect type inference for `this.props` and `this.state`.
+    // FIX: Replaced constructor with a class property for state initialization to resolve issues with `this.state` and `this.props` not being available on the component instance.
     state: ErrorBoundaryState = { hasError: false, error: null };
 
     static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -27,13 +27,11 @@ class ModalErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBounda
 
     render() {
         if (this.state.hasError) {
-            return (
-                <div className="failure-reason-display">
+            return <div className="failure-reason-display">
                     <strong>Modal Content Error</strong>
                     <p>There was an error rendering the content of this modal.</p>
                     <pre><code>{this.state.error?.message}</code></pre>
-                </div>
-            );
+                </div>;
         }
         
         return <>{this.props.children}</>;
@@ -60,31 +58,47 @@ export const Modal = ({ isOpen, onClose, title, children, footer, className }: M
         if (isOpen) {
             lastActiveElement.current = document.activeElement as HTMLElement;
             
-            // Animate in using anime.js
-            if (typeof anime !== 'undefined') {
-                anime.remove([overlayRef.current, modalRef.current]); // Clear any previous animations
-                anime({
-                    targets: overlayRef.current,
-                    opacity: [0, 1],
-                    duration: 300,
-                    easing: 'easeOutQuad'
-                });
-                anime({
-                    targets: modalRef.current,
-                    opacity: [0, 1],
-                    translateY: [20, 0],
-                    duration: 300,
-                    easing: 'easeOutQuad',
-                    complete: () => {
-                        const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
-                            `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
-                        );
-                        if (focusableElements && focusableElements.length > 0) {
-                            (focusableElements[0] as HTMLElement).focus();
-                        }
+            // Animate in using anime.js, loading it on demand.
+            const animateIn = async () => {
+                try {
+                    await loadSdk('anime');
+                    if (typeof anime !== 'undefined' && overlayRef.current && modalRef.current) {
+                        anime.remove([overlayRef.current, modalRef.current]); // Clear any previous animations
+                        anime({
+                            targets: overlayRef.current,
+                            opacity: [0, 1],
+                            duration: 300,
+                            easing: 'easeOutQuad'
+                        });
+                        anime({
+                            targets: modalRef.current,
+                            opacity: [0, 1],
+                            translateY: [20, 0],
+                            duration: 300,
+                            easing: 'easeOutQuad',
+                            complete: () => {
+                                const focusableElements = modalRef.current?.querySelectorAll<HTMLElement>(
+                                    `button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])`
+                                );
+                                if (focusableElements && focusableElements.length > 0) {
+                                    (focusableElements[0] as HTMLElement).focus();
+                                }
+                            }
+                        });
+                    } else {
+                        // Fallback for when anime.js fails to load or refs are null
+                        if (overlayRef.current) overlayRef.current.style.opacity = '1';
+                        if (modalRef.current) modalRef.current.style.opacity = '1';
                     }
-                });
-            }
+                } catch (e) {
+                    console.error("Failed to load animation library, animations will be disabled.", e);
+                    // Fallback for when anime.js fails to load
+                    if (overlayRef.current) overlayRef.current.style.opacity = '1';
+                    if (modalRef.current) modalRef.current.style.opacity = '1';
+                }
+            };
+            
+            animateIn();
 
             const handleKeyDown = (event: KeyboardEvent) => {
                 if (event.key === 'Escape') {

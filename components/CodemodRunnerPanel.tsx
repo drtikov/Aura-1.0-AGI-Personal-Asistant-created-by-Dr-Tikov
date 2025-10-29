@@ -1,6 +1,6 @@
 // components/CodemodRunnerPanel.tsx
 import React, { useState } from 'react';
-import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
+import { useAuraDispatch, useLocalization } from '../context/AuraContext';
 
 export const CodemodRunnerPanel = () => {
     const { syscall, addToast } = useAuraDispatch();

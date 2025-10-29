@@ -1,6 +1,6 @@
 // components/SelfAwarenessPanel.tsx
 import React, { useMemo } from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const SelfAwarenessPanel = React.memo(() => {
     const { selfAwarenessState: state } = useCoreState();

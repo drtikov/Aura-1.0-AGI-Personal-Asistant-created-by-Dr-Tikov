@@ -1,7 +1,7 @@
 // components/IntuitionEnginePanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useEngineState, useLocalization } from '../context/AuraContext';
+import { useEngineState, useLocalization } from '../context/AuraContext.tsx';
 
 export const IntuitionEnginePanel = React.memo(() => {
     const { intuitionEngineState: state, intuitiveLeaps: leaps } = useEngineState();

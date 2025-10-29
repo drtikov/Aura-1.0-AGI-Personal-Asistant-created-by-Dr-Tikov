@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useLocalization } from '../context/AuraContext';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const WhatIfModal = ({ isOpen, onAnalyze, onClose, isProcessing }: { isOpen: boolean; onAnalyze: (scenario: string) => void; onClose: () => void; isProcessing: boolean; }) => {
     const [scenario, setScenario] = useState('');

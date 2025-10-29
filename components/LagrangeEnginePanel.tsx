@@ -1,7 +1,7 @@
 // components/LagrangeEnginePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
-import { clamp } from '../utils';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { clamp } from '../utils.ts';
 
 export const LagrangeEnginePanel = React.memo(() => {
     const { lagrangeEngineState } = useCoreState();

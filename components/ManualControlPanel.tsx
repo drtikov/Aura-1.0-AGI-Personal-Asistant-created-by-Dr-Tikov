@@ -1,6 +1,6 @@
 // components/ManualControlPanel.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext.tsx';
+import { useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
 
 export const ManualControlPanel = () => {

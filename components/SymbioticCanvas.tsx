@@ -2,6 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAuraDispatch, useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { SafeMarkdown } from './SafeMarkdown.tsx';
+import { loadSdk } from '../core/sdkLoader';
 
 declare const mermaid: any;
 
@@ -13,28 +14,6 @@ export const SymbioticCanvas = () => {
     const [isProcessing, setIsProcessing] = useState(false);
     const [selection, setSelection] = useState<string>('');
     const [lastContent, setLastContent] = useState(symbioticCanvasState.content);
-
-    useEffect(() => {
-        // Initialize mermaid
-        if (typeof mermaid !== 'undefined') {
-            mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-        }
-    }, []);
-
-    useEffect(() => {
-        // When content changes, re-render mermaid diagrams
-        if (editorRef.current && typeof mermaid !== 'undefined') {
-            const diagrams = Array.from(editorRef.current.querySelectorAll('.mermaid'));
-            
-            const unrenderedDiagrams = diagrams.filter(el => !(el as Element).hasAttribute('data-processed'));
-            
-            if (unrenderedDiagrams.length > 0) {
-                 mermaid.run({
-                    nodes: unrenderedDiagrams
-                });
-            }
-        }
-    }, [symbioticCanvasState.content]);
     
     // Sync state to the contentEditable div if it changes externally
     useEffect(() => {
@@ -43,6 +22,39 @@ export const SymbioticCanvas = () => {
             setLastContent(symbioticCanvasState.content);
         }
     }, [symbioticCanvasState.content, lastContent]);
+
+    useEffect(() => {
+        // When content changes, load mermaid if needed and re-render diagrams
+        if (editorRef.current) {
+            const diagrams = Array.from(editorRef.current.querySelectorAll('.mermaid'));
+            
+            // Check for diagrams that haven't been processed by mermaid yet
+            const unrenderedDiagrams = diagrams.filter(el => !(el as Element).hasAttribute('data-processed'));
+
+            if (unrenderedDiagrams.length > 0) {
+                const renderMermaid = async () => {
+                    try {
+                        await loadSdk('mermaid');
+                        // Check if mermaid is now available
+                        if (typeof mermaid !== 'undefined') {
+                            // Initialize only once if needed, using a global flag
+                            if (!(window as any).mermaidInitialized) {
+                                mermaid.initialize({ startOnLoad: false, theme: 'dark' });
+                                (window as any).mermaidInitialized = true;
+                            }
+                            // Run on the currently unrendered diagrams
+                            mermaid.run({
+                                nodes: unrenderedDiagrams
+                            });
+                        }
+                    } catch (error) {
+                        console.error("Failed to load or run Mermaid", error);
+                    }
+                };
+                renderMermaid();
+            }
+        }
+    }, [symbioticCanvasState.content]);
 
     const handleInput = (e: React.FormEvent<HTMLDivElement>) => {
         const newContent = e.currentTarget.innerHTML;

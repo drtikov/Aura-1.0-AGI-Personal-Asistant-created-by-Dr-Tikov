@@ -1,4 +1,5 @@
 // core/hal_numericjs.ts
+import { loadSdk } from './sdkLoader';
 
 // This tells TypeScript that the 'numeric' object will be available globally from the CDN script.
 declare const numeric: any;
@@ -11,6 +12,7 @@ export const NumericJS = {
    * @returns A promise resolving to the resulting matrix.
    */
   matrixMultiply: async (matrixA: number[][], matrixB: number[][]): Promise<number[][]> => {
+    await loadSdk('numericjs');
     if (typeof numeric === 'undefined') {
       throw new Error("numeric.js library is not loaded.");
     }

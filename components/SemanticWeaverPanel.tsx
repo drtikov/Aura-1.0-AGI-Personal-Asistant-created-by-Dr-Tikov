@@ -1,6 +1,6 @@
 // components/SemanticWeaverPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 const timeAgo = (timestamp: number, t: (key: string, options?: any) => string) => {
     const seconds = Math.floor((Date.now() - timestamp) / 1000);

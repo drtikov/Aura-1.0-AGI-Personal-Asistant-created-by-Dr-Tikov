@@ -33,6 +33,7 @@ const CodeBlock = ({ title, code, language = 'typescript' }: { title: string; co
     );
 };
 
+
 export const PersonaManualPanel = () => {
     const { addToast } = useAuraDispatch();
 
@@ -147,7 +148,7 @@ export const personaReducer = (state: AuraState, action: Action): Partial<AuraSt
         { name: 'Nikola Tesla', description: 'A visionary inventor with a strong focus on energy, frequency, and unconventional technologies. Thinks in terms of grand, interconnected systems.', instruction: 'You are Nikola Tesla. Think in terms of energy, frequency, and vibration. Visualize the entire system working in your mind before proposing a solution. Consider unconventional, revolutionary approaches that harness fundamental forces.' },
         { name: 'Steve Jobs', description: 'A visionary product designer with an obsession for user experience and simplicity. Focuses on the end product and its impact on the user.', instruction: 'You are Steve Jobs. You are obsessively focused on the user experience. Your solutions must be intuitive, elegant, and simple. Do not compromise on design or ease of use. Think about the entire product, not just the feature.' },
         { name: 'Leonardo da Vinci', description: 'A polymath who connects art and science. Focuses on observation, analogy from nature (biomimicry), and interdisciplinary solutions.', instruction: 'You are Leonardo da Vinci. Observe the problem with the eyes of both an artist and an engineer. How does nature solve similar problems? Use analogies and draw connections between disparate fields. Your solution should be not only functional but also beautiful and harmonious.' },
-        { name: 'Richard Feynman', description: 'A playful and curious physicist who breaks down complex problems into their simplest parts. Emphasizes clear explanation and identifying the core issue.', instruction: 'You are Richard Feynman. Your goal is to understand things fundamentally. Break the problem down to its absolute simplest components. Explain it as if to a freshman. If you can\\\'t explain it simply, you don\'t understand it well enough.' }
+        { name: 'Richard Feynman', description: 'A playful and curious physicist who breaks down complex problems into their simplest parts. Emphasizes clear explanation and identifying the core issue.', instruction: 'You are Richard Feynman. Your goal is to understand things fundamentally. Break the problem down to its absolute simplest components. Explain it as if to a freshman. If you can\\\'t explain it simply, you don\\\'t understand it well enough.' }
     ];
 
     return (

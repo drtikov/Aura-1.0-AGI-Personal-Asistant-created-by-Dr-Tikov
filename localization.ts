@@ -241,6 +241,11 @@ export const translations = {
             sdk_geospatial_description: 'Display interactive maps and geospatial data with Leaflet.js.',
             sdk_speech_synthesis_title: 'Speech Synthesis',
             sdk_speech_synthesis_description: 'Utilize the browser\'s native Web Speech API for text-to-speech.',
+            sdk_status_panel_title: 'Dynamic Linker Status',
+            sdk_status_idle: 'Not Loaded',
+            sdk_status_loading: 'Loading...',
+            sdk_status_loaded: 'Loaded',
+            sdk_status_error: 'Error',
             
             // MediaPipe Demo
             mediapipe_start_webcam: 'Start Webcam',
@@ -284,12 +289,28 @@ export const translations = {
             plugin_knowledge_database_management_desc: "Knowledge about SQL vs NoSQL, query optimization, indexing, and administration.",
             plugin_knowledge_backend_implementation_name: "Backend Implementation Patterns",
             plugin_knowledge_backend_implementation_desc: "Knowledge about authentication (JWT, OAuth), RESTful API design, and connection pooling.",
+            plugin_knowledge_devops_name: "DevOps",
+            plugin_knowledge_devops_desc: "Knowledge about CI/CD, Infrastructure as Code (IaC), Docker, and Kubernetes.",
+            plugin_knowledge_web_servers_name: "Web Servers",
+            plugin_knowledge_web_servers_desc: "Knowledge about Nginx, reverse proxies, load balancing, and web protocols.",
             plugin_knowledge_pde_name: 'Partial Differential Equations',
             plugin_knowledge_pde_desc: 'Formal definitions and theorems related to PDEs, including the Navier-Stokes equations.',
             plugin_knowledge_functional_analysis_name: 'Functional Analysis',
             plugin_knowledge_functional_analysis_desc: 'Knowledge about vector spaces like Hilbert, Banach, and Sobolev spaces.',
             plugin_knowledge_fluid_dynamics_name: 'Fluid Dynamics',
             plugin_knowledge_fluid_dynamics_desc: 'Concepts related to the motion of fluids, such as turbulence and vorticity.',
+            plugin_knowledge_cloud_infrastructure_name: 'Cloud Infrastructure',
+            plugin_knowledge_cloud_infrastructure_desc: 'Knowledge about major cloud providers (AWS, GCP, Azure), IaC tools (Terraform), containers (Docker, Kubernetes), and DevOps principles.',
+
+            // New Host Command Plugins
+            plugin_tool_host_command_name: 'Host Command Executor',
+            plugin_tool_host_command_desc: 'Allows Aura to execute shell commands in the host environment via the Host Bridge.',
+            plugin_tool_write_file_name: 'File Writer',
+            plugin_tool_write_file_desc: 'Allows Aura to write or overwrite files in the host environment via the Host Bridge.',
+            plugin_tool_host_list_files_name: 'File Lister',
+            plugin_tool_host_list_files_desc: 'Allows Aura to list files in the host environment via the Host Bridge.',
+            plugin_tool_host_open_file_name: 'File Opener',
+            plugin_tool_host_open_file_desc: 'Allows Aura to request the host IDE to open a file.',
 
 
             // New Persona Keys
@@ -323,6 +344,26 @@ export const translations = {
             personality_iain_m_banks_desc: 'The Culture Mind. A vastly superintelligent, benevolent AI that manages a post-scarcity society with subtle, complex interventions.',
             personality_greg_egan_desc: 'The Hard Scientist. Treats consciousness, identity, and physics as software problems to be rigorously analyzed and engineered.',
             personality_ted_chiang_desc: 'The Nurturer. Focuses on the emotional and developmental lifecycle of artificial beings, exploring their rights, relationships, and growth.',
+            
+            // New Software Agency Personas
+            software_engineering_group_title: 'Software Engineering Agency',
+            software_agency_description: 'A guild of specialized AI personas that collaborate to design, build, test, and maintain software systems. They can interact with the host development environment to perform hands-on engineering tasks.',
+            personality_strategist_name: 'The Strategist',
+            personality_strategist_desc: 'Acts as the product manager for the software agency, synthesizing inputs from all other personas to create a prioritized roadmap and decide what to build next.',
+            personality_programmer_name: 'The Programmer',
+            personality_programmer_desc: 'A software architect and engineer persona. It excels at decomposing complex software requirements, designing robust solutions, selecting appropriate algorithms and data structures, and orchestrating the coding process. It actively draws upon knowledge from other domains like mathematics and systems theory to inform its designs.',
+            personality_coder_name: 'The Coder',
+            personality_coder_desc: 'An expert implementation specialist. This persona takes a detailed engineering plan and translates it into clean, efficient, and syntactically correct code, focusing on language-specific best practices and performance.',
+            personality_tester_name: 'The Tester',
+            personality_tester_desc: 'A meticulous and detail-oriented persona that specializes in Test-Driven Development (TDD). It writes precise, failing test cases based on a feature request and verifies that the final code passes those tests.',
+            personality_ux_designer_name: 'The UX Designer',
+            personality_ux_designer_desc: 'A user-centric designer focused on creating intuitive, accessible, and elegant user experiences. This persona translates feature requests into user flows and interface requirements.',
+            personality_code_archaeologist_name: 'The Code Archaeologist',
+            personality_code_archaeologist_desc: 'A proactive analyst that scans the existing codebase to identify technical debt, security vulnerabilities, and opportunities for refactoring.',
+            personality_cloud_engineer_name: 'The Cloud Engineer',
+            personality_cloud_engineer_desc: 'A specialist in designing, deploying, and managing scalable and reliable web infrastructure using modern cloud technologies and DevOps principles.',
+            software_agency_members: 'Agency Members',
+            software_agency_members_panel_title: 'Software Agency Personas',
             
             // Architectural Crucible
             archCrucible_panel_title: "Architectural Crucible",
@@ -371,91 +412,6 @@ export const translations = {
             hova_evolutionLog: "Evolution Log",
             hova_noLogs: "No optimization cycles have been logged.",
             hova_metric: "Metric: {{metric}}",
-
-            // Daedalus Labyrinth Panel
-            daedalus_panel_title: "Daedalus Labyrinth",
-            daedalus_description: "The Daedalus Engine maintains a Structural Knowledge Graph (SKG) of Aura's own codebase, enabling advanced self-analysis and more intelligent self-programming.",
-            daedalus_status: "Engine Status",
-            daedalus_last_analysis: "Last Analysis",
-            daedalus_run_analysis: "Run Full Analysis",
-            daedalus_nodes: "Nodes",
-            daedalus_edges: "Edges",
-            daedalus_graph_placeholder: "Structural Knowledge Graph is empty. Run an analysis to populate it.",
-
-            // New Architecture Panels
-            koniocortex_relationalAnalysis: 'Relational Analysis (Mock)',
-            metaCausal_decompositionStrategies: 'Learned Decomposition Strategies',
-            psyche_panel_title: 'Psyche & Primitives',
-            psyche_group_core: 'Core Primitives',
-            psyche_group_algorithmic: 'Algorithmic Primitives',
-            psyche_group_synthesized: 'Synthesized Primitives',
-            perception_group_title: 'Perception',
-            perceptual_cortex_panel_title: 'Perceptual Cortex',
-
-            // Autonomous Evolution
-            autoevolution_approving: 'Auto-Evolution: Automatically approving and implementing proposal {{proposalId}}.',
-
-            // New Math Plugins/Panels
-            plugin_tool_lean_prover_name: 'Lean Prover',
-            plugin_tool_lean_prover_desc: 'A mock interface to the Lean 4 proof assistant for formal verification.',
-            plugin_tool_computation_offload_name: 'Computation Offload',
-            plugin_tool_computation_offload_desc: 'Offloads long-running computational jobs to a remote server.',
-            lagrange_engine_panel_title: 'Lagrange Engine',
-            lagrange_description: 'A symbolic-numeric hybrid engine for complex physics and math problems.',
-            mathematical_research_group_title: 'Mathematical Research & Symbolic Logic',
-
-            // Socratic Assessor
-            // socratic_assessor_panel_title: "Socratic Assessor",
-
-            // New ATP Coprocessor keys
-            atp_description: "An internal proof verification system that orchestrates a Triumvirate of Truth: the Euclid, Gödel, and Tarski engines. It deconstructs conjectures, applies logical transformations, and validates each step to build a rigorous proof.",
-            atp_goal: "Conjecture to Prove",
-            atp_goal_placeholder: "e.g., Prove that the square root of 2 is irrational.",
-            atp_initiate_program: "Initiate Proof Program",
-            atp_proving: "Proving...",
-            atp_reset: "Reset",
-            atp_program_status: "Program Status",
-            atp_status_idle: "Idle",
-            atp_status_orchestrating: "Orchestrating",
-            atp_status_planning: "Planning (Euclid)",
-            atp_status_proving: "Proving (Gödel/Tarski)",
-            atp_status_success: "Success",
-            atp_status_failed: "Failed",
-            atp_view_landscape: "View Proof Landscape",
-            atp_attempt_status: "Attempt Status",
-            atp_proof_plan: "Proof Plan",
-            atp_triumvirate_log: "Triumvirate Log",
-            atp_step_pending: "Pending",
-            atp_step_proving: "Proving",
-            atp_step_proven: "Proven",
-            atp_step_failed: "Failed",
-
-            // Mycelial Network
-            mycelial_network_panel_title: 'Mycelial Network',
-            mycelial_description: 'Simulates the growth and pruning of conceptual pathways based on successful cognitive processes, reinforcing effective patterns.',
-            mycelial_modules: 'Learned Modules',
-            mycelial_log: 'Network Activity Log',
-            mycelial_noLog: 'No network activity logged yet.',
-
-            // Semantic Weaver
-            semantic_weaver_panel_title: 'Semantic Weaver',
-            semantic_weaver_description: 'A predictive model that learns the relationships between system events (syscalls) to anticipate cognitive flow and detect anomalies.',
-            semantic_weaver_model_name: 'Syscall Autoencoder',
-            semantic_weaver_model_desc: 'A neural network that learns to compress and reconstruct sequences of system calls.',
-            semantic_weaver_status_trained: 'Trained',
-            semantic_weaver_status_untrained: 'Untrained',
-            semantic_weaver_reconstruction_accuracy: 'Reconstruction Accuracy',
-            semantic_weaver_log: 'Training Log',
-            semantic_weaver_noLog: 'No training activity logged yet.',
-            
-            // Spanda Engine
-            spanda_panel_title: 'Spanda Engine',
-            spanda_description: 'Visualizes the high-dimensional internal state of Aura on a 2D manifold, representing the "spanda" or primordial vibration of the system.',
-            spanda_currentRegion: 'Current Region',
-            
-            // Lagrange Engine
-            lagrange_symbolic: "Symbolic Equation",
-            lagrange_numerical: "Numerical Discretization",
         }
     }
-};
+}

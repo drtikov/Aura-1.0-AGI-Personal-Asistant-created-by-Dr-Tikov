@@ -11,7 +11,7 @@ import {
     LogsStateContext,
     SystemStateContext,
     LocalizationContext
-} from './AuraContext';
+} from './AuraContext.tsx';
 import { AuraState } from '../types.ts';
 
 export const AuraProvider = ({ children }: { children?: ReactNode }) => {
@@ -84,6 +84,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         ockhamEngineState: state.ockhamEngineState,
         socraticAssessorState: state.socraticAssessorState,
         axiomaticGenesisForgeState: state.axiomaticGenesisForgeState,
+        cognitiveStrategy: state.cognitiveStrategy,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -100,7 +101,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.liveSessionState, state.proactiveUI, state.strategicCoreState, state.mycelialState, state.semanticWeaverState, state.modalRequest, state.uiCommandRequest,
         state.prometheusState, state.erisEngineState, state.collaborativeSessionState, state.symbioticCanvasState, state.logosState,
         state.lagrangeEngineState, state.artificialScientistState, state.bennettEngineState, state.ockhamEngineState, state.socraticAssessorState,
-        state.axiomaticGenesisForgeState,
+        state.axiomaticGenesisForgeState, state.cognitiveStrategy,
     ]);
 
     const memoryStateValue = useMemo(() => ({

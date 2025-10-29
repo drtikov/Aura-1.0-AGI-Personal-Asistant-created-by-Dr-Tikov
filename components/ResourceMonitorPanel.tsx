@@ -1,7 +1,7 @@
 // components/ResourceMonitorPanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks to resolve module not found error.
-import { useSystemState, useLocalization } from '../context/AuraContext';
+import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
 
 export const ResourceMonitorPanel = React.memo(() => {
     const { resourceMonitor: monitor } = useSystemState();

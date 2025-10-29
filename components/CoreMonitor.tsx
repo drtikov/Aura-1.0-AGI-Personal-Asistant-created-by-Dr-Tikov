@@ -5,7 +5,7 @@ import { GunaState } from '../types.ts';
 import { Sparkline } from './Sparkline.tsx';
 import { Gauge } from './Gauge.tsx';
 import { useGunaAnalysis } from '../hooks/useGunaAnalysis.ts';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { SystemVitals } from './SystemVitals.tsx';
 
 export const CoreMonitor = React.memo(() => {

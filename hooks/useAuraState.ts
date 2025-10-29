@@ -62,8 +62,8 @@ export const useAuraState = () => {
                             history: [...loadedState.history, systemMessage]
                         };
             
-                        // Persist this state *before* updating the UI to prevent race conditions
-                        await HAL.Memristor.saveState(stateToImport);
+                        // The redundant save operation that caused the stall has been removed.
+                        // The main useEffect that saves on [state] change will now handle persisting the migrated state.
                         
                         // Now dispatch the fully prepared and saved state to the UI
                         dispatch({ type: 'IMPORT_STATE', payload: stateToImport });

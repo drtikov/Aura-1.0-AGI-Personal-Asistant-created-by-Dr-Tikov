@@ -1,6 +1,6 @@
 // components/Sparkline.tsx
 import React, { useState, useRef } from 'react';
-import { useLocalization } from '../context/AuraContext';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const Sparkline = ({ data, strokeColor, width = 100, height = 30, className = "" }: { data: number[], strokeColor: string, width?: number, height?: number, className?: string }) => {
     const [tooltip, setTooltip] = useState<{ x: number; y: number; value: string; visible: boolean } | null>(null);

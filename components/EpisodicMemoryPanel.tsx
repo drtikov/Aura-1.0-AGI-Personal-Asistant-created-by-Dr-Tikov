@@ -1,8 +1,8 @@
 // components/EpisodicMemoryPanel.tsx
 import React from 'react';
-import { useMemoryState, useLocalization } from '../context/AuraContext';
+import { useMemoryState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Added '.ts' extension to satisfy module resolution.
-import { Episode } from '../types';
+import { Episode } from '../types.ts';
 
 export const EpisodicMemoryPanel = React.memo(() => {
     const { episodicMemoryState } = useMemoryState();

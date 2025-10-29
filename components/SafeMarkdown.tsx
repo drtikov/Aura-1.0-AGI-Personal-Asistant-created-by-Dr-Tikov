@@ -1,34 +1,49 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
+import { loadSdk } from '../core/sdkLoader';
 
 declare const katex: any;
 declare const marked: any;
 
-// A custom renderer for marked to add specific classes or behaviors
-const renderer = {
-  // Example: Add a class to blockquotes
-  blockquote(quote: string) {
-    return `<blockquote class="markdown-blockquote">${quote}</blockquote>`;
-  },
-  // Example: Add a class to code blocks for syntax highlighting later
-  code(code: string, language: string) {
-    const validLanguage = language && /^[a-zA-Z0-9]+$/.test(language) ? language : 'plaintext';
-    return `<pre><code class="language-${validLanguage}">${code}</code></pre>`;
-  }
-};
-
-// Set up marked with the custom renderer
-if (typeof marked !== 'undefined') {
-  marked.use({ renderer });
-}
-
 export const SafeMarkdown = React.memo(({ text }: { text: string }) => {
+    const [isReady, setIsReady] = useState(false);
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadDependencies = async () => {
+            try {
+                await Promise.all([
+                    loadSdk('marked'),
+                    loadSdk('katex_css'),
+                    loadSdk('katex')
+                ]);
+                if (isMounted) {
+                    const renderer = {
+                        blockquote(quote: string) {
+                            return `<blockquote class="markdown-blockquote">${quote}</blockquote>`;
+                        },
+                        code(code: string, language: string) {
+                            const validLanguage = language && /^[a-zA-Z0-9]+$/.test(language) ? language : 'plaintext';
+                            return `<pre><code class="language-${validLanguage}">${code}</code></pre>`;
+                        }
+                    };
+                    if (typeof marked !== 'undefined') {
+                        marked.use({ renderer });
+                    }
+                    setIsReady(true);
+                }
+            } catch (error) {
+                console.error("Failed to load markdown/katex libraries", error);
+            }
+        };
+        loadDependencies();
+        return () => { isMounted = false; };
+    }, []);
+
     const elements = useMemo(() => {
-        if (typeof marked === 'undefined' || typeof katex === 'undefined') {
-            // Fallback if libraries aren't loaded
+        if (!isReady || typeof marked === 'undefined' || typeof katex === 'undefined') {
             return <pre><code>{text}</code></pre>;
         }
         
-        // Regex to find both inline ($...$) and display ($$...$$) LaTeX blocks
         const mathRegex = /(\$\$[\s\S]*?\$\$|\$[\s\S]*?\$)/g;
         const parts = text.split(mathRegex);
 
@@ -51,16 +66,18 @@ export const SafeMarkdown = React.memo(({ text }: { text: string }) => {
                      return <code key={index}>{part}</code>;
                  }
             }
-            // If it's not a math part, process it for markdown using marked.js
             try {
                 const html = marked.parse(part, { gfm: true, breaks: true });
                 return <span key={index} dangerouslySetInnerHTML={{ __html: html }} />;
             } catch(e) {
-                // In case of a marked error, render as plain text
                 return <span key={index}>{part}</span>;
             }
         });
-    }, [text]);
+    }, [text, isReady]);
+
+    if (!isReady) {
+        return <span></span>; // Render nothing while loading to avoid layout shifts
+    }
 
     return <div className="content-renderer">{elements}</div>;
 });

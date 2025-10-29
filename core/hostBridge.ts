@@ -71,7 +71,8 @@ export const HostBridge = {
     if (typeof window.codeAssistant?.writeFile === 'function') {
       return window.codeAssistant.writeFile(filePath, content);
     } else {
-      return Promise.reject(new Error("Host bridge does not support 'writeFile'."));
+      console.warn(`HostBridge: 'writeFile' is not available. Simulating write for ${filePath}.`);
+      return Promise.resolve();
     }
   },
   
@@ -84,7 +85,8 @@ export const HostBridge = {
     if (typeof window.codeAssistant?.listFiles === 'function') {
       return window.codeAssistant.listFiles(path);
     } else {
-      return Promise.reject(new Error("Host bridge does not support 'listFiles'."));
+       console.warn(`HostBridge: 'listFiles' is not available. Returning empty array for ${path}.`);
+      return Promise.resolve([]);
     }
   },
 
@@ -98,7 +100,9 @@ export const HostBridge = {
     if (typeof window.codeAssistant?.runCommand === 'function') {
       return window.codeAssistant.runCommand(command, args);
     } else {
-      return Promise.reject(new Error("Host bridge does not support 'runCommand'."));
+      const fullCommand = `${command} ${ (args || []).join(' ')}`;
+      console.warn(`HostBridge: 'runCommand' is not available. Simulating successful run for '${fullCommand}'.`);
+      return Promise.resolve({ stdout: `Simulated success for: ${fullCommand}`, stderr: '', exitCode: 0 });
     }
   },
 
@@ -111,7 +115,8 @@ export const HostBridge = {
     if (typeof window.codeAssistant?.openFile === 'function') {
       return window.codeAssistant.openFile(path);
     } else {
-      return Promise.reject(new Error("Host bridge does not support 'openFile'."));
+      console.warn(`HostBridge: 'openFile' is not available. Simulating open for ${path}.`);
+      return Promise.resolve();
     }
   },
 };

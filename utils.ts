@@ -1,6 +1,33 @@
 // utils.ts
 import { MDNAVector } from './types.ts';
 import { GenerateContentResponse } from "@google/genai";
+import type { GoogleGenAI } from '@google/genai';
+
+let aiInstance: GoogleGenAI | null = null;
+
+/**
+ * Dynamically loads the GoogleGenAI module and returns a singleton instance.
+ * @returns A promise that resolves to the GoogleGenAI instance.
+ */
+export const getAI = async (): Promise<GoogleGenAI> => {
+    if (aiInstance) {
+        return aiInstance;
+    }
+
+    const { GoogleGenAI } = await import('@google/genai');
+
+    if (process.env.API_KEY) {
+        try {
+            aiInstance = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            return aiInstance;
+        } catch (error) {
+            console.error("Failed to initialize GoogleGenAI:", error);
+            throw new Error("Failed to initialize Gemini API. Check API Key.");
+        }
+    }
+    console.error("API_KEY environment variable not set.");
+    throw new Error("API_KEY environment variable not set.");
+};
 
 declare const dayjs: any;
 

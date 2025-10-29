@@ -1,6 +1,6 @@
 // components/AxiomaticGenesisForgePanel.tsx
 import React from 'react';
-import { useAuraDispatch, useCoreState, useLocalization } from '../context/AuraContext';
+import { useAuraDispatch, useCoreState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Imported missing types Axiom and ProposedAxiom
 import { Axiom, ProposedAxiom } from '../types';
 import { SafeMarkdown } from './SafeMarkdown';

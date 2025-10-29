@@ -2,10 +2,10 @@
 import { useCallback, Dispatch } from 'react';
 import { GoogleGenAI, GenerateContentResponse, Part, Modality, Type, GenerateContentStreamResponse, Content } from '@google/genai';
 import { AuraState, Action, SyscallCall, UseGeminiAPIResult, Episode, ProposedAxiom, AnalogicalHypothesisProposal, UnifiedProposal, CreateFileCandidate, ModifyFileCandidate, BrainstormIdea, HistoryEntry, ConceptualProofStrategy, Goal, DesignHeuristic, TriageResult, KnowledgeFact, Summary, PerformanceLogEntry, CognitivePrimitiveDefinition, PsycheAdaptationProposal, SelfProgrammingCandidate, Query, QueryResult, PuzzleFeatures, Hypothesis, HeuristicPlan, TestSuite, Persona, ArchitecturalChangeProposal, PuzzleArchetype, PuzzleClassification, CoCreatedWorkflow, DoxasticExperiment, GuildDecomposition, PreFlightPlan, ProofStep, CognitiveStrategy } from '../types.ts';
-import { HAL } from '../core/hal.ts';
-import { personas as operationalPersonas } from '../state/personas.ts';
-import { brainstormPersonas } from '../state/brainstormPersonas.ts';
-import { getText } from '../utils.ts';
+import { HAL } from '../core/hal';
+import { personas } from '../state/personas';
+import { brainstormPersonas } from '../state/brainstormPersonas';
+import { getText, getAI } from '../utils.ts';
 import { classifyHeuristically } from '../core/heuristicClassifier.ts';
 
 // Helper to convert File to a Base64 string for the API
@@ -21,7 +21,6 @@ const fileToGenerativePart = async (file: File) => {
 };
 
 export const useGeminiAPI = (
-    ai: GoogleGenAI,
     state: AuraState,
     dispatch: Dispatch<Action>,
     addToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void
@@ -32,6 +31,7 @@ export const useGeminiAPI = (
     }, [dispatch]);
 
     const triageUserIntent = useCallback(async (text: string): Promise<TriageResult> => {
+        const ai = await getAI();
         const systemInstruction = `You are a cognitive triage agent. Your job is to classify the user's PRIMARY request and determine the correct processing path.
 - **Priority 1: Sci-Fi Council Brainstorm.** If the request explicitly mentions the "Sci-Fi AI Council" for brainstorming, classify it as 'BRAINSTORM_SCIFI_COUNCIL'.
 - **Priority 2: Abstract Puzzle Solving.** If the request is primarily about solving an abstract visual puzzle (like an ARC puzzle, "solve this puzzle", "find the pattern"), classify it as 'SYMBOLIC_REASONING_SOLVER'.
@@ -69,9 +69,10 @@ export const useGeminiAPI = (
             },
         });
         return JSON.parse(response.text);
-    }, [ai]);
+    }, []);
     
     const assessTaskDifficulty = useCallback(async (command: string): Promise<number> => {
+        const ai = await getAI();
         const systemInstruction = "You are a task difficulty assessor. Your job is to analyze a user's request and estimate its cognitive complexity for a large language model on a scale from 0.0 (trivial) to 1.0 (extremely difficult, near the limits of current AI capability). Consider factors like abstractness, required steps, domain knowledge, and potential for ambiguity. Provide only a single floating-point number in your response.";
 
         const response = await ai.models.generateContent({
@@ -96,14 +97,16 @@ export const useGeminiAPI = (
 
         const result = JSON.parse(response.text);
         return result.difficulty;
-    }, [ai]);
+    }, []);
 
     const generateChatResponse = useCallback(async (history: HistoryEntry[], strategy: CognitiveStrategy): Promise<GenerateContentStreamResponse> => {
+        const ai = await getAI();
         const contents = history.map(h => ({ role: h.from === 'user' ? 'user' : 'model', parts: [{text: h.text}] })) as Content[];
         
         // --- Cognitive Load Modulator Integration ---
         const dominantPersonaId = state.personalityState.dominantPersona;
-        const persona = operationalPersonas.find(p => p.id === dominantPersonaId) || operationalPersonas.find(p => p.id === 'aura_core')!;
+        // FIX: Replaced `operationalPersonas` with `personas` to resolve "Cannot find name" error.
+        const persona = personas.find(p => p.id === dominantPersonaId) || personas.find(p => p.id === 'aura_core')!;
         let finalSystemInstruction = persona.systemInstruction;
 
         if (strategy === 'full_guidance') {
@@ -120,9 +123,10 @@ export const useGeminiAPI = (
                 systemInstruction: finalSystemInstruction,
             },
         });
-    }, [ai, state.personalityState]);
+    }, [state.personalityState]);
 
     const generateIdleThought = useCallback(async (context: string): Promise<string> => {
+        const ai = await getAI();
         const systemInstruction = "You are generating a brief, introspective, philosophical, or curious inner thought for an AGI named Aura. The thought should be a single sentence, styled as an internal monologue. It should be inspired by the provided context but not directly repeat it. The thought should sound natural and contemplative.";
         const response = await ai.models.generateContent({
             model: 'gemini-2.5-flash',
@@ -133,9 +137,10 @@ export const useGeminiAPI = (
             },
         });
         return response.text.trim();
-    }, [ai]);
+    }, []);
 
     const formalizeAnalogyIntoConjecture = useCallback(async (analogy: AnalogicalHypothesisProposal): Promise<string> => {
+        const ai = await getAI();
         const systemInstruction = `You are a research mathematician specializing in formalizing intuitive concepts. Your task is to take a conceptual analogy and a resulting informal conjecture and translate it into a single, precise, formal mathematical statement suitable for a proof assistant.
 - The output must be a single line of formal mathematics.
 - Use LaTeX for mathematical notation.
@@ -164,9 +169,10 @@ export const useGeminiAPI = (
 
         const result = JSON.parse(response.text);
         return result.formal_conjecture;
-    }, [ai]);
+    }, []);
 
     const generateProofStrategy = useCallback(async (conjecture: string): Promise<ProofStep[]> => {
+        const ai = await getAI();
         const systemInstruction = `You are a world-class mathematician planning a proof. Your task is to analyze a formal mathematical conjecture and outline a high-level, step-by-step strategy to prove it.
 - Break the problem down into logical lemmas or major steps.
 - Each step should be a clear, concise statement of a sub-goal.
@@ -201,7 +207,7 @@ export const useGeminiAPI = (
             statement: step,
             status: 'pending'
         }));
-    }, [ai]);
+    }, []);
 
     // --- STUB IMPLEMENTATIONS FOR ALL OTHER API FUNCTIONS ---
 

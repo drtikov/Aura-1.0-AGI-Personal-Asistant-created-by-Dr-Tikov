@@ -1,6 +1,6 @@
 // components/AtmanProjectorPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { Gauge } from './Gauge';
 
 export const AtmanProjectorPanel = React.memo(() => {

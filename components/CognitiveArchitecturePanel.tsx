@@ -1,6 +1,6 @@
 // components/CognitiveArchitecturePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 // FIX: Added '.ts' extension to satisfy module resolution.
 import { CognitiveModule, SynthesizedSkill, Coprocessor, CoprocessorArchitecture } from '../types.ts';
 

@@ -1,6 +1,6 @@
 // components/ReflectiveInsightEnginePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const ReflectiveInsightEnginePanel = React.memo(() => {
     const { rieState: state } = useCoreState();

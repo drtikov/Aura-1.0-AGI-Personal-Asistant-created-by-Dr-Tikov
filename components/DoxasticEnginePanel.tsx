@@ -1,6 +1,6 @@
 // components/DoxasticEnginePanel.tsx
 import React, { useState } from 'react';
-import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 import { DoxasticHypothesis, DoxasticExperiment } from '../types.ts';
 import { Accordion } from './Accordion.tsx';
 

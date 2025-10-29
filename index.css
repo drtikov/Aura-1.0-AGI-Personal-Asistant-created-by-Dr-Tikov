@@ -469,6 +469,37 @@
     100% { border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
 }
 
+/* --- SDK Status Panel --- */
+.sdk-status-panel {
+    font-size: 0.8rem;
+}
+.sdk-list {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem 1rem;
+    max-height: 400px;
+    overflow-y: auto;
+}
+.sdk-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid var(--border-color);
+}
+.sdk-name {
+    color: var(--text-color);
+}
+.sdk-status {
+    font-weight: bold;
+    text-transform: capitalize;
+}
+.sdk-status.status-idle { color: var(--text-muted); }
+.sdk-status.status-loading { color: var(--warning-color); }
+.sdk-status.status-loaded { color: var(--success-color); }
+.sdk-status.status-error { color: var(--failure-color); }
+
+
 /* --- Axiomatic Genesis Forge Panel --- */
 .genesis-forge-controls {
     display: flex;

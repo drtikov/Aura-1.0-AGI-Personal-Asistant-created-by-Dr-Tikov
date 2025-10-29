@@ -8,27 +8,10 @@ import { useAutonomousSystem } from './useAutonomousSystem';
 import { useToolExecution } from './useToolExecution';
 import { HAL } from '../core/hal';
 import { SyscallCall, HistoryEntry, ConceptualProofStrategy, Hypothesis, HeuristicPlan, DesignHeuristic, Persona, CognitiveStrategy, KernelTaskType } from '../types';
-import { GoogleGenAI } from '@google/genai';
 import { useDomObserver } from './useDomObserver';
 import { useLiveSession } from './useLiveSession';
 import { useTranslation } from 'react-i18next';
 import { personas } from '../state/personas';
-
-let ai: GoogleGenAI | null = null;
-const getAI = (): GoogleGenAI => {
-    if (ai) return ai;
-    if (process.env.API_KEY) {
-        try {
-            ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
-            return ai;
-        } catch (error) {
-            console.error("Failed to initialize GoogleGenAI:", error);
-            throw new Error("Failed to initialize Gemini API. Check API Key.");
-        }
-    }
-    console.error("API_KEY environment variable not set.");
-    throw new Error("API_KEY environment variable not set.");
-};
 
 export const useAura = () => {
     const { state, dispatch, memoryStatus, clearMemoryAndState } = useAuraState();
@@ -42,13 +25,11 @@ export const useAura = () => {
         }
     }, [state.language, i18n]);
 
-    const aiInstance = useMemo(() => getAI(), []);
-
     const syscall = (call: SyscallCall, args: any) => {
         dispatch({ type: 'SYSCALL', payload: { call, args } });
     };
 
-    const geminiAPI = useGeminiAPI(aiInstance, state, dispatch, addToast);
+    const geminiAPI = useGeminiAPI(state, dispatch, addToast);
     
     const uiHandlers = useUIHandlers(state, dispatch, syscall, addToast, t, clearMemoryAndState, geminiAPI);
 
@@ -73,7 +54,7 @@ export const useAura = () => {
         state,
     });
 
-    const liveSession = useLiveSession(aiInstance, state, dispatch, addToast);
+    const liveSession = useLiveSession(state, dispatch, addToast);
 
     const processCommand = async (command: string, file?: File) => {
         syscall('PROCESS_USER_INPUT_INTO_PERCEPT', {

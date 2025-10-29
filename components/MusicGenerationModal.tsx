@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 import { useLocalization, useAuraDispatch, useCoreState, useMemoryState } from '../context/AuraContext.tsx';
-import { Accordion } from './Accordion';
+import { Accordion } from './Accordion.tsx';
 
 type GenerationMode = 'lyrics' | 'chords' | 'soundscape' | 'structure';
 

@@ -1,6 +1,6 @@
 // components/StrategicPlannerPanel.tsx
 import React from 'react';
-import { usePlanningState, useLocalization, useAuraDispatch } from '../context/AuraContext';
+import { usePlanningState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 // FIX: Imported Goal from types.ts
 import { Goal } from '../types.ts';
 import { useModal } from '../context/ModalContext.tsx';

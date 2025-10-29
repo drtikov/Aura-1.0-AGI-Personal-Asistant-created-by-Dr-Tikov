@@ -2,12 +2,11 @@
 import React, { useState, useCallback, useRef, useEffect } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob, GenerateContentResponse, Part } from '@google/genai';
 import { AuraState, Action, SyscallCall } from '../types';
-import { encode, decode, decodeAudioData } from '../utils';
+import { encode, decode, decodeAudioData, getAI } from '../utils';
 
 const FRAME_RATE = 1; // Send 1 video frame per second
 
 export const useLiveSession = (
-    ai: GoogleGenAI,
     state: AuraState,
     dispatch: React.Dispatch<Action>,
     addToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void
@@ -76,6 +75,7 @@ export const useLiveSession = (
         syscall('LIVE/SET_STATUS', { status: 'connecting' });
         
         try {
+            const ai = await getAI();
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: true });
             mediaStream.current = stream;
             videoElement.srcObject = stream;
@@ -193,7 +193,7 @@ export const useLiveSession = (
             addToast('Failed to get microphone/camera access.', 'error');
             syscall('LIVE/SET_STATUS', { status: 'error' });
         }
-    }, [ai, syscall, addToast, stopSession]);
+    }, [syscall, addToast, stopSession]);
     
     // Cleanup on unmount
     useEffect(() => {

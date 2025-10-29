@@ -2,11 +2,11 @@
 import React, { useMemo } from 'react';
 // FIX: Corrected import path for types to resolve module error.
 import { InternalState } from '../types.ts';
-import { AuraConfig } from '../constants';
+import { AuraConfig } from '../constants.ts';
 // FIX: Corrected import path for utils to resolve module error.
-import { clamp } from '../utils';
+import { clamp } from '../utils.ts';
 import { Modal } from './Modal.tsx';
-import { useLocalization } from '../context/AuraContext';
+import { useLocalization } from '../context/AuraContext.tsx';
 
 export const ForecastModal = ({ isOpen, state, onClose }: { isOpen: boolean, state: InternalState, onClose: () => void }) => {
     const { t } = useLocalization();

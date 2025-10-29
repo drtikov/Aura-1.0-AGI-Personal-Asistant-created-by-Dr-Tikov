@@ -1,6 +1,6 @@
 // components/EthicalGovernorPanel.tsx
 import React from 'react';
-import { useEngineState, useLocalization } from '../context/AuraContext';
+import { useEngineState, useLocalization } from '../context/AuraContext.tsx';
 
 export const EthicalGovernorPanel = React.memo(() => {
     const { ethicalGovernorState: state } = useEngineState();

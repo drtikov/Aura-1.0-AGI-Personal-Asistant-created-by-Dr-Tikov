@@ -130,6 +130,8 @@ import { ArtificialScientistPanel } from './ArtificialScientistPanel.tsx';
 import { SocraticAssessorPanel } from './SocraticAssessorPanel.tsx';
 import { AxiomaticGenesisForgePanel } from './AxiomaticGenesisForgePanel.tsx';
 import { MotivationPanel } from './MotivationPanel.tsx';
+import { SDKStatusPanel } from './SDKStatusPanel.tsx';
+import { SoftwareAgencyPanel } from './SoftwareAgencyPanel.tsx';
 
 
 import { UseAuraResult } from '../types.ts';
@@ -209,6 +211,7 @@ export const mainControlDeckLayout: PanelConfig[] = [
             { id: 'metacognitiveNexus', titleKey: 'metacognitiveNexus', component: MetacognitiveNexusPanel },
             { id: 'pluginManager', titleKey: 'pluginManager', component: PluginManagerPanel },
             { id: 'systemInfo', titleKey: 'systemInfo', component: SystemInfoPanel },
+            { id: 'sdkStatus', titleKey: 'sdk_status_panel_title', component: SDKStatusPanel },
         ],
     },
 ];
@@ -241,6 +244,7 @@ export const advancedControlsLayout: PanelConfig[] = [
         id: 'softwareEngineering',
         titleKey: 'software_engineering_group_title',
         children: [
+            { id: 'softwareAgencyPersonas', titleKey: 'software_agency_members_panel_title', component: SoftwareAgencyPanel },
             { id: 'autoCodeForge', titleKey: 'autocode_forge_panel_title', component: AutoCodeForgePanel,
             },
         ]

@@ -1,6 +1,6 @@
 // components/MotivationPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext';
+import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const MotivationPanel = React.memo(() => {
     const { userModel } = useCoreState();
