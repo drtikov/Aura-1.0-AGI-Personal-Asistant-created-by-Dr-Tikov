@@ -1,6 +1,6 @@
 // components/ArchitecturalSelfModelPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
+import { useArchitectureState, useLocalization } from '../context/AuraContext';
 // FIX: Import ArchitecturalComponentSelfModel to resolve type error.
 import { ArchitecturalComponentSelfModel, CognitiveModule } from '../types.ts';
 

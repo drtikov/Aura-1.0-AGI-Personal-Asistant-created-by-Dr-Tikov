@@ -21,6 +21,7 @@ export const daedalusReducer = (state: AuraState, action: Action): Partial<AuraS
                 daedalusLabyrinthState: {
                     ...state.daedalusLabyrinthState,
                     structuralKnowledgeGraph: args.graph,
+// FIX: Changed status to 'complete' which is a valid type now.
                     status: 'complete',
                     lastAnalysis: Date.now(),
                 }

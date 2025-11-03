@@ -17,7 +17,7 @@ export const LocalizationPanel = () => {
     };
 
     return (
-         <div className="localization-panel">
+         <div className="localization-panel-inline">
             <label htmlFor="language-switcher">{t('languageSwitcher')}</label>
             <div className="theme-switcher-container">
                 <select id="language-switcher" value={language} onChange={handleLanguageChange}>

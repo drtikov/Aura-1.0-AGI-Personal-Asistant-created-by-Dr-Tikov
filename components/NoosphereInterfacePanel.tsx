@@ -1,6 +1,6 @@
 // components/NoosphereInterfacePanel.tsx
 import React from 'react';
-import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext';
 import { Resonance } from '../types';
 
 export const NoosphereInterfacePanel = () => {

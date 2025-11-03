@@ -1,2 +1,3 @@
-// This worker has been deprecated and its logic moved to hooks/useGunaAnalysis.ts
-// This file can be deleted.
+// This file is a duplicate due to its path.
+// It has been emptied to resolve build errors.
+export {};

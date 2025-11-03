@@ -4,15 +4,15 @@ import { Modal } from './Modal.tsx';
 // FIX: Corrected import path for hooks to resolve module not found error.
 import { useLocalization } from '../context/AuraContext.tsx';
 
-export const SearchModal = ({ isOpen, onSearch, onClose, isProcessing }: { isOpen: boolean; onSearch: (query: string) => void; onClose: () => void; isProcessing: boolean; }) => {
-    const [query, setQuery] = useState('');
+export const SearchModal = ({ isOpen, onSearch, onClose, isProcessing, initialQuery }: { isOpen: boolean; onSearch: (query: string) => void; onClose: () => void; isProcessing: boolean; initialQuery?: string; }) => {
+    const [query, setQuery] = useState(initialQuery || '');
     const { t } = useLocalization();
     
     useEffect(() => {
-        if (!isOpen) {
-            setQuery('');
+        if (isOpen) {
+            setQuery(initialQuery || '');
         }
-    }, [isOpen]);
+    }, [isOpen, initialQuery]);
 
     const handleSearchClick = () => { if (query.trim()) { onSearch(query.trim()); } };
 

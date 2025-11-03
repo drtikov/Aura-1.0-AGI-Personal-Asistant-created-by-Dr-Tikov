@@ -1,7 +1,7 @@
 // components/CognitiveGainPanel.tsx
 import React, { useMemo } from 'react';
 import { useLogsState, useLocalization } from '../context/AuraContext.tsx';
-import { useModal } from '../context/ModalContext.tsx';
+import { useModal } from '../context/ModalContext';
 // FIX: Corrected import path for types to resolve module error.
 import { CognitiveGainLogEntry } from '../types.ts';
 

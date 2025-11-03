@@ -1,17 +1,17 @@
 // hooks/useAura.ts
 import { useMemo, useEffect, useRef } from 'react';
-import { useAuraState } from './useAuraState';
-import { useGeminiAPI } from './useGeminiAPI';
-import { useUIHandlers } from './useUIHandlers';
-import { useToasts } from './useToasts';
-import { useAutonomousSystem } from './useAutonomousSystem';
-import { useToolExecution } from './useToolExecution';
-import { HAL } from '../core/hal';
-import { SyscallCall, HistoryEntry, ConceptualProofStrategy, Hypothesis, HeuristicPlan, DesignHeuristic, Persona, CognitiveStrategy, KernelTaskType } from '../types';
-import { useDomObserver } from './useDomObserver';
-import { useLiveSession } from './useLiveSession';
+import { useAuraState } from './useAuraState.ts';
+import { useGeminiAPI } from './useGeminiAPI.ts';
+import { useUIHandlers } from './useUIHandlers.ts';
+import { useToasts } from './useToasts.ts';
+import { useAutonomousSystem } from './useAutonomousSystem.ts';
+import { useToolExecution } from './useToolExecution.ts';
+import { HAL } from '../core/hal.ts';
+import { SyscallCall, HistoryEntry, Hypothesis, HeuristicPlan, DesignHeuristic, Persona, CognitiveStrategy, KernelTaskType, TriageResult } from '../types.ts';
+import { useDomObserver } from './useDomObserver.ts';
+import { useLiveSession } from './useLiveSession.ts';
 import { useTranslation } from 'react-i18next';
-import { personas } from '../state/personas';
+import { personas } from '../state/personas.ts';
 
 export const useAura = () => {
     const { state, dispatch, memoryStatus, clearMemoryAndState } = useAuraState();
@@ -25,8 +25,8 @@ export const useAura = () => {
         }
     }, [state.language, i18n]);
 
-    const syscall = (call: SyscallCall, args: any) => {
-        dispatch({ type: 'SYSCALL', payload: { call, args } });
+    const syscall = (call: SyscallCall, args: any, traceId?: string) => {
+        dispatch({ type: 'SYSCALL', payload: { call, args, traceId } });
     };
 
     const geminiAPI = useGeminiAPI(state, dispatch, addToast);
@@ -52,28 +52,30 @@ export const useAura = () => {
         addToast,
         toolExecutionRequest: state.toolExecutionRequest,
         state,
+        geminiAPI, // Pass geminiAPI to the tool executor
     });
 
     const liveSession = useLiveSession(state, dispatch, addToast);
 
-    const processCommand = async (command: string, file?: File) => {
+    const processCommand = async (command: string, file: File | undefined, traceId: string) => {
         syscall('PROCESS_USER_INPUT_INTO_PERCEPT', {
             intent: 'unknown',
             rawText: command,
             ...(file && { sensoryEngram: { modality: file.type.startsWith('image') ? 'visual' : 'auditory', rawPrimitives: [{type: 'file_attachment', value: file.name}] } })
-        });
+        }, traceId);
 
         const triageResult = await geminiAPI.triageUserIntent(command);
         syscall('ADD_HISTORY_ENTRY', { 
             from: 'system', 
             text: `Cognitive Triage: Classified as '${triageResult.type}'. Goal: "${triageResult.goal}". Reasoning: ${triageResult.reasoning}`
-        });
+        }, traceId);
 
         let taskType: KernelTaskType;
         let payload: any = { command, file, triageResult };
 
         switch (triageResult.type) {
-            case 'SYMBOLIC_REASONING_SOLVER':
+            // FIX: Corrected typo from 'SYMBOLIC_REASONING_SOLVER' to 'SYMBOLIC_SOLVER' to match TriageResult type.
+            case 'SYMBOLIC_SOLVER':
                 taskType = KernelTaskType.RUN_SYMBOLIC_SOLVER;
                 break;
             case 'VISION_ANALYSIS':
@@ -100,7 +102,8 @@ export const useAura = () => {
             type: taskType,
             payload: payload,
             timestamp: Date.now(),
-        });
+            traceId,
+        }, traceId);
     };
 
     const handleSendCommand = (command: string, file?: File) => {
@@ -108,8 +111,9 @@ export const useAura = () => {
             return;
         }
         
-        syscall('ADD_HISTORY_ENTRY', { from: 'user', text: command, fileName: file?.name });
-        syscall('PROCESS_COMMAND', { command, file });
+        const traceId = `trace_user_${self.crypto.randomUUID()}`;
+        syscall('ADD_HISTORY_ENTRY', { from: 'user', text: command, fileName: file?.name }, traceId);
+        syscall('PROCESS_COMMAND', { command, file, traceId }, traceId);
         
         uiHandlers.setCurrentCommand('');
         uiHandlers.setAttachedFile(null);
@@ -117,15 +121,20 @@ export const useAura = () => {
 
     useEffect(() => {
         if (state.commandToProcess) {
-            const { command, file } = state.commandToProcess;
-            syscall('CLEAR_COMMAND_TO_PROCESS', {});
-            processCommand(command, file);
+            const { command, file, traceId } = state.commandToProcess;
+            syscall('CLEAR_COMMAND_TO_PROCESS', {}, traceId);
+            processCommand(command, file, traceId);
         }
     }, [state.commandToProcess]);
     
     const handleFeedback = (id: string, feedback: 'positive' | 'negative') => {
-        syscall('UPDATE_HISTORY_FEEDBACK', { id, feedback });
-        syscall('USER_MODEL/LOG_TASK_SUCCESS', { success: feedback === 'positive' });
+        const traceId = `trace_feedback_${self.crypto.randomUUID()}`;
+        syscall('UPDATE_HISTORY_FEEDBACK', { id, feedback }, traceId);
+        syscall('USER_MODEL/LOG_TASK_SUCCESS', { success: feedback === 'positive' }, traceId);
+
+        if (feedback === 'negative') {
+            syscall('ETHICAL_GOVERNOR/LEARN_FROM_FEEDBACK', { historyId: id, feedback }, traceId);
+        }
     };
 
     return {

@@ -1,6 +1,6 @@
 // components/HumorAndIronyPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const HumorAndIronyPanel = React.memo(() => {
     const { humorAndIronyState: state } = useCoreState();

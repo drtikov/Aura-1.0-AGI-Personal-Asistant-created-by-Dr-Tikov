@@ -16,7 +16,8 @@ import {
     BoundaryDetectionEngine,
     AspirationalEngine,
     NoosphereInterface,
-    DialecticEngine,
+    // FIX: Corrected typo from DialecticEngine to DialecticEngineState
+    DialecticEngineState,
     CognitiveLightCone,
     PhenomenologyEngine,
     SituationalAwareness,
@@ -39,6 +40,7 @@ import {
     SocialCognitionState,
     MetaphoricalMapState,
     KnowledgeFact,
+    // FIX: Imported MemoryNexus type
     MemoryNexus,
     EpisodicMemoryState,
     MemoryConsolidationState,
@@ -102,6 +104,7 @@ import {
     WisdomIngestionState,
     SpandaState,
     TemporalEngineState,
+    // FIX: Imported AxiomaticCrucibleState type
     AxiomaticCrucibleState,
     PersonaState,
     BrainstormState,
@@ -113,11 +116,15 @@ import {
     PrometheusState,
     AutonomousReviewBoardState,
     ATPCoprocessorState,
+    // FIX: Imported SymbioticCanvasState type
     SymbioticCanvasState,
     ErisEngineState,
     LagrangeEngineState,
     // FIX: Imported missing type
     AxiomaticGenesisForgeState,
+    SystemState,
+    HarmonicEngineState,
+    CognitiveRefinementState,
 } from '../types.ts';
 
 // --- Context for the main dispatcher ---
@@ -152,13 +159,15 @@ type CoreState = Pick<AuraState,
     | 'noeticMultiverse' | 'selfAdaptationState' | 'psychedelicIntegrationState' | 'affectiveModulatorState' 
     | 'psionicDesynchronizationState' | 'satoriState' | 'doxasticEngineState' | 'qualiaSignalProcessorState' 
     | 'sensoryIntegration' | 'narrativeSummary' | 'socialCognitionState' | 'metaphoricalMapState' | 'atmanProjector'
-    | 'internalScientistState' | 'metisSandboxState' | 'spandaState' | 'personaState' | 'brainstormState'
+    | 'internalScientistState' | 'metisSandboxState' | 'spandaState' | 'brainstormState'
     | 'liveSessionState' | 'proactiveUI' | 'strategicCoreState' | 'mycelialState' | 'semanticWeaverState'
     | 'modalRequest' | 'uiCommandRequest' | 'prometheusState' | 'collaborativeSessionState' | 'symbioticCanvasState'
     | 'logosState' | 'erisEngineState' | 'lagrangeEngineState'
     | 'artificialScientistState' | 'bennettEngineState' | 'ockhamEngineState' | 'socraticAssessorState'
     // FIX: Added missing state slice
     | 'axiomaticGenesisForgeState'
+    | 'cognitiveRefinementState'
+    // FIX: Removed 'cognitiveStrategy' as it does not exist on AuraState, causing a type error.
 >;
 export const [CoreStateContext, useCoreState] = createStateContext<CoreState>('CoreStateContext');
 
@@ -177,6 +186,7 @@ type ArchitectureState = Pick<AuraState,
     | 'atpCoprocessorState'
     | 'praxisCoreState'
     | 'daedalusLabyrinthState'
+    | 'harmonicEngineState'
 >;
 export const [ArchitectureStateContext, useArchitectureState] = createStateContext<ArchitectureState>('ArchitectureStateContext');
 
@@ -193,8 +203,9 @@ type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 
 export const [LogsStateContext, useLogsState] = createStateContext<LogsState>('LogsStateContext');
 
 // System State
-type SystemState = Pick<AuraState, 'resourceMonitor' | 'metacognitiveNexus' | 'metacognitiveCausalModel' | 'pluginState' | 'kernelState' | 'ipcState' | 'eventBus' | 'temporalEngineState' | 'autonomousReviewBoardState'>;
-export const [SystemStateContext, useSystemState] = createStateContext<SystemState>('SystemStateContext');
+type SystemStateContextType = Pick<AuraState, 'resourceMonitor' | 'metacognitiveNexus' | 'metacognitiveCausalModel' | 'pluginState' | 'kernelState' | 'ipcState' | 'eventBus' | 'temporalEngineState' | 'autonomousReviewBoardState' | 'systemState'>;
+// FIX: The useSystemState hook was using a generic T which was not defined, now using a specific type.
+export const [SystemStateContext, useSystemState] = createStateContext<SystemStateContextType>('SystemStateContext');
 
 // Localization Context
 interface Localization {

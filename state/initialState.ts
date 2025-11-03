@@ -15,6 +15,7 @@ export const getInitialState = (): AuraState => ({
     theme: 'ui-1',
     language: 'en',
     isIdleThoughtEnabled: true,
+    activeCognitiveMode: null,
     history: [],
     performanceLogs: [],
     commandLog: [],
@@ -41,6 +42,7 @@ export const getInitialState = (): AuraState => ({
         autonomousEvolutions: 0,
         mantraRepetitions: 0,
         lastTaskDifficulty: 0.5,
+        activeCognitiveStrategyId: null,
     },
     internalStateHistory: [],
     userModel: {
@@ -90,6 +92,18 @@ export const getInitialState = (): AuraState => ({
         activeCuriosityGoalId: null,
         activeInquiry: null,
         informationGaps: [],
+    },
+    // FIX: Add missing chronosEngine property
+    chronosEngine: {
+        simulationLog: [],
+    },
+    // FIX: Add missing governanceState property
+    governanceState: {
+        pgeLog: [],
+        icmLog: [],
+        ddhLog: [],
+        aroLog: [],
+        wceLog: [],
     },
     knowledgeGraph: [],
     workingMemory: [],
@@ -205,6 +219,8 @@ export const getInitialState = (): AuraState => ({
             [KernelTaskType.SEMANTIC_WEAVER_PULSE]: 75,
             [KernelTaskType.CONCEPTUAL_ENTANGLEMENT_PULSE]: 30,
             [KernelTaskType.AUTONOMOUS_EVOLUTION_PULSE]: 15,
+            [KernelTaskType.QUALIA_TOPOLOGY_PULSE]: 90,
+            [KernelTaskType.RUN_PATTERN_ANALYSIS]: 30,
         },
         sandbox: { active: false, status: 'idle', currentPatchId: null, log: [] }
     },
@@ -225,7 +241,6 @@ export const getInitialState = (): AuraState => ({
         interClusterLog: [] 
     },
     axiomaticCrucibleState: { status: 'idle', mode: 'normal', axioms: [], candidateAxioms: [], log: [], inconsistencyLog: [] },
-    personaState: {},
     brainstormState: { status: 'idle', topic: null, ideas: [], winningIdea: null, finalProposalId: null },
     liveSessionState: { status: 'idle', inputTranscript: '', outputTranscript: '', transcriptHistory: [] },
     neuroCortexState: { layers: [], columns: [], metrics: { hierarchicalCoherence: 0.8, predictiveAccuracy: 0.75 }, abstractConcepts: [], resourceFocus: 'linguistic', simulationLog: [], globalErrorMap: [], protoSymbols: [] },
@@ -250,6 +265,7 @@ export const getInitialState = (): AuraState => ({
             'FIND_CLOSEST': { type: 'FIND_CLOSEST', description: 'Finds the object in a set that is geometrically closest to a target object.', payloadSchema: { target: 'object', candidates: 'object[]', axis: 'string' }},
             'DESCRIBE_PRIMITIVE': { type: 'DESCRIBE_PRIMITIVE', description: 'Get the description and schema for a specified cognitive primitive.', payloadSchema: { primitive_name: 'string' }},
             'LIST_PRIMITIVES': { type: 'LIST_PRIMITIVES', description: 'List all available cognitive primitives.', payloadSchema: {}},
+            'GENERALIZE': { type: 'GENERALIZE', description: 'Takes a concrete concept, workflow, or code snippet and produces a more abstract, widely applicable version.', payloadSchema: { input: 'string', context: 'string' }},
         }
     },
     motorCortexState: {
@@ -271,7 +287,6 @@ export const getInitialState = (): AuraState => ({
     strategicCoreState: { log: [], trainingData: [] },
     mycelialState: { modules: {}, log: [] },
     semanticWeaverState: { isTrained: false, accuracy: 0, modelJSON: null, log: [] },
-    halState: { isHostConnected: false, isV2Connected: false },
     autonomousReviewBoardState: { isPaused: false, decisionLog: [], agisConfidenceThreshold: 0.85, lastCalibrationReason: 'Initial setting.', recentSuccesses: 0, recentFailures: 0 },
     atpCoprocessorState: {
         status: 'idle',
@@ -306,7 +321,7 @@ export const getInitialState = (): AuraState => ({
         status: 'idle',
         problemStatement: null,
         testSuite: null,
-        currentStage: null,
+        // FIX: Removed unknown property `currentStage` and replaced with `status`
         error: null,
     },
     resonanceFieldState: {
@@ -325,6 +340,7 @@ export const getInitialState = (): AuraState => ({
         log: [],
         lastSessionId: null,
     },
+    // FIX: Added missing ramanujanEngineState to initial state
     ramanujanEngineState: {
         status: 'idle',
         log: [],
@@ -369,5 +385,26 @@ export const getInitialState = (): AuraState => ({
         surveyorResults: { emergentTheorems: [], undecidableStatements: [] },
         langlandsCandidates: [],
     },
-    cognitiveStrategy: 'collaborative_scaffolding',
+    
+    introspectionState: {
+        log: [],
+        lastProbeResult: null,
+    },
+    systemState: {
+        isApiKeyInvalidated: false,
+    },
+    harmonicEngineState: {
+        status: 'idle',
+        lastResult: null,
+        log: [],
+    },
+    cognitiveRefinementState: {
+        status: 'idle',
+        originalPrompt: null,
+        currentDraft: null,
+        critiqueHistory: [],
+        iteration: 0,
+        activeTraceId: null,
+        activeHistoryId: null,
+    },
 });

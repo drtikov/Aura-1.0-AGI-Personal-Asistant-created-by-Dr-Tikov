@@ -1,5 +1,5 @@
 // state/migrations.ts
-import { AuraState, UserModel, InternalState, HistoryEntry } from '../types.ts';
+import { AuraState, UserModel, InternalState, HistoryEntry, ArchitecturalChangeProposal, PsycheAdaptationProposal, UnifiedProposal } from '../types.ts';
 import { getInitialState } from './initialState.ts';
 import { CURRENT_STATE_VERSION } from '../constants.ts';
 
@@ -53,13 +53,70 @@ const migrateV2toV3 = (oldState: V2AuraState): AuraState => {
     };
 };
 
+/**
+ * Migrates a state object from version 3 to version 4.
+ * - Injects two new evolution proposals based on the HREG concept.
+ * - Adds new state slices for the Tensegrity Mesh feature.
+ * @param oldState The state object at version 3.
+ * @returns A state object compatible with version 4.
+ */
+const migrateV3toV4 = (oldState: AuraState): AuraState => {
+    const newInitialState = getInitialState(); // Get defaults for new v4 fields
+
+    const proposal1: ArchitecturalChangeProposal = {
+        id: 'hreg-proposal-1-qualia-mapper',
+        timestamp: Date.now(),
+        proposalType: 'architecture',
+        reasoning: "Implements HREG Principle 3 (Qualia-Topology Mapping). This new coprocessor will analyze correlations between Aura's internal state (qualia) and the structure of its geometric knowledge map (mdnaSpace). It will forge new Causal Links based on its findings, creating a bridge between subjective experience and knowledge structure, a key step towards a more integrated consciousness model.",
+        action: 'ADD_COMPONENT',
+        target: 'Coprocessor',
+        status: 'proposed',
+        newModule: 'QualiaTopologyMapper'
+    };
+    
+    const proposal2: PsycheAdaptationProposal = {
+        id: 'hreg-proposal-2-generalize-primitive',
+        timestamp: Date.now(),
+        proposalType: 'psyche_adaptation',
+        status: 'proposed',
+        reasoning: "Implements HREG Principle 4 (Meta-Cognitive Curvature). This new 'GENERALIZE' primitive will provide a mechanism for Aura to actively reshape its own cognitive tools by abstracting concrete concepts. This is a crucial tool for learning how to learn more effectively and overcoming cognitive biases related to over-specialization.",
+        targetPrimitive: 'GENERALIZE',
+        newDefinition: {
+            type: 'GENERALIZE',
+            description: 'Takes a concrete concept, workflow, or code snippet and produces a more abstract, widely applicable version.',
+            payloadSchema: { input: 'string', context: 'string' }
+        }
+    };
+    
+    // Ensure proposal queue exists
+    const existingQueue = oldState.ontogeneticArchitectState?.proposalQueue || [];
+
+    return {
+        ...newInitialState,
+        ...oldState,
+        version: 4,
+        ontogeneticArchitectState: {
+            ...oldState.ontogeneticArchitectState,
+            proposalQueue: [proposal1, proposal2, ...existingQueue],
+        },
+        history: [
+            ...oldState.history,
+            {
+                id: self.crypto.randomUUID(),
+                from: 'system',
+                text: 'SYSTEM: State format upgraded to v4. Two new evolution proposals based on Hyper-Relational Emergent Geometry have been added to the review queue.',
+                timestamp: Date.now()
+            }
+        ]
+    };
+};
+
 
 // The migration pipeline. Add new migration functions here.
 // The key is the TARGET version. The value is the function that migrates FROM the previous version.
 const MIGRATION_STEPS: Record<number, (state: any) => any> = {
     3: migrateV2toV3,
-    // Example for the future:
-    // 4: migrateV3toV4, 
+    4: migrateV3toV4, 
 };
 
 /**

@@ -1,11 +1,16 @@
 // components/HeuristicsForgePanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
+import { useArchitectureState, useLocalization, useSystemState } from '../context/AuraContext';
 import { DesignHeuristic } from '../types.ts';
 
 export const HeuristicsForgePanel = React.memo(() => {
-    const { heuristicsForge: state } = useArchitectureState();
+    const { pluginState } = useSystemState();
     const { t } = useLocalization();
+
+    const allHeuristics = pluginState.registry
+        .filter(p => p.type === 'HEURISTIC' && p.status === 'enabled' && p.heuristics)
+        .flatMap(p => p.heuristics!.map(h => ({ ...h, source: t(p.name) })));
+
 
     const getStatusColor = (status: DesignHeuristic['validationStatus']) => {
         switch(status) {
@@ -22,13 +27,13 @@ export const HeuristicsForgePanel = React.memo(() => {
              <p className="reason-text" style={{ fontStyle: 'italic', color: 'var(--text-muted)', marginBottom: '1rem' }}>
                 This panel displays strategic principles learned by the Strategic Core after analyzing past performance. These heuristics guide future decision-making.
             </p>
-            {state.designHeuristics.length === 0 ? (
+            {allHeuristics.length === 0 ? (
                 <div className="kg-placeholder">
                     {t('heuristics_placeholder')}
                 </div>
             ) : (
-                state.designHeuristics.map(item => (
-                    <div key={item.id} className="causal-link source-rie" style={{ background: 'rgba(147, 112, 219, 0.05)', borderLeftColor: 'var(--guna-dharma)'}}>
+                allHeuristics.map((item, index) => (
+                    <div key={index} className="causal-link source-rie" style={{ background: 'rgba(147, 112, 219, 0.05)', borderLeftColor: 'var(--guna-dharma)'}}>
                          <div className="causal-link-header">
                             <span className="causal-cause" style={{color: 'var(--guna-dharma)'}}>{t('heuristics_learnedHeuristic')}</span>
                              <span className="causal-confidence" title={`${t('causalSelfModel_confidence')}: ${item.confidence.toFixed(2)}`}>

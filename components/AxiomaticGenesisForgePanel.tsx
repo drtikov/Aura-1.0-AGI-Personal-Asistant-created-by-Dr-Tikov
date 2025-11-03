@@ -1,8 +1,7 @@
 // components/AxiomaticGenesisForgePanel.tsx
 import React from 'react';
 import { useAuraDispatch, useCoreState, useLocalization } from '../context/AuraContext.tsx';
-// FIX: Imported missing types Axiom and ProposedAxiom
-import { Axiom, ProposedAxiom } from '../types';
+import { Axiom, ProposedAxiom } from '../types.ts';
 import { SafeMarkdown } from './SafeMarkdown';
 import { Accordion } from './Accordion';
 
@@ -43,11 +42,14 @@ export const AxiomaticGenesisForgePanel = () => {
     };
 
     const handleMutate = (axiomId: string, mutationType: 'negate' | 'remove') => {
+        const axiomText = currentSystem.axioms.find((a: Axiom) => a.id === axiomId)?.text;
         syscall('FORGE/APPLY_MUTATION', { axiomId, mutationType });
+        syscall('RICCI_FLOW/LOG_SURGERY', { description: `Performed "${mutationType}" on axiom: ${axiomText}` });
     };
 
     const handleAddCandidate = (candidate: ProposedAxiom) => {
         syscall('FORGE/APPLY_MUTATION', { mutationType: 'add', newAxiom: candidate });
+        syscall('RICCI_FLOW/LOG_SURGERY', { description: `Added candidate axiom: ${candidate.axiom}` });
     };
 
     return (

@@ -19,7 +19,7 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
         }
         setIsGenerating(true);
         setGeneratedVideoUrl(null);
-        setProgressMessage(t('videoGen_progress_sending'));
+        setProgressMessage(t('videoGen_progress_sending', {defaultValue: 'Sending request...'}));
 
         try {
             const onProgress = (message: string) => {
@@ -34,7 +34,13 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
             }
         } catch (error) {
             console.error("Video generation failed:", error);
-            addToast(t('toast_videoGenFailed'), 'error');
+            const errorMessage = (error as Error).message;
+            if (errorMessage.includes("Requested entity was not found.")) {
+                addToast("API Key not found. Please select a valid key.", "error");
+                // This would trigger the API key selector to re-open via state change in a real app
+            } else {
+                 addToast(t('toast_videoGenFailed') + `: ${errorMessage}`, 'error');
+            }
         } finally {
             setIsGenerating(false);
             setProgressMessage('');
@@ -62,21 +68,21 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
     };
 
     return (
-        <Modal isOpen={isOpen} onClose={onClose} title={t('videoGen')} className="video-generation-modal">
+        <Modal isOpen={isOpen} onClose={onClose} title={t('videoGenerator')} className="video-generation-modal">
             <div className="video-gen-layout">
                 <div className="video-gen-controls">
                     <div className="image-gen-control-group">
                         <label htmlFor="vid-prompt">{t('imageGen_prompt')}</label>
-                        <textarea id="vid-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t('videoGen_promptPlaceholder')} disabled={isGenerating} rows={4}/>
+                        <textarea id="vid-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t('videoGen_promptPlaceholder', {defaultValue: 'A cinematic shot of...' })} disabled={isGenerating} rows={4}/>
                     </div>
                     {/* Simplified controls for now */}
                     <button className="image-generator-button" onClick={handleGenerate} disabled={isGenerating}>
-                        {isGenerating ? t('videoGen_generating') : t('videoGen_generate')}
+                        {isGenerating ? t('videoGen_generating', {defaultValue: 'Generating...'}) : t('videoGen_generate', {defaultValue: 'Generate Video'})}
                     </button>
                 </div>
                 <div className="video-gen-preview">
                     {isGenerating ? (
-                        <div className="loading-overlay active">
+                        <div className="loading-overlay active" style={{position: 'relative', background: 'var(--panel-bg)'}}>
                             <div className="spinner-small"></div>
                             <span>{progressMessage || t('videoGen_generating')}</span>
                         </div>
@@ -84,13 +90,13 @@ export const VideoGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
                          <div className="generated-image-item">
                             <video src={generatedVideoUrl} controls autoPlay loop muted />
                              <div className="image-item-actions">
-                                <button onClick={() => handleDownload(generatedVideoUrl)} title={t('videoGen_download')}>
+                                <button onClick={() => handleDownload(generatedVideoUrl)} title={t('videoGen_download', {defaultValue: 'Download'})}>
                                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" width="18" height="18"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
                                 </button>
                             </div>
                         </div>
                     ) : (
-                        <p>{t('videoGen_placeholder')}</p>
+                        <p>{t('videoGen_placeholder', {defaultValue: 'Your generated video will appear here.'})}</p>
                     )}
                 </div>
             </div>

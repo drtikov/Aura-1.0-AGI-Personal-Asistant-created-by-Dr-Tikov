@@ -17,7 +17,10 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
 
         case 'COGNITIVE/SET_STRATEGY':
             return {
-                cognitiveStrategy: args.strategy,
+                internalState: {
+                    ...state.internalState,
+                    activeCognitiveStrategyId: args.strategyId,
+                }
             };
 
         case 'TOGGLE_IDLE_THOUGHT':
@@ -38,6 +41,12 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
 
         case 'SET_LANGUAGE':
             return { language: args };
+        
+        case 'SET_COGNITIVE_MODE':
+            return { activeCognitiveMode: args };
+
+        case 'CLEAR_COGNITIVE_MODE':
+            return { activeCognitiveMode: null };
 
         case 'SET_INTERNAL_STATUS':
             return {
@@ -393,6 +402,22 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
                     pruningLog: [args.log, ...state.noeticMultiverse.pruningLog].slice(0, 10)
                 }
             };
+        
+        case 'MULTIVERSE/CREATE_BRANCH': {
+            const { prompt } = args;
+            const newBranch = {
+                id: `branch_${self.crypto.randomUUID()}`,
+                reasoningPath: prompt,
+                viabilityScore: 0.5, // Initial score
+                status: 'active' as 'active' | 'pruned',
+            };
+            return {
+                noeticMultiverse: {
+                    ...state.noeticMultiverse,
+                    activeBranches: [...state.noeticMultiverse.activeBranches, newBranch].slice(-5) // Keep last 5 branches
+                }
+            };
+        }
 
         case 'SELF_ADAPTATION/SET_ACTIVE':
             return {
@@ -428,6 +453,67 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             return { proactiveUI: { ...args, isActive: true } };
         case 'HIDE_PROACTIVE_UI':
             return { proactiveUI: { ...state.proactiveUI, isActive: false } };
+
+        // --- REFINEMENT LOOP ---
+        case 'REFINEMENT/START': {
+            const { prompt, traceId, historyId } = args;
+            return {
+                cognitiveRefinementState: {
+                    status: 'drafting',
+                    originalPrompt: prompt,
+                    currentDraft: null,
+                    critiqueHistory: [],
+                    iteration: 1,
+                    activeTraceId: traceId,
+                    activeHistoryId: historyId,
+                }
+            };
+        }
+        case 'REFINEMENT/SET_DRAFT': {
+             const { draft } = args;
+             return {
+                cognitiveRefinementState: {
+                    ...state.cognitiveRefinementState,
+                    status: 'critiquing',
+                    currentDraft: draft,
+                }
+             }
+        }
+        case 'REFINEMENT/ADD_CRITIQUE_AND_REFINE': {
+             const { critique, newDraft } = args;
+             return {
+                 cognitiveRefinementState: {
+                     ...state.cognitiveRefinementState,
+                     status: 'critiquing', // will be followed by another critique call, or finalized
+                     critiqueHistory: [...state.cognitiveRefinementState.critiqueHistory, critique],
+                     currentDraft: newDraft,
+                     iteration: state.cognitiveRefinementState.iteration + 1,
+                 }
+             }
+        }
+        case 'REFINEMENT/FINALIZE': {
+             const { finalDraft } = args;
+             return {
+                 cognitiveRefinementState: {
+                     ...state.cognitiveRefinementState,
+                     status: 'complete',
+                     currentDraft: finalDraft,
+                 }
+             }
+        }
+        case 'REFINEMENT/RESET': {
+            return {
+                 cognitiveRefinementState: {
+                    status: 'idle',
+                    originalPrompt: null,
+                    currentDraft: null,
+                    critiqueHistory: [],
+                    iteration: 0,
+                    activeTraceId: null,
+                    activeHistoryId: null,
+                }
+            }
+        }
             
         default:
             return {};

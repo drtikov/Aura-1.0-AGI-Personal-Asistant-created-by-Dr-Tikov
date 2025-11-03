@@ -5,6 +5,7 @@ import { clamp } from '../utils.ts';
 import { AuraConfig } from '../constants.ts';
 
 const calculateGoalCompletionRate = (state: AuraState): number => {
+    // FIX: Use goalTree instead of goals
     const goals = Object.values(state.goalTree);
     if (goals.length === 0) return 0.5; // Neutral if no goals
     const completed = goals.filter((g: Goal) => g.status === 'completed').length;
@@ -12,6 +13,7 @@ const calculateGoalCompletionRate = (state: AuraState): number => {
 };
 
 const calculatePerformanceSuccessRate = (state: AuraState): number => {
+    // FIX: Use performanceLogs instead of logs
     const logs = state.performanceLogs;
     if (logs.length < 5) return 0.5; // Not enough data
     const successes = logs.filter((l: PerformanceLogEntry) => l.success).length;

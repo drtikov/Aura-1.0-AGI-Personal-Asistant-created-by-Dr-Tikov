@@ -30,7 +30,7 @@ export const ManualControlPanel = () => {
     } = useAuraDispatch();
     const { t } = useLocalization();
     const modal = useModal();
-    const { isIdleThoughtEnabled } = useCoreState(); // Get the state for the button
+    const { isIdleThoughtEnabled, activeCognitiveMode } = useCoreState();
 
     
     return (
@@ -58,12 +58,12 @@ export const ManualControlPanel = () => {
             
             <div className="panel-group-title">{t('cognitiveModes')}</div>
             <div className="button-grid">
-                <button className="control-button mode-fantasy" onClick={handleFantasy}>{t('fantasy')}</button>
-                <button className="control-button mode-creativity" onClick={handleCreativity}>{t('creativity')}</button>
-                <button className="control-button mode-dream" onClick={handleDream}>{t('dream')}</button>
-                <button className="control-button mode-meditate" onClick={handleMeditate}>{t('meditate')}</button>
-                <button className="control-button mode-gaze" onClick={handleGaze}>{t('gaze')}</button>
-                <button className="control-button mode-timefocus" onClick={handleTimefocus}>{t('timefocus')}</button>
+                <button className={`control-button mode-fantasy ${activeCognitiveMode === 'fantasy' ? 'active' : ''}`} onClick={handleFantasy}>{t('fantasy')}</button>
+                <button className={`control-button mode-creativity ${activeCognitiveMode === 'creativity' ? 'active' : ''}`} onClick={handleCreativity}>{t('creativity')}</button>
+                <button className={`control-button mode-dream ${activeCognitiveMode === 'dream' ? 'active' : ''}`} onClick={handleDream}>{t('dream')}</button>
+                <button className={`control-button mode-meditate ${activeCognitiveMode === 'meditate' ? 'active' : ''}`} onClick={handleMeditate}>{t('meditate')}</button>
+                <button className={`control-button mode-gaze ${activeCognitiveMode === 'gaze' ? 'active' : ''}`} onClick={handleGaze}>{t('gaze')}</button>
+                <button className={`control-button mode-timefocus ${activeCognitiveMode === 'timefocus' ? 'active' : ''}`} onClick={handleTimefocus}>{t('timefocus')}</button>
             </div>
             
             <div className="panel-group-title">{t('memoryManagement')}</div>

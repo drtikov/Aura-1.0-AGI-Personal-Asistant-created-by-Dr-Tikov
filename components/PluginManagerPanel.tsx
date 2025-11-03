@@ -22,6 +22,9 @@ export const PluginManagerPanel = React.memo(() => {
         { type: 'TOOL', className: 'tools' },
         { type: 'COPROCESSOR', className: 'coprocessors' },
         { type: 'KNOWLEDGE', className: 'knowledge' },
+        { type: 'HEURISTIC', className: 'heuristic' },
+        { type: 'PERSONA', className: 'persona' },
+        { type: 'COGNITIVE_STRATEGY', className: 'cognitive-strategy' },
     ];
 
     const getCardClass = (type: Plugin['type']) => {
@@ -29,6 +32,9 @@ export const PluginManagerPanel = React.memo(() => {
             case 'TOOL': return 'tool';
             case 'KNOWLEDGE': return 'knowledge';
             case 'COPROCESSOR': return 'coprocessor';
+            case 'HEURISTIC': return 'heuristic';
+            case 'PERSONA': return 'persona';
+            case 'COGNITIVE_STRATEGY': return 'cognitive-strategy';
             default: return '';
         }
     };

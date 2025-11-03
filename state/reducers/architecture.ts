@@ -24,14 +24,24 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 validationStatus: 'validated',
                 isAutonomous: isAutonomous,
             };
+
+            const proposalExists = state.ontogeneticArchitectState.proposalQueue.some((p: UnifiedProposal) => p.id === proposal.id);
+            let newProposalQueue = state.ontogeneticArchitectState.proposalQueue;
+
+            if (proposalExists) {
+                newProposalQueue = state.ontogeneticArchitectState.proposalQueue.map((p: UnifiedProposal) =>
+                    p.id === proposal.id ? { ...p, status: 'implemented' } as UnifiedProposal : p
+                );
+            } else {
+                newProposalQueue = [{ ...proposal, status: 'implemented' }, ...state.ontogeneticArchitectState.proposalQueue];
+            }
+
             return {
                 systemSnapshots: [...state.systemSnapshots, newSnapshot].slice(-10),
                 modificationLog: [newModLog, ...state.modificationLog].slice(-50),
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map((p: UnifiedProposal) =>
-                        p.id === proposal.id ? { ...p, status: 'implemented' } as UnifiedProposal : p
-                    ),
+                    proposalQueue: newProposalQueue,
                 },
                 kernelState: {
                     ...state.kernelState,
@@ -149,8 +159,8 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
         }
 
         case 'IMPLEMENT_SELF_PROGRAMMING_CANDIDATE': {
-            const { id } = args;
-            const candidate = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === id) as SelfProgrammingCandidate | undefined;
+            const { id, candidate: directCandidate } = args;
+            const candidate = directCandidate || state.ontogeneticArchitectState.proposalQueue.find(p => p.id === id) as SelfProgrammingCandidate | undefined;
             if (!candidate) return {};
 
             let newVFS = { ...state.selfProgrammingState.virtualFileSystem };
@@ -174,6 +184,16 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 isAutonomous: candidate.source === 'autonomous',
             };
 
+            const proposalExists = state.ontogeneticArchitectState.proposalQueue.some((p: UnifiedProposal) => p.id === candidate.id);
+            let newProposalQueue = state.ontogeneticArchitectState.proposalQueue;
+            if (proposalExists) {
+                newProposalQueue = state.ontogeneticArchitectState.proposalQueue.map((p: UnifiedProposal) =>
+                    p.id === candidate.id ? { ...p, status: 'implemented' } as UnifiedProposal : p
+                );
+            } else {
+                newProposalQueue = [{ ...candidate, status: 'implemented' }, ...state.ontogeneticArchitectState.proposalQueue];
+            }
+
             return {
                 selfProgrammingState: {
                     ...state.selfProgrammingState,
@@ -181,9 +201,7 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 },
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map((p: UnifiedProposal) =>
-                        p.id === id ? { ...p, status: 'implemented' } as UnifiedProposal : p
-                    ),
+                    proposalQueue: newProposalQueue,
                 },
                 modificationLog: [newModLog, ...state.modificationLog].slice(-50),
                 kernelState: {
@@ -198,8 +216,9 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
             return {
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
+                    // FIX: Cast to UnifiedProposal to fix type error
                     proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p =>
-                        p.id === id ? { ...p, status: 'rejected' } : p
+                        p.id === id ? { ...p, status: 'rejected' } as UnifiedProposal : p
                     ),
                 }
             };

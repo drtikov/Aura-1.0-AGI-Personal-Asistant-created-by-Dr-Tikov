@@ -1,5 +1,6 @@
 // components/SelfAwarenessPanel.tsx
 import React, { useMemo } from 'react';
+// FIX: Corrected import path for hooks to resolve module not found error.
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 
 export const SelfAwarenessPanel = React.memo(() => {

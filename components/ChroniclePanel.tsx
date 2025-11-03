@@ -1,8 +1,8 @@
 // components/ChroniclePanel.tsx
 import React from 'react';
 import { useMemoryState, useLocalization } from '../context/AuraContext.tsx';
-import { Accordion } from './Accordion';
-import { Summary } from '../types';
+import { Accordion } from './Accordion.tsx';
+import { Summary } from '../types.ts';
 
 export const ChroniclePanel = React.memo(() => {
     const { chronicleState } = useMemoryState();
@@ -30,11 +30,11 @@ export const ChroniclePanel = React.memo(() => {
                     {t('chronicle_noDailySummaries')}
                 </div>
             ) : (
-                sortedDailySummaries.map(([date, summary]) => (
+                sortedDailySummaries.map(([date, summary]: [string, Summary]) => (
                     <Accordion key={date} title={date}>
                         {/* FIX: Cast summary to Summary type to access its properties. */}
                         <p className="reason-text" style={{ fontSize: '0.8rem' }}>
-                            {(summary as Summary).summary}
+                            {summary.summary}
                         </p>
                     </Accordion>
                 ))

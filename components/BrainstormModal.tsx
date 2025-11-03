@@ -1,9 +1,10 @@
 // components/BrainstormModal.tsx
 import React, { useState, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
-import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
-import { BrainstormIdea, Persona } from '../types.ts';
+import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext.tsx';
+import { BrainstormIdea, Persona, KernelTaskType } from '../types.ts';
 import { HAL } from '../core/hal.ts';
+import { personas as allRegisteredPersonas } from '../state/personas.ts';
 
 // Re-using the results display logic from BrainstormingPanel
 const BrainstormResults = ({ topic, ideas, winningIdea, onCopy }: { topic: string | null; ideas: BrainstormIdea[]; winningIdea: string | null; onCopy: () => void }) => {
@@ -45,77 +46,102 @@ const BrainstormResults = ({ topic, ideas, winningIdea, onCopy }: { topic: strin
     );
 };
 
-export const BrainstormModal = ({ isOpen, onClose, initialTopic, personas }: { isOpen: boolean; onClose: () => void; initialTopic?: string; personas?: Persona[] }) => {
+export const BrainstormModal = ({ isOpen, onClose, initialTopic, personas: customPersonasProp }: { isOpen: boolean; onClose: () => void; initialTopic?: string; personas?: Persona[] }) => {
     const { t } = useLocalization();
-    const { geminiAPI, syscall, addToast } = useAuraDispatch();
+    const { syscall, addToast } = useAuraDispatch();
+    const { brainstormState } = useCoreState();
     
-    const [status, setStatus] = useState<'input' | 'generating' | 'results'>('input');
+    const [localStatus, setLocalStatus] = useState<'input' | 'generating' | 'results'>('input');
     const [topic, setTopic] = useState(initialTopic || '');
-    const [ideas, setIdeas] = useState<BrainstormIdea[]>([]);
-    const [winningIdea, setWinningIdea] = useState<string | null>(null);
 
-    // Reset state when modal is closed/reopened
+    // Reset local state when modal is closed/reopened
     useEffect(() => {
         if (isOpen) {
-            setStatus('input');
+            setLocalStatus('input');
             setTopic(initialTopic || '');
-            setIdeas([]);
-            setWinningIdea(null);
+            // Reset the global state for a fresh session
+            syscall('BRAINSTORM/RESET', {});
         }
+    // The syscall function is stable and does not need to be in the dependency array.
+    // Including it causes a re-render loop that prevents typing in the textarea.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, initialTopic]);
+
+    // Listen to global state changes to update UI and close modal on completion
+    useEffect(() => {
+        if (brainstormState.status === 'brainstorming' || brainstormState.status === 'proposing') {
+            setLocalStatus('generating');
+        } else if (brainstormState.status === 'complete') {
+            if (brainstormState.ideas.length > 0) {
+                // Results are ready, close the modal as requested.
+                onClose();
+            } else {
+                // This is the error/empty case. Reset the modal to the input state for a retry.
+                setLocalStatus('input');
+            }
+        }
+    }, [brainstormState.status, brainstormState.ideas, onClose]);
 
     const handleGenerate = async () => {
         if (!topic.trim()) {
             addToast(t('brainstorm_prompt_required_toast', { defaultValue: 'Please enter a topic to brainstorm.' }), 'warning');
             return;
         }
+        
+        // Define the expanded "Council of Innovators"
+        const councilOfInnovatorsIds = [
+            'nikola_tesla', 'steve_jobs', 'grigori_perelman', 'leonardo_da_vinci', 
+            'richard_feynman', 'albert_einstein', 'elon_musk', 'ray_kurzweil', 
+            'henri_poincare', 'andrey_kolmogorov', 'saul_griffith', 
+            'r_buckminster_fuller', 'walter_russell'
+        ];
+        
+        // Get the fixed council members
+        const councilMembers = allRegisteredPersonas.filter(p => councilOfInnovatorsIds.includes(p.id));
 
-        setStatus('generating');
-        addToast(t('brainstorm_started_toast'), 'info');
-
-        try {
-            // Perform the brainstorm
-            const generatedIdeas = await geminiAPI.generateBrainstormingIdeas(topic, personas);
-            const generatedWinner = await geminiAPI.synthesizeBrainstormWinner(topic, generatedIdeas);
-
-            // Update local state to show results
-            setIdeas(generatedIdeas);
-            setWinningIdea(generatedWinner);
-
-            // Also update global state for persistence
-            syscall('BRAINSTORM/START', { topic });
-            generatedIdeas.forEach(idea => {
-                syscall('BRAINSTORM/ADD_IDEA', { idea });
-            });
-            syscall('BRAINSTORM/SET_WINNER', { winningIdea: generatedWinner });
-            syscall('BRAINSTORM/FINALIZE', {});
-            
-            setStatus('results');
-            addToast(t('brainstorm_complete_toast_short', { defaultValue: 'Brainstorming complete!'}), 'success');
-
-        } catch (error) {
-            console.error("Brainstorming session failed:", error);
-            addToast(t('brainstorm_failed_toast'), 'error');
-            setStatus('input'); // Revert to input screen on failure
+        // Create a pool for the random selection by excluding the fixed council members
+        const randomPersonaPool = allRegisteredPersonas.filter(p => !councilOfInnovatorsIds.includes(p.id));
+        
+        let randomPersona = null;
+        if (randomPersonaPool.length > 0) {
+            const randomIndex = Math.floor(Math.random() * randomPersonaPool.length);
+            randomPersona = randomPersonaPool[randomIndex];
         }
+
+        // Combine the council with the random persona
+        const personasToUse = [...councilMembers];
+        if (randomPersona) {
+            personasToUse.push(randomPersona);
+        }
+
+        // This is now the primary action. It queues the task for the kernel.
+        syscall('KERNEL/QUEUE_TASK', {
+            id: `task_brainstorm_${self.crypto.randomUUID()}`,
+            type: KernelTaskType.RUN_BRAINSTORM_SESSION,
+            payload: { triageResult: { goal: topic }, customPersonas: personasToUse },
+            timestamp: Date.now(),
+        });
+
+        setLocalStatus('generating'); // Update local UI immediately
+        addToast(t('brainstorm_started_toast'), 'info');
     };
 
     const handleStartNew = () => {
-        setStatus('input');
+        syscall('BRAINSTORM/START', { topic: '' }); // Reset global state
+        syscall('BRAINSTORM/FINALIZE', {});
+        setLocalStatus('input');
         setTopic('');
-        setIdeas([]);
-        setWinningIdea(null);
     };
 
     const handleCopyAll = () => {
         let fullText = `Brainstorming Session\n`;
-        fullText += `Topic: ${topic}\n\n`;
+        fullText += `Topic: ${brainstormState.topic}\n\n`;
         fullText += `--- IDEAS ---\n\n`;
-        ideas.forEach(idea => {
+        brainstormState.ideas.forEach(idea => {
             fullText += `${idea.personaName}:\n${idea.idea}\n\n`;
         });
-        if (winningIdea) {
-            fullText += `--- WINNING IDEA ---\n\n${winningIdea}\n`;
+        if (brainstormState.winningIdea) {
+            fullText += `--- WINNING IDEA ---\n\n${brainstormState.winningIdea}\n`;
         }
         HAL.Clipboard.writeText(fullText.trim()).then(() => {
             addToast(t('brainstorm_copy_all_success'), 'success');
@@ -125,7 +151,7 @@ export const BrainstormModal = ({ isOpen, onClose, initialTopic, personas }: { i
     };
 
     const renderContent = () => {
-        switch (status) {
+        switch (localStatus) {
             case 'input':
                 return (
                     <div className="trace-section"> 
@@ -147,13 +173,13 @@ export const BrainstormModal = ({ isOpen, onClose, initialTopic, personas }: { i
                     </div>
                 );
             case 'results':
-                return <BrainstormResults topic={topic} ideas={ideas} winningIdea={winningIdea} onCopy={handleCopyAll} />;
+                return <BrainstormResults topic={brainstormState.topic} ideas={brainstormState.ideas} winningIdea={brainstormState.winningIdea} onCopy={handleCopyAll} />;
         }
     };
 
     const renderFooter = () => {
-        const isGenerating = status === 'generating';
-        switch (status) {
+        const isGenerating = localStatus === 'generating';
+        switch (localStatus) {
             case 'input':
                 return (
                     <>

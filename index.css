@@ -469,6 +469,59 @@
     100% { border-color: var(--accent-color); box-shadow: 0 0 8px var(--accent-color); }
 }
 
+/* API Key Selector */
+.api-key-selector-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  color: var(--text-color);
+  font-family: var(--font-body);
+}
+
+.api-key-selector-content {
+  background-color: var(--panel-bg);
+  border: 1px solid var(--border-color);
+  padding: 2rem;
+  max-width: 500px;
+  text-align: center;
+}
+
+.api-key-selector-content h2 {
+  font-family: var(--font-heading);
+  color: var(--primary-color);
+  margin-bottom: 1rem;
+}
+
+.api-key-selector-content p {
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.api-key-selector-content a {
+  color: var(--primary-color);
+  text-decoration: underline;
+}
+
+.api-key-selector-content button {
+  font-family: var(--font-heading);
+  background-color: var(--primary-color);
+  color: var(--background);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: filter 0.2s;
+}
+
+.api-key-selector-content button:hover {
+  filter: brightness(1.2);
+}
+
+
 /* --- SDK Status Panel --- */
 .sdk-status-panel {
     font-size: 0.8rem;
@@ -3306,6 +3359,20 @@ body {
     flex-direction: column;
     gap: 0.5rem;
 }
+.localization-panel-inline {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex: 1;
+}
+.localization-panel-inline label {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+.localization-panel-inline .theme-switcher-container {
+    flex-grow: 1;
+}
 .sentiment-score-bar {
   --sentiment-color: #888; /* Neutral default */
   --sentiment-color: #f44336; /* Red for negative */
@@ -3636,178 +3703,24 @@ body {
     border-radius: 4px;
 }
 .image-item-actions button {
-    background: var(--panel-bg);
+    background: rgba(255, 255, 255, 0.1);
     border: 1px solid var(--border-color);
-    color: var(--text-color);
+    color: var(--text-muted);
     cursor: pointer;
     width: 32px;
     height: 32px;
-    border-radius: 4px;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: all 0.2s;
 }
-.image-item-actions button:hover {
-    background: var(--primary-color);
-    color: var(--background);
-}
-.image-gen-control-group.toggle-group {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-}
-.toggle-switch {
-    position: relative;
-    display: inline-block;
-    width: 40px;
-    height: 20px;
-}
-.toggle-switch input {
-    opacity: 0;
-    width: 0;
-    height: 0;
-}
-.toggle-slider {
-    position: absolute;
-    cursor: pointer;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background-color: #ccc;
-    transition: .4s;
-    border-radius: 20px;
-}
-.toggle-slider:before {
-    position: absolute;
-    content: "";
-    height: 16px;
-    width: 16px;
-    left: 2px;
-    bottom: 2px;
-    background-color: white;
-    transition: .4s;
-    border-radius: 50%;
-}
-input:checked + .toggle-slider {
+.image-item-actions button:hover:not(:disabled) {
     background-color: var(--primary-color);
-}
-input:checked + .toggle-slider:before {
-    transform: translateX(20px);
-}
-.mood-tweaks-submenu {
-    max-height: 0;
-    overflow: hidden;
-    transition: max-height 0.3s ease-out;
-    padding-left: 1rem;
-    border-left: 2px solid var(--border-color);
-}
-.mood-tweaks-submenu.open {
-    max-height: 500px;
-}
-.reset-mood-button {
-    width: auto;
-    padding: 0.2rem 0.5rem;
-    font-size: 0.7rem;
-    height: auto;
-}
-.mood-tweaks-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-.mood-tweaks-header h4 {
-    margin: 0;
-    font-size: 0.9rem;
-}
-.special-action-group .control-button {
-    width: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
-}
-.dropzone {
-    border: 2px dashed var(--border-color);
-    padding: 2rem;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.2s ease;
-}
-.dropzone-active {
-    border-color: var(--primary-color);
-    background: rgba(0, 255, 255, 0.1);
-}
-.remove-reference-btn {
-    position: absolute;
-    top: -8px;
-    right: -8px;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 1px solid var(--background);
-    background: var(--text-muted);
     color: var(--background);
-    cursor: pointer;
+    border-color: var(--primary-color);
 }
-.remove-reference-btn:hover {
-    background: var(--failure-color);
-}
-.image-gen-control-group .radio-button-group {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-}
-.radio-button-label {
-    display: inline-flex;
-    align-items: center;
-    cursor: pointer;
-    position: relative;
-    padding-left: 25px;
-}
-.radio-button-label input { display: none; }
-.radio-button-custom {
-    position: absolute;
-    left: 0;
-    width: 16px;
-    height: 16px;
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-}
-.radio-button-label input:checked ~ .radio-button-custom {
-    background: var(--primary-color);
-}
-.radio-button-label input:checked ~ .radio-button-custom::after {
-    content: '';
-    position: absolute;
-    top: 4px;
-    left: 4px;
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--background);
-}
-.music-generation-modal {
-    max-width: 900px !important;
-}
-.sonic-forge-layout {
-    display: grid;
-    grid-template-columns: 350px 1fr;
-    gap: 1rem;
-}
-.sonic-forge-controls { display: flex; flex-direction: column; gap: 1rem; }
-.sonic-forge-preview { border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); padding: 1rem; position: relative; }
-.generated-music-output pre { white-space: pre-wrap; word-wrap: break-word; }
-.vfs-path-input {
-    width: 100%;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid var(--border-color);
-    color: var(--text-color);
-    padding: 0.5rem;
-    font-family: var(--font-body);
-}
-
+/* --- Plugin Manager Modal --- */
 .plugin-manager-content {
     display: flex;
     flex-direction: column;
@@ -3815,237 +3728,202 @@ input:checked + .toggle-slider:before {
 }
 .plugin-group-header {
     font-family: var(--font-heading);
-    letter-spacing: 1px;
-    border-bottom: 2px solid;
-    padding-bottom: 0.5rem;
+    letter-spacing: 2px;
     font-size: 1.1rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
 }
-.plugin-group-header.tools { border-color: var(--primary-color); color: var(--primary-color); }
-.plugin-group-header.knowledge { border-color: var(--accent-color); color: var(--accent-color); }
-.plugin-group-header.coprocessors { border-color: var(--secondary-color); color: var(--secondary-color); }
+.plugin-group-header.tools { color: var(--accent-color); }
+.plugin-group-header.knowledge { color: var(--primary-color); }
+.plugin-group-header.coprocessors { color: var(--secondary-color); }
+.plugin-group-header.heuristic { color: var(--state-wisdom); }
+.plugin-group-header.persona { color: var(--guna-dharma); }
+.plugin-group-header.cognitive-strategy { color: var(--mode-creativity); }
+
 .plugin-card-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 1rem;
-    margin-top: 1rem;
 }
+
 .plugin-card {
+    background: rgba(0,0,0,0.2);
     border: 1px solid var(--border-color);
-    padding: 0.75rem;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
+.plugin-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
 .plugin-card-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.5rem;
+    align-items: flex-start;
+    gap: 0.5rem;
 }
 .plugin-card-name {
     font-weight: bold;
+    color: var(--text-color);
 }
 .plugin-card-status {
     width: 10px;
     height: 10px;
     border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
 }
-.plugin-card-status.enabled { background-color: var(--success-color); box-shadow: 0 0 5px var(--success-color); }
-.plugin-card-status.disabled { background-color: var(--failure-color); }
-.plugin-card-status.pending {
-    background-color: var(--warning-color);
-    animation: pulse-yellow 2s infinite;
+.plugin-card-status.enabled {
+    background-color: var(--success-color);
+    box-shadow: 0 0 5px var(--success-color);
+}
+.plugin-card-status.disabled {
+    background-color: var(--text-muted);
 }
 .plugin-card-desc {
     font-size: 0.8rem;
     color: var(--text-muted);
+    flex-grow: 1; /* Pushes fact count to bottom */
 }
 .plugin-fact-count {
-    font-size: 0.7rem;
-    color: var(--accent-color);
+    font-size: 0.75rem;
+    font-family: var(--font-body);
+    padding: 0.2rem 0.6rem;
+    border-radius: 10px;
+    background: var(--primary-color);
+    color: var(--background);
+    align-self: flex-end;
     margin-top: 0.5rem;
-    font-weight: bold;
 }
-.plugin-card.tool { border-left: 3px solid var(--primary-color); }
-.plugin-card.knowledge { border-left: 3px solid var(--accent-color); }
-.plugin-card.coprocessor { border-left: 3px solid var(--secondary-color); }
 
-/* --- New AuraOS Modal Styles --- */
+/* --- Aura OS Modal --- */
 .aura-os-modal {
     max-width: 1200px !important;
-    width: 95vw !important;
+    width: 90vw !important;
+    max-height: 85vh !important;
+    padding: 0 !important;
 }
+.aura-os-modal .modal-header { display: none; } /* Hide default modal header */
+
 .aura-os-layout {
     display: grid;
-    grid-template-columns: 280px 1fr;
-    gap: 1.5rem;
-    height: 70vh;
-    min-height: 500px;
+    grid-template-columns: 250px 1fr;
+    min-height: 70vh;
+    width: 100%;
 }
+
 .aura-os-nav {
     display: flex;
     flex-direction: column;
+    background: var(--background);
     border-right: 1px solid var(--border-color);
-    padding-right: 1.5rem;
+    padding: 1rem;
+    gap: 1rem;
 }
+
 .aura-os-search {
     width: 100%;
+    padding: 0.6rem;
     background: rgba(0,0,0,0.3);
     border: 1px solid var(--border-color);
-    padding: 0.6rem;
-    font-family: var(--font-body);
     color: var(--text-color);
-    margin-bottom: 1rem;
+    font-family: var(--font-body);
+    font-size: 0.9rem;
 }
+.aura-os-search:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 5px var(--border-glow);
+}
+
 .aura-os-nav-list {
-    flex-grow: 1;
-    overflow-y: auto;
-    padding-right: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) transparent;
 }
+.aura-os-nav-list::-webkit-scrollbar { width: 4px; }
+.aura-os-nav-list::-webkit-scrollbar-thumb { background-color: var(--primary-color); }
+
 .aura-os-nav-group {
     font-family: var(--font-heading);
     color: var(--primary-color);
-    font-size: 0.9rem;
     letter-spacing: 1px;
+    font-size: 0.9rem;
     text-transform: uppercase;
-    margin: 1.2rem 0 0.5rem 0;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--border-color);
 }
+
 .aura-os-nav-item {
+    display: block;
+    width: 100%;
     background: none;
     border: none;
     color: var(--text-muted);
     font-family: var(--font-body);
-    font-size: 0.85rem;
     text-align: left;
-    padding: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 0.85rem;
     cursor: pointer;
-    width: 100%;
-    transition: all 0.2s ease;
-    border-radius: 4px;
+    transition: background-color 0.2s, color 0.2s, border-left 0.2s;
+    border-left: 3px solid transparent;
 }
 .aura-os-nav-item:hover {
-    background: var(--primary-color);
-    color: var(--background);
+    background-color: rgba(255, 255, 255, 0.05);
+    color: var(--text-color);
 }
 .aura-os-nav-item.active {
-    background: var(--primary-color);
+    background-color: var(--primary-color);
     color: var(--background);
     font-weight: bold;
+    border-left-color: var(--accent-color);
 }
+
 .aura-os-content {
-    overflow-y: auto;
+    padding: 1.5rem;
     scrollbar-width: thin;
     scrollbar-color: var(--primary-color) transparent;
-    display: flex;
-    flex-direction: column;
 }
+.aura-os-content::-webkit-scrollbar { width: 6px; }
+.aura-os-content::-webkit-scrollbar-thumb { background-color: var(--primary-color); }
+
 .aura-os-content-header {
     font-family: var(--font-heading);
-    font-size: 1.2rem;
+    font-size: 1.5rem;
     color: var(--primary-color);
-    margin-bottom: 1rem;
-    padding-bottom: 0.75rem;
+    letter-spacing: 2px;
+    margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
+    padding-bottom: 1rem;
 }
+
 .aura-os-content-placeholder {
+    height: 100%;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    height: 100%;
     text-align: center;
     color: var(--text-muted);
 }
 .aura-os-content-placeholder pre {
-    font-size: 0.8rem;
     color: var(--primary-color);
-    margin-bottom: 1rem;
-    opacity: 0.6;
+    opacity: 0.2;
+    font-size: 6rem;
+    line-height: 1;
+    margin-bottom: 2rem;
 }
-.aura-os-content .side-panel {
-    padding: 0;
-}
-
-.command-log-item .log-text-group {
-    flex-grow: 1;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-}
-
-.command-log-item .log-subtext {
-    font-size: 0.8em;
-    color: var(--text-muted);
-    white-space: nowrap;
-}
-
-/* Geometric Knowledge Panel */
-.geometric-knowledge-layout {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 1rem;
-}
-.geometric-map-container {
-    width: 100%;
-    aspect-ratio: 1 / 1;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid var(--border-color);
-    position: relative;
-}
-.geometric-map-svg {
-    width: 100%;
-    height: 100%;
-}
-.geometric-connections-list {
-    max-height: 200px;
-    overflow-y: auto;
-}
-
-/* Cognitive Regulation Panel */
-.adjustments-list {
-    list-style: none;
-    padding: 0;
-    margin-top: 0.5rem;
-    font-size: 0.8rem;
-}
-.adjustment-item {
-    display: grid;
-    grid-template-columns: 1fr 1fr auto;
-    gap: 0.5rem;
-    padding: 0.2rem 0;
-    border-bottom: 1px solid var(--border-color);
-}
-.adjustment-item:last-child {
-    border-bottom: none;
-}
-.adjustment-item .param {
-    color: var(--text-muted);
-}
-.adjustment-item .values {
-    text-align: right;
-}
-.adjustment-item .change {
-    font-weight: bold;
-    text-align: right;
-}
-.adjustment-item .change.positive {
-    color: var(--success-color);
-}
-.adjustment-item .change.negative {
-    color: var(--failure-color);
-}
-
-.persona-tag {
-    background: rgba(0, 255, 255, 0.1);
-    border-color: var(--border-color);
-    color: var(--primary-color);
-}
-.research-tag {
-    background: rgba(255, 255, 0, 0.1);
-    border-color: var(--accent-color);
-    color: var(--accent-color);
-}
-.goal-tags {
-    display: flex;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+.aura-os-content-placeholder h3 {
+    font-family: var(--font-heading);
+    color: var(--text-color);
+    font-size: 1.2rem;
+    margin-bottom: 0.5rem;
 }

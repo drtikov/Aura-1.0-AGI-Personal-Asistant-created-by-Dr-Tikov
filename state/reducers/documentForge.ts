@@ -22,11 +22,13 @@ export const documentForgeReducer = (state: AuraState, action: Action): Partial<
         }
 
         case 'DOCUMENT_FORGE/SET_STATUS': {
+            const { status, message } = args;
             return {
                 documentForgeState: {
                     ...state.documentForgeState,
-                    status: args.status,
-                    statusMessage: args.message || '',
+                    status: status,
+                    statusMessage: message || '',
+                    error: status === 'error' ? message : null,
                 }
             };
         }

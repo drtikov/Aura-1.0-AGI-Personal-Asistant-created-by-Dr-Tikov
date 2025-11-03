@@ -1,6 +1,6 @@
 // components/KernelTaskPanel.tsx
 import React from 'react';
-import { useSystemState, useLocalization } from '../context/AuraContext.tsx';
+import { useSystemState, useLocalization } from '../context/AuraContext';
 
 export const KernelTaskPanel = React.memo(() => {
     const { kernelState } = useSystemState();

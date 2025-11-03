@@ -9,6 +9,21 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'SYSTEM/API_KEY_INVALIDATED':
+            return {
+                systemState: {
+                    ...state.systemState,
+                    isApiKeyInvalidated: true,
+                }
+            };
+        case 'SYSTEM/CLEAR_API_KEY_INVALIDATED':
+            return {
+                systemState: {
+                    ...state.systemState,
+                    isApiKeyInvalidated: false,
+                }
+            };
+
         case 'METACGNITIVE_NEXUS/ADD_DIAGNOSTIC_FINDING': {
             const newFinding = {
                 ...args,
@@ -103,7 +118,8 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
                 }
             };
 
-        case 'KERNEL/ADD_TASK': {
+        // FIX: Corrected KERNEL/ADD_TASK to KERNEL/QUEUE_TASK for consistency
+        case 'KERNEL/QUEUE_TASK': {
             // FIX: Correctly cast `args` to `KernelTask` to match the expected type.
             const newTask = args as KernelTask;
             // Prevent adding duplicate tasks if one is already queued or running

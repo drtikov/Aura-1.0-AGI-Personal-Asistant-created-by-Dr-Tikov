@@ -1,6 +1,6 @@
 // components/DialecticEnginePanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const DialecticEnginePanel = React.memo(() => {
     const { dialecticEngine: state } = useCoreState();

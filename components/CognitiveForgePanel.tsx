@@ -1,7 +1,7 @@
 // components/CognitiveForgePanel.tsx
 import React from 'react';
 // FIX: Added '.ts' extension to satisfy module resolution.
-import { SynthesizedSkill, SimulationLogEntry } from '../types';
+import { SynthesizedSkill, SimulationLogEntry } from '../types.ts';
 import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 
 export const CognitiveForgePanel = React.memo(() => {

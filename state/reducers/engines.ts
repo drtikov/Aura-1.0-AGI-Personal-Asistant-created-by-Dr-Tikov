@@ -52,6 +52,14 @@ export const enginesReducer = (state: AuraState, action: Action): Partial<AuraSt
             }
         }
 
+        case 'ETHICAL_GOVERNOR/LEARN_FROM_FEEDBACK':
+            return {
+                ethicalGovernorState: {
+                    ...state.ethicalGovernorState,
+                    feedbackToProcess: args, // { historyId, feedback }
+                }
+            };
+
         default:
             return {};
     }

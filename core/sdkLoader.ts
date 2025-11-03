@@ -1,171 +1,124 @@
 // core/sdkLoader.ts
 
-interface SdkConfig {
-    url: string | string[]; // Can be a single URL or an array for dependencies/multiple files
-    globalName: string;
-    type?: 'script' | 'style';
-}
+const SDK_URLS: Record<string, { type: 'script' | 'style'; url: string }> = {
+    // Core UI & Markdown
+    anime: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js' },
+    marked: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/marked/marked.min.js' },
+    katex: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.js' },
+    katex_css: { type: 'style', url: 'https://cdn.jsdelivr.net/npm/katex@0.16.0/dist/katex.min.css' },
+    mermaid: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/mermaid@9.1.3/dist/mermaid.min.js' },
+    
+    // Math & Symbolic
+    mathjs: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/mathjs/11.7.0/math.js' },
+    numericjs: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js' },
+    
+    // Documents
+    pdfjs: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js' },
+    jspdf: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js' },
+    jszip: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js' },
 
-const sdkRegistry: Record<string, SdkConfig> = {
-    anime: { url: 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.2/anime.min.js', globalName: 'anime' },
-    jszip: { url: 'https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js', globalName: 'JSZip' },
-    d3: { url: 'https://cdn.jsdelivr.net/npm/d3@7', globalName: 'd3' },
-    tfjs: { url: 'https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js', globalName: 'tf' },
-    cocoSsd: { url: 'https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@latest/dist/coco-ssd.min.js', globalName: 'cocoSsd' },
-    tone: { url: 'https://unpkg.com/tone@14.7.77/build/Tone.js', globalName: 'Tone' },
-    mermaid: { url: 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js', globalName: 'mermaid' },
-    papaparse: { url: 'https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.0/papaparse.min.js', globalName: 'Papa' },
-    tesseract: { url: 'https://unpkg.com/tesseract.js@v5.0.0/dist/tesseract.min.js', globalName: 'Tesseract' },
-    mathjs: { url: 'https://cdnjs.cloudflare.com/ajax/libs/mathjs/12.4.1/math.js', globalName: 'math' },
-    pdfjs: { url: 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js', globalName: 'pdfjsLib' },
-    numericjs: { url: 'https://cdnjs.cloudflare.com/ajax/libs/numeric/1.2.6/numeric.min.js', globalName: 'numeric' },
-    typescript: { url: 'https://cdnjs.cloudflare.com/ajax/libs/typescript/5.4.5/typescript.min.js', globalName: 'ts' },
-    three: { url: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.161.0/three.min.js', globalName: 'THREE' },
-    polygonClipping: { url: 'https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.3/dist/polygon-clipping.min.js', globalName: 'polygonClipping' },
-    p5: { url: 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.9.0/p5.min.js', globalName: 'p5' },
-    rapier: { url: 'https://cdn.jsdelivr.net/npm/@dimforge/rapier3d-compat@0.11.2/dist/rapier.js', globalName: 'RAPIER' },
-    jscodeshift: { url: 'https://unpkg.com/jscodeshift@0.15.1/dist/jscodeshift.js', globalName: 'jscodeshift' },
-    eslint: { url: 'https://unpkg.com/eslint@8.57.0/lib/linter/linter.js', globalName: 'Linter' },
-    natural: { url: 'https://unpkg.com/natural@6.10.4/dist/natural.min.js', globalName: 'natural' },
-    opencv: { url: 'https://docs.opencv.org/4.9.0/opencv.js', globalName: 'cv' },
-    mediapipe: { url: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.3/vision_bundle.js', globalName: 'vision' },
-    sqljs: { url: 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.10.2/sql-wasm.js', globalName: 'initSqlJs' },
-    arrow: { url: 'https://unpkg.com/apache-arrow@15.0.0/Arrow.es2015.min.js', globalName: 'arrow' },
-    onnx: { url: 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js', globalName: 'ort' },
-    prettier: { url: ['https://unpkg.com/prettier@2.8.8/standalone.js', 'https://unpkg.com/prettier@2.8.8/parser-typescript.js'], globalName: 'prettierPlugins' },
-    vega: { url: ['https://cdn.jsdelivr.net/npm/vega@5', 'https://cdn.jsdelivr.net/npm/vega-lite@5', 'https://cdn.jsdelivr.net/npm/vega-embed@6'], globalName: 'vegaEmbed' },
-    phaser: { url: 'https://cdn.jsdelivr.net/npm/phaser@3.60.0/dist/phaser.min.js', globalName: 'Phaser' },
-    leaflet_css: { url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', globalName: 'L', type: 'style' },
-    leaflet: { url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', globalName: 'L' },
-    katex_css: { url: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css', globalName: 'katex', type: 'style' },
-    katex: { url: 'https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js', globalName: 'katex' },
-    marked: { url: 'https://cdn.jsdelivr.net/npm/marked@12.0.2/marked.min.js', globalName: 'marked' },
-    jspdf: { url: 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js', globalName: 'jspdf' },
+    // Geometry & Graphics
+    polygonClipping: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/polygon-clipping@0.15.3/dist/polygon-clipping.min.js' },
+    p5: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js' },
+    three: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js' },
+
+    // Code Tools
+    typescript: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/typescript/4.7.4/typescript.min.js' },
+    prettier: { type: 'script', url: 'https://unpkg.com/prettier@2.8.8/standalone.js' },
+    prettierPlugins: { type: 'script', url: 'https://unpkg.com/prettier@2.8.8/parser-typescript.js' },
+
+    // Data & ML
+    sqljs: { type: 'script', url: 'https://cdnjs.cloudflare.com/ajax/libs/sql.js/1.6.2/sql-wasm.js' },
+    arrow: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/apache-arrow@latest' },
+    onnx: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/onnxruntime-web/dist/ort.min.js' },
+    
+    // Visualization
+    vegaEmbed: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/vega-embed@6' },
+    
+    // Gaming & Geospatial
+    phaser: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js' },
+    leaflet: { type: 'script', url: 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js' },
+
+    // Computer Vision
+    opencv: { type: 'script', url: 'https://docs.opencv.org/4.x/opencv.js' },
+    mediapipe: { type: 'script', url: 'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision/vision_bundle.js' },
 };
 
-type SdkStatus = 'idle' | 'loading' | 'loaded' | 'error';
-const sdkStatus: Record<string, SdkStatus> = Object.keys(sdkRegistry).reduce((acc, key) => {
-    acc[key] = 'idle';
-    return acc;
-}, {} as Record<string, SdkStatus>);
+const sdkStatus: Record<string, 'idle' | 'loading' | 'loaded' | 'error'> = {};
+const sdkPromises: Record<string, Promise<void>> = {};
 
-const pendingPromises: Record<string, ((value?: any) => void)[]> = {};
-type StatusListener = (statuses: Record<string, SdkStatus>) => void;
-const listeners: StatusListener[] = [];
+const statusListeners = new Set<(statuses: Record<string, 'idle' | 'loading' | 'loaded' | 'error'>) => void>();
 
-function notifyListeners() {
-    listeners.forEach(listener => listener(sdkStatus));
-}
+// Initialize statuses
+Object.keys(SDK_URLS).forEach(id => {
+    sdkStatus[id] = 'idle';
+});
 
-export function getSdkStatus() {
-    return { ...sdkStatus };
-}
+const notifyListeners = () => {
+    statusListeners.forEach(listener => listener(sdkStatus));
+};
 
-export function subscribeToSdkStatus(callback: StatusListener) {
-    listeners.push(callback);
-}
+export const getSdkStatus = () => sdkStatus;
 
-export function unsubscribeFromSdkStatus(callback: StatusListener) {
-    const index = listeners.indexOf(callback);
-    if (index > -1) {
-        listeners.splice(index, 1);
-    }
-}
+export const subscribeToSdkStatus = (callback: (statuses: Record<string, 'idle' | 'loading' | 'loaded' | 'error'>) => void) => {
+    statusListeners.add(callback);
+};
 
+export const unsubscribeFromSdkStatus = (callback: (statuses: Record<string, 'idle' | 'loading' | 'loaded' | 'error'>) => void) => {
+    statusListeners.delete(callback);
+};
 
-function loadScript(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const script = document.createElement('script');
-        script.src = url;
-        script.async = true;
-        script.onload = () => {
-            script.remove();
-            resolve();
-        };
-        script.onerror = () => {
-            script.remove();
-            reject(new Error(`Failed to load script: ${url}`));
-        };
-        document.head.appendChild(script);
-    });
-}
-
-function loadStyle(url: string): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = url;
-        link.onload = () => resolve();
-        link.onerror = () => reject(new Error(`Failed to load style: ${url}`));
-        document.head.appendChild(link);
-    });
-}
-
-export async function loadSdk(sdkId: string): Promise<void> {
-    if (sdkStatus[sdkId] === 'loaded') {
-        return Promise.resolve();
+export const loadSdk = (sdkId: string): Promise<void> => {
+    if (sdkPromises[sdkId]) {
+        return sdkPromises[sdkId];
     }
 
-    if (sdkStatus[sdkId] === 'loading') {
-        return new Promise(resolve => {
-            if (!pendingPromises[sdkId]) {
-                pendingPromises[sdkId] = [];
-            }
-            pendingPromises[sdkId].push(resolve);
-        });
-    }
-
-    const config = sdkRegistry[sdkId];
-    if (!config) {
-        return Promise.reject(new Error(`SDK with id '${sdkId}' not found in registry.`));
-    }
-    
-    // Handle leaflet's CSS dependency
-    if (sdkId === 'leaflet') {
-       await loadSdk('leaflet_css').catch(console.error);
-    }
-
-    sdkStatus[sdkId] = 'loading';
-    notifyListeners();
-    pendingPromises[sdkId] = [];
-
-    try {
-        const urls = Array.isArray(config.url) ? config.url : [config.url];
-        for (const url of urls) {
-            if (config.type === 'style') {
-                await loadStyle(url);
-            } else {
-                await loadScript(url);
-            }
-        }
-
-        // Special initialization logic for certain libraries
-        if (sdkId === 'pdfjs' && typeof (window as any).pdfjsLib !== 'undefined') {
-            (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
-        }
-        if (sdkId === 'mermaid' && typeof (window as any).mermaid !== 'undefined') {
-            (window as any).mermaid.initialize({ startOnLoad: false, theme: 'dark' });
-        }
-        
-        // Check for global variable if it's a script
-        if (config.type !== 'style' && typeof (window as any)[config.globalName] === 'undefined') {
-            // A special case for leaflet, where CSS and JS expose the same global, so we don't error if only CSS is loaded
-            if (sdkId !== 'leaflet_css') {
-                 throw new Error(`SDK '${sdkId}' loaded, but global '${config.globalName}' not found.`);
-            }
-        }
-        
-        sdkStatus[sdkId] = 'loaded';
-        notifyListeners();
-        pendingPromises[sdkId].forEach(resolve => resolve());
-
-    } catch (error) {
+    const sdkInfo = SDK_URLS[sdkId];
+    if (!sdkInfo) {
         sdkStatus[sdkId] = 'error';
         notifyListeners();
-        pendingPromises[sdkId].forEach(resolve => (resolve as any)(error));
-        console.error(error);
-        return Promise.reject(error);
-    } finally {
-        delete pendingPromises[sdkId];
+        return Promise.reject(new Error(`SDK with id '${sdkId}' not found.`));
     }
-}
+
+    sdkPromises[sdkId] = new Promise((resolve, reject) => {
+        sdkStatus[sdkId] = 'loading';
+        notifyListeners();
+
+        if (sdkInfo.type === 'script') {
+            const script = document.createElement('script');
+            script.src = sdkInfo.url;
+            script.async = true;
+            script.onload = () => {
+                sdkStatus[sdkId] = 'loaded';
+                if (sdkId === 'pdfjs') {
+                    (window as any).pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+                }
+                notifyListeners();
+                resolve();
+            };
+            script.onerror = () => {
+                sdkStatus[sdkId] = 'error';
+                notifyListeners();
+                reject(new Error(`Failed to load script: ${sdkInfo.url}`));
+            };
+            document.head.appendChild(script);
+        } else if (sdkInfo.type === 'style') {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = sdkInfo.url;
+            link.onload = () => {
+                sdkStatus[sdkId] = 'loaded';
+                notifyListeners();
+                resolve();
+            };
+            link.onerror = () => {
+                sdkStatus[sdkId] = 'error';
+                notifyListeners();
+                reject(new Error(`Failed to load stylesheet: ${sdkInfo.url}`));
+            };
+            document.head.appendChild(link);
+        }
+    });
+
+    return sdkPromises[sdkId];
+};

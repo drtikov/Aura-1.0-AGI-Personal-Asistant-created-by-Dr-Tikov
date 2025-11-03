@@ -27,7 +27,7 @@ export const ThemeSwitcher = () => {
     };
 
     return (
-        <div className="localization-panel"> {/* Reusing style for consistency */}
+        <div className="localization-panel-inline">
             <label htmlFor="theme-switcher">{t('themeSwitcher')}</label>
             <div className="theme-switcher-container">
                 <select id="theme-switcher" value={theme} onChange={handleThemeChange}>

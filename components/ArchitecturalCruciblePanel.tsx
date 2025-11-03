@@ -1,6 +1,6 @@
 // components/ArchitecturalCruciblePanel.tsx
 import React, { useState } from 'react';
-import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+import { useArchitectureState, useLocalization, useAuraDispatch } from '../context/AuraContext';
 import { ArchitecturalChangeProposal, CrucibleLogEntry } from '../types.ts';
 
 const MetricItem = ({ label, value }: { label: string, value: number }) => (

@@ -1,23 +1,24 @@
 // App.tsx
-import React, { useEffect } from 'react';
-// FIX: Corrected import path for AuraProvider to resolve module not found error.
-import { AuraProvider } from './context/AuraProvider.tsx';
-import { useAuraDispatch, useCoreState } from './context/AuraContext.tsx';
-import { ModalProvider, useModal } from './context/ModalContext.tsx';
-import { ToastContainer } from './components/Toast.tsx';
-// FIX: Corrected the import path for ControlDeckComponent to directly use the canonical PascalCase filename ('ControlDeckComponent.tsx'). This resolves a module resolution error caused by ambiguity between the component file and its differently-cased re-export file, ensuring consistent and correct module loading.
-import { ControlDeckComponent } from './components/ControlDeckComponent.tsx';
-// import { LiveTranscriptOverlay } from './components/LiveTranscriptOverlay'; // File not provided
-import { Header } from './components/Header.tsx';
-import { VisualAnalysisFeed } from './components/VisualAnalysisFeed.tsx';
-import { ModalPayloads } from './types.ts';
-import { LeftColumnComponent } from './components/LeftColumnComponent.tsx';
+import React, { useEffect, useState } from 'react';
+import { AuraProvider } from './context/AuraProvider';
+import { useAuraDispatch, useCoreState, useSystemState } from './context/AuraContext';
+import { ModalProvider, useModal } from './context/ModalContext';
+import { ToastContainer } from './components/Toast';
+// FIX: Corrected import path casing for ControlDeckComponent to resolve a module resolution conflict.
+import { ControlDeckComponent } from './components/controlDeckComponent';
+import { Header } from './components/Header';
+import { VisualAnalysisFeed } from './components/VisualAnalysisFeed';
+import { ModalPayloads } from './types';
+import { LeftColumnComponent } from './components/LeftColumnComponent';
+import { ApiKeySelector } from './components/ApiKeySelector';
 
 const AppContent: React.FC = () => {
     // The useAuraDispatch hook is used to access state and handlers provided by AuraProvider.
     const { toasts, removeToast, videoRef, isVisualAnalysisActive, syscall, memoryStatus } = useAuraDispatch();
     const { modalRequest } = useCoreState();
+    const { isApiKeyInvalidated } = useSystemState();
     const modal = useModal();
+    const [isKeySelectionRequired, setIsKeySelectionRequired] = useState(false);
 
     useEffect(() => {
         // Hide the static splash screen only AFTER the main state has been loaded.
@@ -40,12 +41,32 @@ const AppContent: React.FC = () => {
 
     useEffect(() => {
         if (modalRequest) {
-            // The type assertion here is a bit loose but necessary to bridge the state and context systems.
-            // We trust that the syscall payload is correct.
-            modal.open(modalRequest.type as keyof ModalPayloads, modalRequest.payload as any);
+            // Check for API key if the modal is for video generation
+            if (modalRequest.type === 'videoGeneration') {
+                window.aistudio.hasSelectedApiKey().then((hasKey: boolean) => {
+                    if (!hasKey) {
+                        setIsKeySelectionRequired(true);
+                    } else {
+                        modal.open(modalRequest.type as keyof ModalPayloads, modalRequest.payload as any);
+                    }
+                });
+            } else {
+                 modal.open(modalRequest.type as keyof ModalPayloads, modalRequest.payload as any);
+            }
             syscall('CLEAR_MODAL_REQUEST', {});
         }
     }, [modalRequest, modal, syscall]);
+
+    useEffect(() => {
+        if (isApiKeyInvalidated) {
+            setIsKeySelectionRequired(true);
+            syscall('SYSTEM/CLEAR_API_KEY_INVALIDATED', {});
+        }
+    }, [isApiKeyInvalidated, syscall]);
+    
+    if (isKeySelectionRequired) {
+        return <ApiKeySelector onKeySelected={() => setIsKeySelectionRequired(false)} />;
+    }
 
     return (
         <div className="app-wrapper">

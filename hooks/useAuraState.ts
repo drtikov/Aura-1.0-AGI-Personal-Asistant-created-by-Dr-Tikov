@@ -6,6 +6,7 @@ import { CURRENT_STATE_VERSION } from '../constants.ts';
 import { migrateState } from '../state/migrations.ts';
 import { HAL } from '../core/hal.ts';
 import { AuraState, HistoryEntry } from '../types.ts';
+import { debounce } from '../utils.ts';
 
 const CONTINUATION_SNAPSHOT_KEY = 'auraContinuationSnapshot';
 
@@ -14,6 +15,17 @@ export const useAuraState = () => {
     const [state, dispatch] = useReducer(auraReducer, getInitialState());
     const [memoryStatus, setMemoryStatus] = useState<'initializing' | 'ready' | 'saving' | 'error'>('initializing');
     const isInitialized = useRef(false);
+
+    const debouncedSave = useRef(
+        debounce((stateToSave: AuraState) => {
+            setMemoryStatus('saving');
+            HAL.Memristor.saveState(stateToSave).then(() => {
+                setMemoryStatus('ready');
+            }).catch(() => {
+                setMemoryStatus('error');
+            });
+        }, 500) // 500ms debounce delay
+    ).current;
 
     // Effect for loading state on initial mount (from seamless reboot or Memristor)
     useEffect(() => {
@@ -94,17 +106,14 @@ export const useAuraState = () => {
     // Effect for saving state to Memristor whenever it changes
     useEffect(() => {
         // Don't save during initialization or if a reboot is pending.
-        if (memoryStatus !== 'ready' || state.kernelState?.rebootRequired) {
+        if (memoryStatus === 'initializing' || state.kernelState?.rebootRequired) {
             return;
         }
 
-        setMemoryStatus('saving');
-        HAL.Memristor.saveState(state).then(() => {
-            setMemoryStatus('ready');
-        }).catch(() => {
-            setMemoryStatus('error');
-        });
-    }, [state, memoryStatus]);
+        // Instead of saving directly, call the debounced function
+        debouncedSave(state);
+
+    }, [state, memoryStatus, debouncedSave]);
 
     const clearMemoryAndState = useCallback(async () => {
         await HAL.Memristor.clearDB();

@@ -27,45 +27,41 @@ export const SensoryIntegrationPanel = () => {
                 {Object.entries(proprioceptiveOutput).map(([key, value]) => (
                     <div key={key} className="metric-item">
                         <span className="metric-label">{key}</span>
-                        <span className="metric-value">{typeof value === 'number' ? value.toFixed(2) : String(value)}</span>
+                        <span className="metric-value">{typeof value === 'number' ? value.toFixed(2) : value}</span>
                     </div>
                 ))}
             </div>
 
             <div className="panel-subsection-title">{t('sensoryHub_linguistic')}</div>
-             <div className="sensory-output-grid">
+            <div className="sensory-output-grid">
                 {Object.entries(linguisticOutput).map(([key, value]) => (
                     <div key={key} className="metric-item">
                         <span className="metric-label">{key}</span>
-                        <span className="metric-value">{String(value)}</span>
+                        <span className="metric-value">{value}</span>
                     </div>
                 ))}
             </div>
 
             <div className="panel-subsection-title">{t('sensoryHub_structural')}</div>
-             <div className="sensory-output-grid">
-                {Object.entries(structuralOutput).map(([key, value]) => (
+            <div className="sensory-output-grid">
+                 {Object.entries(structuralOutput).map(([key, value]) => (
                     <div key={key} className="metric-item">
                         <span className="metric-label">{key}</span>
-                        <span className="metric-value">{String(value)}</span>
+                        <span className="metric-value">{JSON.stringify(value)}</span>
                     </div>
                 ))}
             </div>
 
-            <div className="panel-subsection-title">{t('sensoryHub_hubLog')}</div>
-            {hubLog.length === 0 ? (
-                <div className="kg-placeholder">{t('sensoryHub_noLogs')}</div>
-            ) : (
-                <div className="command-log-list">
-                    {hubLog.map(entry => (
-                        <div key={entry.timestamp} className="command-log-item log-type-info">
-                            <span className="log-icon">⚙️</span>
-                            <span className="log-text">{entry.message}</span>
-                            <span className="log-time">{timeAgo(entry.timestamp)}</span>
-                        </div>
-                    ))}
-                </div>
-            )}
+            <div className="panel-subsection-title">{t('sensoryHub_log')}</div>
+            <div className="command-log-list">
+                {hubLog.map(entry => (
+                    <div key={entry.timestamp} className="command-log-item log-type-info">
+                        <span className="log-icon">↔️</span>
+                        <span className="log-text">{entry.message}</span>
+                        <span className="log-time">{timeAgo(entry.timestamp)}</span>
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

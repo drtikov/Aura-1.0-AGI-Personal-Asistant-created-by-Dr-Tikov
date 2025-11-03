@@ -190,7 +190,7 @@ export const DocumentForgeContainerModal = ({ isOpen, onClose }: { isOpen: boole
             
             <div className="modal-footer">
                 <button
-                    className="control-button"
+                    className="proposal-reject-button"
                     onClick={handleReset}
                     disabled={status !== 'complete' && status !== 'error'}
                 >

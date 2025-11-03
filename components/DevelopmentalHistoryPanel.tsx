@@ -1,6 +1,6 @@
 // components/DevelopmentalHistoryPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const DevelopmentalHistoryPanel = React.memo(() => {
     const { developmentalHistory: state } = useCoreState();

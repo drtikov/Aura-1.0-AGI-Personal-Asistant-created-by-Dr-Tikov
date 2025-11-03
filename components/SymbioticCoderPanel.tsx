@@ -1,27 +1,22 @@
 // components/SymbioticCoderPanel.tsx
 import React, { useState } from 'react';
 import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
-import { Accordion } from './Accordion';
+import { Accordion } from './Accordion.tsx';
 
-type ActionType = 'explain' | 'refactor' | 'test';
+type ActionType = 'explain' | 'refactor' | 'test' | 'creative';
 
 const DiffViewer = ({ oldCode, newCode }: { oldCode: string; newCode: string }) => {
-    // A simple line-by-line diff for demonstration purposes.
+    // This is a simplified diff viewer. A real implementation might use a library like diff-match-patch.
     const oldLines = oldCode.split('\n');
     const newLines = newCode.split('\n');
-    const maxLines = Math.max(oldLines.length, newLines.length);
-    const lines = [];
-
-    for (let i = 0; i < maxLines; i++) {
-        const oldLine = oldLines[i];
-        const newLine = newLines[i];
-        if (oldLine !== newLine) {
-            if (oldLine !== undefined) lines.push({ type: 'del', content: `- ${oldLine}` });
-            if (newLine !== undefined) lines.push({ type: 'add', content: `+ ${newLine}` });
-        } else if (oldLine !== undefined) {
-            lines.push({ type: 'same', content: `  ${oldLine}` });
+    // For simplicity, we assume the refactored code has a similar structure.
+    // This is just for visualization.
+    const lines = newLines.map((line, i) => {
+        if (oldLines[i] !== line) {
+            return { type: 'add', content: `+ ${line}` };
         }
-    }
+        return { type: 'same', content: `  ${line}` };
+    });
 
     return (
         <div className="diff-viewer">
@@ -37,7 +32,7 @@ const DiffViewer = ({ oldCode, newCode }: { oldCode: string; newCode: string }) 
 
 export const SymbioticCoderPanel = React.memo(() => {
     const { t } = useLocalization();
-    const { syscall, addToast, geminiAPI } = useAuraDispatch();
+    const { addToast, geminiAPI } = useAuraDispatch();
     
     const [action, setAction] = useState<ActionType>('explain');
     const [inputCode, setInputCode] = useState('');
@@ -50,7 +45,7 @@ export const SymbioticCoderPanel = React.memo(() => {
     const [refactorDiff, setRefactorDiff] = useState<{ old: string; new: string } | null>(null);
 
     const handleExecute = async () => {
-        if (!inputCode.trim()) {
+        if (action !== 'creative' && !inputCode.trim()) {
             addToast(t('symbioticCoder_inputCode_placeholder'), 'warning');
             return;
         }
@@ -61,19 +56,14 @@ export const SymbioticCoderPanel = React.memo(() => {
         setRefactorDiff(null);
 
         try {
-            let responseText = '';
-            // This is a placeholder for actual Gemini API calls.
-            // In a real implementation, you would call functions like geminiAPI.explainCode(inputCode)
-            await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate network latency
-
             switch(action) {
                 case 'explain':
-                    responseText = `// This is a simulated explanation for the provided code.\n// The function appears to take two arguments and return their sum.\n// It uses modern arrow function syntax.`;
-                    setExplanation(responseText);
+                    const explainedText = await geminiAPI.explainCode(inputCode);
+                    setExplanation(explainedText);
                     break;
                 case 'test':
-                     responseText = `import { describe, it, expect } from 'vitest';\n\n// Simulated test case\ndescribe('myFunction', () => {\n  it('should return the correct sum', () => {\n    // Assuming the input was: const myFunction = (a, b) => a + b;\n    expect(myFunction(2, 3)).toBe(5);\n  });\n});`;
-                    setTestResult(responseText);
+                    const generatedTest = await geminiAPI.generateTestForCode(inputCode);
+                    setTestResult(generatedTest);
                     break;
                 case 'refactor':
                      if (!refactorInstruction.trim()) {
@@ -81,8 +71,13 @@ export const SymbioticCoderPanel = React.memo(() => {
                         setIsProcessing(false);
                         return;
                     }
-                    responseText = `// This is a simulated refactor of the code based on your instruction.\n${inputCode.replace('const', 'let')}`;
-                    setRefactorDiff({ old: inputCode, new: responseText });
+                    const refactoredCode = await geminiAPI.refactorCode(inputCode, refactorInstruction);
+                    setRefactorDiff({ old: inputCode, new: refactoredCode });
+                    break;
+                case 'creative':
+                    // This is a placeholder for creative coding.
+                    // The actual implementation would use a different set of inputs.
+                    addToast('Creative coding mode is a concept.', 'info');
                     break;
             }
         } catch(e) {
@@ -102,12 +97,13 @@ export const SymbioticCoderPanel = React.memo(() => {
                     <button className={action === 'explain' ? 'active' : ''} onClick={() => setAction('explain')}>{t('symbioticCoder_explain')}</button>
                     <button className={action === 'refactor' ? 'active' : ''} onClick={() => setAction('refactor')}>{t('symbioticCoder_refactor')}</button>
                     <button className={action === 'test' ? 'active' : ''} onClick={() => setAction('test')}>{t('symbioticCoder_generateTest')}</button>
+                    <button className={action === 'creative' ? 'active' : ''} onClick={() => setAction('creative')}>Creative</button>
                 </div>
             </div>
 
              <div className="image-gen-control-group">
-                <label htmlFor="coder-input">{t('symbioticCoder_inputCode')}</label>
-                <textarea id="coder-input" value={inputCode} onChange={e => setInputCode(e.target.value)} placeholder={t('symbioticCoder_inputCode_placeholder')} disabled={isProcessing} rows={8} />
+                <label htmlFor="coder-input">{action === 'creative' ? 'Prompt' : t('symbioticCoder_inputCode')}</label>
+                <textarea id="coder-input" value={inputCode} onChange={e => setInputCode(e.target.value)} placeholder={action === 'creative' ? 'e.g., A mesmerizing spiral of circles' : t('symbioticCoder_inputCode_placeholder')} disabled={isProcessing} rows={8} />
             </div>
 
             {action === 'refactor' && (

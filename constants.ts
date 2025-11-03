@@ -1,5 +1,6 @@
 
-export const CURRENT_STATE_VERSION = 3;
+
+export const CURRENT_STATE_VERSION = 4;
 
 export const AuraConfig = {
     HORMONE_DECAY_RATE: 0.01,

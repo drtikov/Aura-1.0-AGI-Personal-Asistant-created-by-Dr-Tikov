@@ -1,5 +1,5 @@
 // hooks/useLiveSession.ts
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, Dispatch } from 'react';
 import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob, GenerateContentResponse, Part } from '@google/genai';
 import { AuraState, Action, SyscallCall } from '../types';
 import { encode, decode, decodeAudioData, getAI } from '../utils';
@@ -8,7 +8,8 @@ const FRAME_RATE = 1; // Send 1 video frame per second
 
 export const useLiveSession = (
     state: AuraState,
-    dispatch: React.Dispatch<Action>,
+    // FIX: Changed React.Dispatch to Dispatch for consistency
+    dispatch: Dispatch<Action>,
     addToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void
 ) => {
     const sessionPromise = useRef<Promise<LiveSession> | null>(null);

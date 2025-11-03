@@ -1,6 +1,6 @@
 // components/SynapticMatrixPanel.tsx
 import React, { useMemo } from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
+import { useArchitectureState, useLocalization } from '../context/AuraContext';
 import { SynapticLink } from '../types';
 
 export const SynapticMatrixPanel = React.memo(() => {

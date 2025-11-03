@@ -1,12 +1,13 @@
 // components/CognitiveRegulationPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 
 export const CognitiveRegulationPanel = React.memo(() => {
-    const { internalState, userModel, cognitiveStrategy } = useCoreState();
+    // FIX: Updated the component to use `internalState.activeCognitiveStrategyId` directly, as the derived `cognitiveStrategy` property was removed from the core state context to fix a type error.
+    const { internalState, userModel } = useCoreState();
     const { t } = useLocalization();
 
-    const strategyText = cognitiveStrategy === 'full_guidance' 
+    const strategyText = internalState.activeCognitiveStrategyId === 'full_guidance' 
         ? t('strategy_full_guidance') 
         : t('strategy_collaborative_scaffolding');
     

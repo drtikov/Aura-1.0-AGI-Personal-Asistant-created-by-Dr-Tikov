@@ -1,6 +1,6 @@
 // components/PersonalityPanel.tsx
 import React from 'react';
-import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization } from '../context/AuraContext';
 // FIX: Updated import to use PersonaActivation instead of the collided Persona type.
 import { PersonalityState, PersonaActivation, Persona } from '../types.ts';
 import { useModal } from '../context/ModalContext.tsx';

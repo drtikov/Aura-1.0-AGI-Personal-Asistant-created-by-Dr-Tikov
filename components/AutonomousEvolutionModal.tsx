@@ -153,7 +153,7 @@ const ProposalDisplay = ({ proposal }: { proposal: UnifiedProposal }) => {
                 {proposal.status === 'simulation_failed' && (
                     <div className="failure-reason-display">
                         <strong>Simulation Failed:</strong>
-                        <p>{(proposal as SelfProgrammingCandidate).failureReason || 'No specific reason provided.'}</p>
+                        <p>{('failureReason' in proposal && proposal.failureReason) || 'No specific reason provided.'}</p>
                     </div>
                 )}
 

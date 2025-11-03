@@ -9,9 +9,10 @@ export const personaReducer = (state: AuraState, action: Action): Partial<AuraSt
         case 'PERSONA/ADD_JOURNAL_ENTRY': {
             const { personaId, entry } = args;
             if (!entry || !personaId) return {};
+
             const currentJournal = state.personalityState.personaJournals[personaId] || [];
-            // Add new entry and keep the last 10 entries
             const newJournal = [entry, ...currentJournal].slice(0, 10);
+
             return {
                 personalityState: {
                     ...state.personalityState,

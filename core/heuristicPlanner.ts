@@ -1,3 +1,3 @@
-// core/heuristicPlanner.ts
-// FIX: Added export to make this file a module and prevent build errors.
+// This file is a duplicate due to its path.
+// It has been emptied to resolve build errors.
 export {};

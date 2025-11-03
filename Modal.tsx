@@ -1,2 +1,2 @@
-// FIX: This file is a duplicate of 'components/Modal.tsx'. It has been modified to re-export from the canonical file to resolve module conflicts.
-export * from './components/Modal.tsx';
+// This file is a duplicate and has been emptied to resolve build errors.
+export {};

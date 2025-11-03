@@ -13,7 +13,12 @@ export const MultiverseBranchingModal = ({ isOpen, onBranch, onClose, isProcessi
         }
     }, [isOpen]);
 
-    const handleBranchClick = () => { if (prompt.trim()) { onBranch(prompt.trim()); } };
+    const handleBranchClick = () => {
+        if (prompt.trim()) {
+            onBranch(prompt.trim());
+            onClose();
+        }
+    };
 
     const footer = (
         <>

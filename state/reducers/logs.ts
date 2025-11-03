@@ -8,6 +8,10 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'HISTORY/CLEAR_PREVIOUS_BRAINSTORMS':
+            return {
+                history: state.history.filter(entry => !entry.text?.startsWith('## Brainstorming Session:')),
+            };
         case 'ADD_HISTORY_ENTRY': {
             // The de-duplication logic for system messages has been removed for clarity.
             const newEntry = {

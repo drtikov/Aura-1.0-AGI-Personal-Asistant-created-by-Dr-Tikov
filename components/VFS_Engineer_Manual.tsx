@@ -174,4 +174,100 @@ Instead of reading from the disk during runtime, Aura interacts with this intern
 
 ### Architectural Significance
 - **True Self-Modification:** Provides the direct read/write access necessary for an AI to modify its own source code and evolve.
-- **Stateful & Transactional:** Because the VFS is part of the
+- **Stateful & Transactional:** Because the VFS is part of the main state object, any changes are part of the standard state update cycle. This allows for snapshots, rollbacks, and a full audit trail of Aura's evolution.
+- **Introspection:** The VFS is the foundation for tools like the Daedalus Labyrinth, which parses the VFS to create a dependency graph, and the Code Archaeologist, which scans for technical debt.
+
+## 2. Live Code Ingestion: The Engineering Interface
+
+To allow for direct, manual evolution by a human engineer, Aura includes a "Live Code Ingestion" mechanism. This system uses a dedicated UI panel and a specific \`INGEST_CODE_CHANGE\` syscall to update the VFS in real-time.
+
+### How it Works (Step-by-Step)
+
+1.  **UI Panel:** The engineer uses the \`Code Ingestion Panel\` to specify a file path and the new code content.
+2.  **Syscall:** Submitting the form dispatches an \`INGEST_CODE_CHANGE\` syscall with the file path and code as its payload.
+3.  **Reducer Logic:** The main \`auraReducer\` routes this syscall to two separate reducers:
+    *   **\`architectureReducer\`:** Updates the \`virtualFileSystem\` in the state with the new code content. It also creates a system snapshot and logs the modification.
+    *   **\`coreReducer\`:** Logs the event as a significant \`DevelopmentalMilestone\`.
+4.  **Reboot:** After the state is updated, a \`rebootRequired\` flag is set, triggering a seamless reboot to apply the code changes to the live application.
+
+## 3. Implementation Details
+
+### VFS Structure (\`core/vfs.ts\`)
+
+The initial VFS is a simple key-value map where the key is the file path and the value is the file's string content.
+
+<CodeBlock title="File: core/vfs.ts" code={vfsStructureCode} />
+
+### Type Definition (\`types.ts\`)
+
+A new syscall type is needed to represent the ingestion command.
+
+<CodeBlock title="File: types.ts" code={typesCode} />
+
+### Architecture Reducer (\`state/reducers/architecture.ts\`)
+
+This reducer handles the core logic of updating the VFS, creating snapshots, and logging the change.
+
+<CodeBlock title="File: state/reducers/architecture.ts" code={architectureReducerCode} />
+
+### Core Reducer (\`state/reducers/core.ts\`)
+
+This reducer logs the manual intervention as a key event in Aura's developmental history.
+
+<CodeBlock title="File: state/reducers/core.ts" code={coreReducerCode} />
+
+### UI Component (\`components/CodeIngestionPanel.tsx\`)
+
+This is the front-end interface for the engineer to interact with the system.
+
+<CodeBlock title="File: components/CodeIngestionPanel.tsx" code={uiComponentCode} />
+`;
+
+    const handleCopyAll = () => {
+        // A simple text conversion of the JSX for clipboard
+        const textToCopy = allContentToCopy
+            .replace(/<CodeBlock title="([^"]+)" code=\{([^}]+)\} \/>/g, (match, title, codeVar) => {
+                let codeContent = '';
+                if (codeVar === 'vfsStructureCode') codeContent = vfsStructureCode;
+                if (codeVar === 'typesCode') codeContent = typesCode;
+                if (codeVar === 'architectureReducerCode') codeContent = architectureReducerCode;
+                if (codeVar === 'coreReducerCode') codeContent = coreReducerCode;
+                if (codeVar === 'uiComponentCode') codeContent = uiComponentCode;
+                return `### ${title}\n\n\`\`\`typescript\n${codeContent.trim()}\n\`\`\``;
+            });
+
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            addToast('Manual copied to clipboard!', 'success');
+        });
+    };
+
+    return (
+        <div className="text-gray-300 font-mono text-sm leading-relaxed p-2">
+            <h2 className="text-lg font-bold text-cyan-400 font-heading tracking-wider">Aura's Virtual File System (VFS) & Engineering Interface</h2>
+
+            <section className="my-6">
+                <h3 className="text-md font-bold text-cyan-300 tracking-wide border-b border-cyan-500/20 pb-1 mb-2">1. High-Level Philosophy: The Self-Aware Codebase</h3>
+                <p>The Virtual File System (VFS) is a cornerstone of Aura's self-modification and evolution capabilities. It is an **in-memory representation** of the entire application's source code, loaded into Aura's state upon initialization.</p>
+                <p className="mt-2">Instead of reading from the disk during runtime, Aura interacts with this internal model of its own code. This allows it to analyze, understand, and rewrite its own logic dynamically.</p>
+            </section>
+            
+            <section className="mb-6">
+                 <h3 className="text-md font-bold text-cyan-300 tracking-wide border-b border-cyan-500/20 pb-1 mb-2">2. Live Code Ingestion: The Engineering Interface</h3>
+                 <p>To allow for direct, manual evolution by a human engineer, Aura includes a "Live Code Ingestion" mechanism. This system uses a dedicated UI panel and a specific `INGEST_CODE_CHANGE` syscall to update the VFS in real-time. This triggers a seamless reboot to apply the changes.</p>
+            </section>
+
+            <div className="button-grid" style={{marginBottom: '1rem'}}>
+                 <button className="control-button" onClick={handleCopyAll}>Copy Full Manual</button>
+            </div>
+            
+            <section className="mb-6">
+                 <h3 className="text-md font-bold text-cyan-300 tracking-wide border-b border-cyan-500/20 pb-1 mb-2">3. Implementation Details</h3>
+                 <CodeBlock title="VFS Structure (core/vfs.ts)" code={vfsStructureCode} />
+                 <CodeBlock title="Syscall Definition (types.ts)" code={typesCode} />
+                 <CodeBlock title="Architecture Reducer (state/reducers/architecture.ts)" code={architectureReducerCode} />
+                 <CodeBlock title="Core Reducer (state/reducers/core.ts)" code={coreReducerCode} />
+                 <CodeBlock title="UI Component (components/CodeIngestionPanel.tsx)" code={uiComponentCode} />
+            </section>
+        </div>
+    );
+};

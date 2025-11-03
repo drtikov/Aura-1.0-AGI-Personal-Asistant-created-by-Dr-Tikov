@@ -132,6 +132,16 @@ import { AxiomaticGenesisForgePanel } from './AxiomaticGenesisForgePanel.tsx';
 import { MotivationPanel } from './MotivationPanel.tsx';
 import { SDKStatusPanel } from './SDKStatusPanel.tsx';
 import { SoftwareAgencyPanel } from './SoftwareAgencyPanel.tsx';
+import { BusinessNetworkPanel } from './BusinessNetworkPanel.tsx';
+import { MarketAnalyzerPanel } from './MarketAnalyzerPanel.tsx';
+import { MortgageCalculatorPanel } from './MortgageCalculatorPanel.tsx';
+import { CompsFinderPanel } from './CompsFinderPanel.tsx';
+import { ListingGeneratorPanel } from './ListingGeneratorPanel.tsx';
+import { InvestmentCalculatorPanel } from './InvestmentCalculatorPanel.tsx';
+import { NeighborhoodExplorerPanel } from './NeighborhoodExplorerPanel.tsx';
+import { AffordabilityCalculatorPanel } from './AffordabilityCalculatorPanel.tsx';
+import { HomeBuyingGuidePanel } from './HomeBuyingGuidePanel.tsx';
+import { IdeaCartographerPanel } from './IdeaCartographerPanel.tsx';
 
 
 import { UseAuraResult } from '../types.ts';
@@ -228,6 +238,8 @@ export const advancedControlsLayout: PanelConfig[] = [
             { id: 'metisSandbox', titleKey: 'metis_sandbox_title', component: MetisSandboxPanel },
             { id: 'hova', titleKey: 'hova_panel_title', component: HOVAPanel },
             { id: 'daedalus', titleKey: 'daedalus_panel_title', component: DaedalusLabyrinthPanel },
+            { id: 'noeticMultiverse', titleKey: 'noetic_multiverse_panel_title', component: NoeticMultiversePanel },
+            { id: 'ideaCartographer', titleKey: 'idea_cartographer_title', component: IdeaCartographerPanel },
         ]
     },
     {
@@ -249,6 +261,27 @@ export const advancedControlsLayout: PanelConfig[] = [
             },
         ]
     },
+     {
+        id: 'business',
+        titleKey: 'business_network_group_title',
+        children: [
+            { id: 'businessNetwork', titleKey: 'business_network_panel_title', component: BusinessNetworkPanel },
+        ]
+    },
+    {
+        id: 'real_estate_suite',
+        titleKey: 'realEstateSuite_group',
+        children: [
+            { id: 'marketAnalyzer', titleKey: 'marketAnalyzer_panel_title', component: MarketAnalyzerPanel },
+            { id: 'mortgageCalculator', titleKey: 'mortgageCalculator_panel_title', component: MortgageCalculatorPanel },
+            { id: 'compsFinder', titleKey: 'compsFinder_panel_title', component: CompsFinderPanel },
+            { id: 'listingGenerator', titleKey: 'listingGenerator_panel_title', component: ListingGeneratorPanel },
+            { id: 'investmentCalculator', titleKey: 'investmentCalculator_panel_title', component: InvestmentCalculatorPanel },
+            { id: 'neighborhoodExplorer', titleKey: 'neighborhoodExplorer_panel_title', component: NeighborhoodExplorerPanel },
+            { id: 'affordabilityCalculator', titleKey: 'affordabilityCalculator_panel_title', component: AffordabilityCalculatorPanel },
+            { id: 'homeBuyingGuide', titleKey: 'homeBuyingGuide_panel_title', component: HomeBuyingGuidePanel },
+        ]
+    },
     {
         id: 'metaphysicalEngines',
         titleKey: 'metaphysical_engines_group_title',
@@ -263,6 +296,9 @@ export const advancedControlsLayout: PanelConfig[] = [
              { id: 'axiomaticCrucible', titleKey: 'axiomatic_crucible_panel_title', component: AxiomaticCruciblePanel },
              { id: 'phenomenology', titleKey: 'phenomenology_panel_title', component: PhenomenologyPanel },
              { id: 'prometheus', titleKey: 'prometheus_panel_title', component: PrometheusPanel },
+             { id: 'satori', titleKey: 'satori_panel_title', component: SatoriPanel },
+             { id: 'ricciFlowManifold', titleKey: 'ricciFlow_panel_title', component: RicciFlowManifoldPanel },
+             { id: 'axiomaticGenesisForge', titleKey: 'axiomatic_genesis_forge_panel_title', component: AxiomaticGenesisForgePanel },
         ]
     },
     {

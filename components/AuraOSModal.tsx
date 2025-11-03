@@ -3,6 +3,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import { Modal } from './Modal.tsx';
 import { useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
 import { PanelConfig, mainControlDeckLayout, advancedControlsLayout } from './controlDeckConfig.tsx';
+import { NarrativeSummaryPanel } from './NarrativeSummaryPanel.tsx';
 
 interface AuraOSModalProps {
     isOpen: boolean;
@@ -129,6 +130,7 @@ export const AuraOSModal = ({ isOpen, onClose, initialPanel }: AuraOSModalProps)
                         onChange={e => setSearchQuery(e.target.value)}
                         aria-label={t('auraOS_search_placeholder')}
                     />
+                    <NarrativeSummaryPanel />
                     <div className="aura-os-nav-list">
                         {filteredPanelGroups.map(group => (
                             <div key={group.titleKey}>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { useCoreState, useLocalization } from '../context/AuraContext.tsx';
 import { clamp } from '../utils.ts';
+import { SafeMarkdown } from './SafeMarkdown.tsx';
 
 export const LagrangeEnginePanel = React.memo(() => {
     const { lagrangeEngineState } = useCoreState();
@@ -34,7 +35,9 @@ export const LagrangeEnginePanel = React.memo(() => {
             <div className="panel-subsection-title">{t('lagrange_symbolic')}</div>
              {symbolicEquation ? (
                 <div className="code-snippet-container">
-                    <pre><code>{symbolicEquation}</code></pre>
+                    <div style={{ padding: '0.5rem' }}>
+                         <SafeMarkdown text={`$${symbolicEquation}$`} />
+                    </div>
                 </div>
              ) : (
                 <div className="kg-placeholder">Not computed.</div>

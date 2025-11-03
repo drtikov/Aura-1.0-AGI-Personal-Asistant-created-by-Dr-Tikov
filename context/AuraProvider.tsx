@@ -64,7 +64,6 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         internalScientistState: state.internalScientistState,
         metisSandboxState: state.metisSandboxState,
         spandaState: state.spandaState,
-        personaState: state.personaState,
         brainstormState: state.brainstormState,
         liveSessionState: state.liveSessionState,
         proactiveUI: state.proactiveUI,
@@ -74,17 +73,18 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         modalRequest: state.modalRequest,
         uiCommandRequest: state.uiCommandRequest,
         prometheusState: state.prometheusState,
-        erisEngineState: state.erisEngineState,
         collaborativeSessionState: state.collaborativeSessionState,
         symbioticCanvasState: state.symbioticCanvasState,
         logosState: state.logosState,
+        erisEngineState: state.erisEngineState,
         lagrangeEngineState: state.lagrangeEngineState,
         artificialScientistState: state.artificialScientistState,
         bennettEngineState: state.bennettEngineState,
         ockhamEngineState: state.ockhamEngineState,
         socraticAssessorState: state.socraticAssessorState,
         axiomaticGenesisForgeState: state.axiomaticGenesisForgeState,
-        cognitiveStrategy: state.cognitiveStrategy,
+        cognitiveRefinementState: state.cognitiveRefinementState,
+        // FIX: Removed the non-existent `cognitiveStrategy` property from this object to align with the corrected `CoreState` type.
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
@@ -101,7 +101,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.liveSessionState, state.proactiveUI, state.strategicCoreState, state.mycelialState, state.semanticWeaverState, state.modalRequest, state.uiCommandRequest,
         state.prometheusState, state.erisEngineState, state.collaborativeSessionState, state.symbioticCanvasState, state.logosState,
         state.lagrangeEngineState, state.artificialScientistState, state.bennettEngineState, state.ockhamEngineState, state.socraticAssessorState,
-        state.axiomaticGenesisForgeState, state.cognitiveStrategy,
+        state.axiomaticGenesisForgeState, state.cognitiveRefinementState,
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -146,6 +146,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         atpCoprocessorState: state.atpCoprocessorState,
         praxisCoreState: state.praxisCoreState,
         daedalusLabyrinthState: state.daedalusLabyrinthState,
+        harmonicEngineState: state.harmonicEngineState,
     }), [
         state.cognitiveArchitecture, state.systemSnapshots, state.modificationLog, state.cognitiveForgeState,
         state.architecturalSelfModel, state.heuristicsForge, state.somaticCrucible, state.eidolonEngine,
@@ -154,7 +155,7 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         state.koniocortexSentinelState, state.cognitiveTriageState, state.psycheState, state.motorCortexState,
         state.praxisResonatorState, state.ontogeneticArchitectState, state.embodiedCognitionState,
         state.evolutionarySandboxState, state.hovaState, state.documentForgeState, state.wisdomIngestionState,
-        state.axiomaticCrucibleState, state.atpCoprocessorState, state.praxisCoreState, state.daedalusLabyrinthState
+        state.axiomaticCrucibleState, state.atpCoprocessorState, state.praxisCoreState, state.daedalusLabyrinthState, state.harmonicEngineState
     ]);
 
     const planningStateValue = useMemo(() => ({
@@ -195,7 +196,9 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         eventBus: state.eventBus,
         temporalEngineState: state.temporalEngineState,
         autonomousReviewBoardState: state.autonomousReviewBoardState,
-    }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState, state.kernelState, state.ipcState, state.eventBus, state.temporalEngineState, state.autonomousReviewBoardState]);
+        // FIX: Added missing systemState to the provider value
+        systemState: state.systemState,
+    }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState, state.kernelState, state.ipcState, state.eventBus, state.temporalEngineState, state.autonomousReviewBoardState, state.systemState]);
 
     const localizationValue = useMemo(() => ({ t, language }), [t, language]);
 

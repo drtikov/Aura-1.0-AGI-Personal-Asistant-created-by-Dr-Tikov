@@ -1,24 +1,26 @@
 // hooks/useUIHandlers.ts
-import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback, Dispatch } from 'react';
 import { 
     AuraState, ToastType, Action, SyscallCall, ArchitecturalChangeProposal, 
     SelfProgrammingCandidate, GoalTree, GoalType, UseGeminiAPIResult, 
     CoCreatedWorkflow, CreateFileCandidate, Plugin, HistoryEntry, 
-    UIHandlers, PsycheAdaptationProposal, DoxasticExperiment, KnowledgeFact
-} from '../types';
+    UIHandlers, PsycheAdaptationProposal, DoxasticExperiment, KnowledgeFact, CognitiveMode, KernelTaskType
+} from '../types.ts';
 import { migrateState } from '../state/migrations.ts';
 import { CURRENT_STATE_VERSION } from '../constants.ts';
 import { HAL } from '../core/hal.ts';
 import { useLocalization } from '../context/AuraContext.tsx';
-import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator';
-import { VIRTUAL_FILE_SYSTEM } from '../core/vfs';
+import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator.ts';
+import { VIRTUAL_FILE_SYSTEM } from '../core/vfs.ts';
+import { loadSdk } from '../core/sdkLoader.ts';
 
 declare const JSZip: any;
 
 type SyscallFn = (call: SyscallCall, args: any) => void;
 
 // FIX: Corrected the return type of the `t` function from `void` to `string`.
-export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>, syscall: SyscallFn, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearMemoryAndState: () => Promise<void>, geminiAPI: UseGeminiAPIResult): UIHandlers => {
+// FIX: Changed React.Dispatch to Dispatch for consistency
+export const useUIHandlers = (state: AuraState, dispatch: Dispatch<Action>, syscall: SyscallFn, addToast: (msg: string, type?: ToastType) => void, t: (key: string, options?: any) => string, clearMemoryAndState: () => Promise<void>, geminiAPI: UseGeminiAPIResult): UIHandlers => {
     const [currentCommand, setCurrentCommand] = useState('');
     const [attachedFile, setAttachedFile] = useState<{ file: File, previewUrl: string, type: 'image' | 'audio' | 'video' | 'other' } | null>(null);
     const [processingState, setProcessingState] = useState({ active: false, stage: '' });
@@ -137,6 +139,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         // FIX: Pass feature name to translation function
         addToast(t('toast_schemaGenerating'), 'info');
         try {
+            await loadSdk('jszip');
             const zip = new JSZip();
 
             // Generate schema files
@@ -306,13 +309,28 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     }, [state, syscall, addToast, geminiAPI]);
 
 
-    // FIX: Refactored placeholder functions to use the translation function `t` for consistency and to resolve potential type errors.
-    const handleFantasy = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Fantasy' }), 'info'), [addToast, t]);
-    const handleCreativity = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Creativity' }), 'info'), [addToast, t]);
-    const handleDream = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Dream' }), 'info'), [addToast, t]);
-    const handleMeditate = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Meditate' }), 'info'), [addToast, t]);
-    const handleGaze = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Gaze' }), 'info'), [addToast, t]);
-    const handleTimefocus = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Time Focus' }), 'info'), [addToast, t]);
+    const setCognitiveMode = useCallback((mode: CognitiveMode) => {
+        syscall('SET_COGNITIVE_MODE', mode);
+        addToast(`${mode.charAt(0).toUpperCase() + mode.slice(1)} mode activated for the next response.`, 'info');
+    }, [syscall, addToast]);
+    
+    const handleFantasy = useCallback(() => setCognitiveMode('fantasy'), [setCognitiveMode]);
+    const handleCreativity = useCallback(() => setCognitiveMode('creativity'), [setCognitiveMode]);
+    const handleDream = useCallback(() => setCognitiveMode('dream'), [setCognitiveMode]);
+    const handleMeditate = useCallback(() => setCognitiveMode('meditate'), [setCognitiveMode]);
+    const handleGaze = useCallback(() => setCognitiveMode('gaze'), [setCognitiveMode]);
+    const handleTimefocus = useCallback(() => setCognitiveMode('timefocus'), [setCognitiveMode]);
+    
+    // FIX: Implement missing handleStartDialectic function.
+    const handleStartDialectic = useCallback((topic: string) => {
+        syscall('DIALECTIC/START', {
+            topic,
+            thesisPersonaId: 'strategist', // Example persona
+            antithesisPersonaId: 'ux_designer' // Example opposing persona
+        });
+        addToast('Dialectic process initiated.', 'info');
+    }, [syscall, addToast]);
+
     const handleSetTelos = useCallback((telos: string) => { syscall('SET_TELOS', telos); }, [syscall]);
     const handleCreateWorkflow = useCallback((workflowData: Omit<CoCreatedWorkflow, 'id'>) => {
         syscall('ADD_WORKFLOW_PROPOSAL', workflowData);
@@ -341,28 +359,42 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
     const handleSatori = useCallback(() => { syscall('SET_SATORI_STATE', { isActive: !state.satoriState.isActive }); }, [syscall, state.satoriState.isActive]);
     const handleTrainCorticalColumn = useCallback((specialty: string, curriculum: string) => addToast(t('toast_not_implemented', { feature: 'Training Cortical Column' }), 'info'), [addToast, t]);
     const handleSynthesizeAbstractConcept = useCallback((name: string, columnIds: string[]) => addToast(t('toast_not_implemented', { feature: 'Synthesizing Abstract Concept' }), 'info'), [addToast, t]);
+    // FIX: Add SANDBOX/START_SPRINT to SyscallCall type in types.ts
     const handleStartSandboxSprint = useCallback((goal: string) => { syscall('SANDBOX/START_SPRINT', { goal }); }, [syscall]);
     const handleIngestWisdom = useCallback((content: string) => { syscall('WISDOM/START_INGESTION', { content }); }, [syscall]);
     const handleProcessAxiom = useCallback((axiom: any, status: 'accepted' | 'rejected') => {
         if (status === 'accepted') {
-            syscall('HEURISTICS_FORGE/ADD_AXIOM', { axiom: axiom.axiom, source: axiom.source });
+            // FIX: Changed from ADD_AXIOM to ADD_HEURISTIC and adjusted payload. Added to SyscallCall in types.ts
+            syscall('HEURISTICS_FORGE/ADD_HEURISTIC', { heuristic: axiom.axiom, source: axiom.source, confidence: 0.8, effectivenessScore: 0.5, validationStatus: 'validated' });
         }
         syscall('WISDOM/PROCESS_AXIOM', { id: axiom.id, status });
     }, [syscall]);
     const handleApproveAllAxioms = useCallback((axioms: any[]) => {
         axioms.forEach(axiom => {
-            syscall('HEURISTICS_FORGE/ADD_AXIOM', { axiom: axiom.axiom, source: axiom.source });
+            // FIX: Changed from ADD_AXIOM to ADD_HEURISTIC and adjusted payload. Added to SyscallCall in types.ts
+            syscall('HEURISTICS_FORGE/ADD_HEURISTIC', { heuristic: axiom.axiom, source: axiom.source, confidence: 0.8, effectivenessScore: 0.5, validationStatus: 'validated' });
             syscall('WISDOM/PROCESS_AXIOM', { id: axiom.id, status: 'accepted' });
         });
     }, [syscall]);
     const handleResetWisdomIngestion = useCallback(() => { syscall('WISDOM/RESET', {}); }, [syscall]);
     const handleGenerateArchitectureDocument = useCallback(() => {
         const goal = t('archDoc_goal');
-        syscall('DOCUMENT_FORGE/START_PROJECT', { goal });
-        // FIX: Pass feature name to translation function
+        syscall('KERNEL/QUEUE_TASK', {
+            id: `task_${self.crypto.randomUUID()}`,
+            type: KernelTaskType.RUN_DOCUMENT_FORGE,
+            payload: { goal },
+            timestamp: Date.now(),
+        });
         addToast(t('archDoc_toast_started'), 'info');
     }, [syscall, t, addToast]);
-    const handleStartDocumentForge = useCallback((goal: string) => { syscall('DOCUMENT_FORGE/START_PROJECT', { goal }); }, [syscall]);
+    const handleStartDocumentForge = useCallback((goal: string) => {
+        syscall('KERNEL/QUEUE_TASK', {
+            id: `task_${self.crypto.randomUUID()}`,
+            type: KernelTaskType.RUN_DOCUMENT_FORGE,
+            payload: { goal },
+            timestamp: Date.now(),
+        });
+    }, [syscall]);
     const handleGenerateDreamPrompt = async (): Promise<string | undefined> => {
         try {
             return await geminiAPI.generateDreamPrompt();
@@ -417,6 +449,8 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
 
 
     return {
+        // FIX: Added syscall to the returned object
+        syscall,
         currentCommand,
         setCurrentCommand,
         attachedFile,
@@ -480,5 +514,7 @@ export const useUIHandlers = (state: AuraState, dispatch: React.Dispatch<Action>
         handleStartMetisResearch,
         handleStartOptimizationLoop,
         handleToggleIdleThought,
+        // FIX: Add missing handleStartDialectic to return object
+        handleStartDialectic,
     };
 };

@@ -4,7 +4,6 @@ import { GoogleGenAI, GenerateContentResponse, Modality, Type, FunctionDeclarati
 import { AuraState, TscError } from '../types.ts';
 import { MathJS } from './hal_mathjs.ts';
 import { NumericJS } from './hal_numericjs.ts';
-import { Lean } from './hal_lean.ts';
 import { loadSdk } from './sdkLoader.ts';
 import { HostBridge } from './hostBridge.ts';
 
@@ -221,5 +220,4 @@ export const HAL = {
     },
     MathJS,
     NumericJS,
-    Lean,
 };

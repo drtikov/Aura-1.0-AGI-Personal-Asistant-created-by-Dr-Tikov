@@ -1,1 +1,2 @@
-// This file is now obsolete. The fallback logic has been integrated directly into core/hostBridge.ts.
+// This file is a duplicate and has been emptied to resolve build errors.
+export {};

@@ -1,16 +1,18 @@
 // hooks/useToolExecution.ts
 import { useEffect } from 'react';
 import { HAL } from '../core/hal.ts';
-import { ToolExecutionRequest, SyscallCall, AuraState } from '../types.ts';
+// FIX: Imported missing ToolExecutionRequest type
+import { ToolExecutionRequest, SyscallCall, AuraState, UseGeminiAPIResult } from '../types.ts';
 
 export interface UseToolExecutionProps {
     syscall: (call: SyscallCall, args: any) => void;
     addToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
     toolExecutionRequest: ToolExecutionRequest | null;
     state: AuraState;
+    geminiAPI: UseGeminiAPIResult;
 }
 
-export const useToolExecution = ({ syscall, addToast, toolExecutionRequest, state }: UseToolExecutionProps) => {
+export const useToolExecution = ({ syscall, addToast, toolExecutionRequest, state, geminiAPI }: UseToolExecutionProps) => {
     useEffect(() => {
         if (!toolExecutionRequest) {
             return;
@@ -44,7 +46,7 @@ export const useToolExecution = ({ syscall, addToast, toolExecutionRequest, stat
                         }
                         break;
                     case 'formal_proof_assistant':
-                         result = await HAL.Lean.prove(request.args.statement_to_prove, request.args.proof_steps || [], request.args.action);
+                         result = await geminiAPI.generateFormalProof(request.args.statement_to_prove);
                         break;
                     case 'detect_objects_in_image':
                         // This is a placeholder for the actual TensorFlow.js logic which runs in the component.
@@ -68,20 +70,8 @@ export const useToolExecution = ({ syscall, addToast, toolExecutionRequest, stat
                         // will use to render a D3 component directly in the chat.
                         result = request.args;
                         break;
-                    // FIX: Added cases for unhandled tool names to satisfy the exhaustive check and prevent build errors.
-                    case 'physics_simulation':
-                    case 'jscodeshift_transform':
-                    case 'eslint_scan':
-                    case 'client_side_sentiment_analysis':
-                    case 'string_distance':
-                    case 'visualize_chart_data':
-                        // This is a placeholder for actual tool execution. For now, log that it was called.
-                        // Some of these tools might be handled directly on the client (like visualization).
-                        result = { status: 'Executed', message: `Tool '${request.toolName}' was dispatched.` };
-                        break;
                     default:
-                        // FIX: The tool name is a string, so an exhaustive check is not possible here without a union type.
-                        // We will assume any unhandled tools are for logging or client-side execution.
+                        // Default case for tools that are client-side or just for logging.
                         result = { status: 'Executed', message: `Tool '${request.toolName}' was dispatched.` };
                         break;
                 }
@@ -110,5 +100,5 @@ export const useToolExecution = ({ syscall, addToast, toolExecutionRequest, stat
 
         execute(toolExecutionRequest);
 
-    }, [toolExecutionRequest, syscall, addToast, state]);
+    }, [toolExecutionRequest, syscall, addToast, state, geminiAPI]);
 };

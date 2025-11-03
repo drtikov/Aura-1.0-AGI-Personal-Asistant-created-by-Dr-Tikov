@@ -1,6 +1,6 @@
 // components/GankyilInsightsPanel.tsx
 import React from 'react';
-import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
+import { useCoreState, useAuraDispatch, useLocalization } from '../context/AuraContext';
 import { GankyilInsight } from '../types';
 import { useModal } from '../context/ModalContext';
 

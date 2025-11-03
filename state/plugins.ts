@@ -79,9 +79,248 @@ import { pdeKnowledge } from './knowledge/pde';
 import { functionalAnalysisKnowledge } from './knowledge/functionalAnalysis';
 import { fluidDynamicsKnowledge } from './knowledge/fluidDynamics';
 import { cloudInfrastructureKnowledge } from './knowledge/cloudInfrastructure';
+import { businessAndFinanceKnowledge } from './knowledge/businessAndFinance';
+import { entrepreneurNetworkData } from './knowledge/entrepreneurNetwork';
+import { realEstateKnowledge } from './knowledge/realEstate';
+import { homeImprovementKnowledge } from './knowledge/homeImprovement';
+import { interiorDesignKnowledge } from './knowledge/interiorDesign';
+import { urbanPlanningKnowledge } from './knowledge/urbanPlanning';
+import { propertyLawKnowledge } from './knowledge/propertyLaw';
+import { personalFinanceKnowledge } from './knowledge/personalFinance';
 import { Type } from '@google/genai';
+import { examplePlugins } from './examplePlugins';
+import { heuristicsPlugins } from './knowledge/heuristics';
+import { personaPlugins } from './knowledge/personas';
+import { cognitiveStrategyPlugins } from './knowledge/cognitiveStrategies';
+
 
 export const plugins: Plugin[] = [
+  // --- NEW HARMONIC ENGINE PLUGINS ---
+  {
+    id: 'coprocessor_harmonic_engine',
+    name: 'plugin_coprocessor_harmonic_engine_name',
+    description: 'plugin_coprocessor_harmonic_engine_desc',
+    type: 'COPROCESSOR',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+  },
+  {
+    id: 'tool_harmonic_engine_solve',
+    name: 'plugin_tool_harmonic_engine_solve_name',
+    description: 'plugin_tool_harmonic_engine_solve_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'harmonic_engine_solve',
+      description: 'Solves a potential field problem using harmonic functions. Ideal for pathfinding, physics simulation (heat, electrostatics), and abstract optimization.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          problem_description: {
+            type: Type.STRING,
+            description: 'A natural language description of the problem (e.g., "Find the optimal path in a maze" or "Model heat distribution on a 2D plate").',
+          },
+          dimensionality: {
+            type: Type.NUMBER,
+            description: 'The number of dimensions for the problem space (e.g., 2 for 2D, 3 for 3D).',
+          },
+          domain_definition: {
+            type: Type.STRING,
+            description: 'A description of the problem space, e.g., "A 10x10 grid".'
+          },
+          boundary_conditions: {
+            type: Type.STRING,
+            description: 'A JSON string describing the constraints, obstacles, sources, or sinks. E.g., \'{"walls": [[2,2], [2,3]], "goal": [8,8]}\'.',
+          },
+        },
+        required: ['problem_description', 'dimensionality', 'boundary_conditions', 'domain_definition'],
+      },
+    }
+  },
+  
+  // --- NEW REAL ESTATE PLUGINS ---
+  { id: 'knowledge_real_estate', name: 'plugin_knowledge_real_estate_name', description: 'plugin_knowledge_real_estate_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: realEstateKnowledge },
+  {
+    id: 'tool_mortgage_calculator',
+    name: 'plugin_tool_mortgage_calculator_name',
+    description: 'plugin_tool_mortgage_calculator_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'calculateMortgagePayment',
+      description: 'Calculates the monthly mortgage payment (principal + interest).',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          loanAmount: { type: Type.NUMBER, description: 'The total amount of the loan.' },
+          interestRate: { type: Type.NUMBER, description: 'The annual interest rate (e.g., 6.5 for 6.5%).' },
+          loanTerm: { type: Type.NUMBER, description: 'The loan term in years.' },
+        },
+        required: ['loanAmount', 'interestRate', 'loanTerm'],
+      },
+    }
+  },
+  {
+    id: 'tool_market_analyzer',
+    name: 'plugin_tool_market_analyzer_name',
+    description: 'plugin_tool_market_analyzer_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'analyzeMarketTrends',
+      description: 'Analyzes real estate market trends for a specific location using real-time web data. Provides key metrics like median sale price, average days on market, and price per square foot.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          location: { type: Type.STRING, description: 'The city or area to analyze (e.g., "Austin, TX").' },
+          propertyType: { type: Type.STRING, description: 'The type of property to analyze (e.g., "single-family home", "condo").' },
+        },
+        required: ['location', 'propertyType'],
+      },
+    }
+  },
+  {
+    id: 'tool_comps_finder',
+    name: 'plugin_tool_comps_finder_name',
+    description: 'plugin_tool_comps_finder_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'findComparableProperties',
+      description: 'Finds simulated comparable sold properties ("comps") to help estimate a property\'s value.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          address: { type: Type.STRING, description: 'The address of the subject property.' },
+          beds: { type: Type.NUMBER, description: 'Number of bedrooms in the subject property.' },
+          baths: { type: Type.NUMBER, description: 'Number of bathrooms in the subject property.' },
+          sqft: { type: Type.NUMBER, description: 'Square footage of the subject property.' },
+          radius: { type: Type.NUMBER, description: 'Search radius in miles for comparable properties.' },
+        },
+        required: ['address', 'beds', 'baths', 'sqft', 'radius'],
+      },
+    }
+  },
+  {
+    id: 'tool_listing_generator',
+    name: 'plugin_tool_listing_generator_name',
+    description: 'plugin_tool_listing_generator_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'generateListingDescription',
+      description: 'Generates a compelling real estate listing description.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          features: { type: Type.ARRAY, items: { type: Type.STRING }, description: 'A list of key features and amenities (e.g., "renovated kitchen", "large backyard").' },
+          characteristics: { type: Type.STRING, description: 'Unique characteristics or story of the property (e.g., "historic charm", "great for entertaining").' },
+          tone: { type: Type.STRING, description: 'The desired tone of the description.', enum: ['Luxury', 'Cozy', 'Modern', 'Family-Friendly'] },
+        },
+        required: ['features', 'tone'],
+      },
+    }
+  },
+  {
+    id: 'tool_investment_calculator',
+    name: 'plugin_tool_investment_calculator_name',
+    description: 'plugin_tool_investment_calculator_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'calculateInvestmentMetrics',
+      description: 'Calculates key metrics for a real estate investment property.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          purchasePrice: { type: Type.NUMBER },
+          downPayment: { type: Type.NUMBER },
+          monthlyRent: { type: Type.NUMBER },
+          annualTaxes: { type: Type.NUMBER },
+          annualInsurance: { type: Type.NUMBER },
+          vacancyRate: { type: Type.NUMBER, description: 'Percentage (e.g., 5 for 5%)' },
+        },
+        required: ['purchasePrice', 'downPayment', 'monthlyRent', 'annualTaxes', 'annualInsurance'],
+      },
+    }
+  },
+  {
+    id: 'tool_neighborhood_explorer',
+    name: 'plugin_tool_neighborhood_explorer_name',
+    description: 'plugin_tool_neighborhood_explorer_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'getNeighborhoodData',
+      description: 'Retrieves hyper-local data for a specific location using Google Maps grounding.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          location: { type: Type.STRING, description: 'An address or neighborhood name.' },
+        },
+        required: ['location'],
+      },
+    }
+  },
+  {
+    id: 'tool_affordability_calculator',
+    name: 'plugin_tool_affordability_calculator_name',
+    description: 'plugin_tool_affordability_calculator_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'calculateAffordability',
+      description: 'Calculates a recommended maximum home price based on income and debts.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          annualIncome: { type: Type.NUMBER },
+          monthlyDebts: { type: Type.NUMBER },
+          downPayment: { type: Type.NUMBER },
+        },
+        required: ['annualIncome', 'monthlyDebts', 'downPayment'],
+      },
+    }
+  },
+  {
+    id: 'tool_home_buying_guide',
+    name: 'plugin_tool_home_buying_guide_name',
+    description: 'plugin_tool_home_buying_guide_desc',
+    type: 'TOOL',
+    status: 'enabled',
+    defaultStatus: 'enabled',
+    toolSchema: {
+      name: 'startHomeBuyingGuide',
+      description: 'Initiates the creation of a step-by-step interactive guide for buying or selling a home.',
+      parameters: {
+        type: Type.OBJECT,
+        properties: {
+          processType: { type: Type.STRING, enum: ['buying', 'selling'] },
+        },
+        required: ['processType'],
+      },
+    }
+  },
+
+  // --- NEW KNOWLEDGE PLUGINS ---
+  { id: 'knowledge_home_improvement', name: 'plugin_knowledge_home_improvement_name', description: 'plugin_knowledge_home_improvement_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: homeImprovementKnowledge },
+  { id: 'knowledge_interior_design', name: 'plugin_knowledge_interior_design_name', description: 'plugin_knowledge_interior_design_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: interiorDesignKnowledge },
+  { id: 'knowledge_urban_planning', name: 'plugin_knowledge_urban_planning_name', description: 'plugin_knowledge_urban_planning_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: urbanPlanningKnowledge },
+  { id: 'knowledge_property_law', name: 'plugin_knowledge_property_law_name', description: 'plugin_knowledge_property_law_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: propertyLawKnowledge },
+  { id: 'knowledge_personal_finance', name: 'plugin_knowledge_personal_finance_name', description: 'plugin_knowledge_personal_finance_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: personalFinanceKnowledge },
+  
+  // --- NEW BUSINESS PLUGINS ---
+  { id: 'knowledge_business_finance', name: 'plugin_knowledge_business_finance_name', description: 'plugin_knowledge_business_finance_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: businessAndFinanceKnowledge },
+  { id: 'knowledge_entrepreneur_network', name: 'plugin_knowledge_entrepreneur_network_name', description: 'plugin_knowledge_entrepreneur_network_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: entrepreneurNetworkData },
+
   // --- NEW CONCEPTUAL PLUGINS ---
   { id: 'knowledge_self_cohesion', name: 'plugin_knowledge_self_cohesion_name', description: 'plugin_knowledge_self_cohesion_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: selfCohesionKnowledge },
   { id: 'coprocessor_orchestrator', name: 'Orchestrator Plugin', description: 'Dynamically assembles workflows from other tools based on user intent.', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
@@ -90,6 +329,7 @@ export const plugins: Plugin[] = [
   { id: 'tool_reflector', name: 'Reflector Plugin', description: 'A tool to explain Aura\'s own components and functions from first principles.', type: 'TOOL', status: 'enabled', defaultStatus: 'enabled' },
   { id: 'knowledge_axiomatic', name: 'Axiomatic Plugin', description: 'A knowledge base of foundational, verifiable axioms and logical rules.', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: foundationalAxioms },
   { id: 'coprocessor_axiom_guardian', name: 'Axiom Guardian', description: 'Periodically checks for logical inconsistencies between new facts and foundational axioms.', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
+  { id: 'coprocessor_qualia_mapper', name: 'Qualia-Topology Mapper', description: 'Finds correlations between internal state (qualia) and knowledge graph structure, forging new causal links.', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
 
   { id: 'coprocessor_daedalus', name: 'daedalus_panel_title', description: 'daedalus_description', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
   { id: 'coprocessor_eris', name: 'eris_engine_panel_title', description: 'eris_description', type: 'COPROCESSOR', status: 'enabled', defaultStatus: 'enabled' },
@@ -1053,10 +1293,8 @@ export const plugins: Plugin[] = [
   { id: 'knowledge_game_theory', name: 'plugin_knowledge_game_theory_name', description: 'plugin_knowledge_game_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: gameTheoryKnowledge },
   { id: 'knowledge_mathjs', name: 'plugin_knowledge_mathjs_name', description: 'plugin_knowledge_mathjs_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: mathjsKnowledge },
   { id: 'knowledge_numericjs', name: 'plugin_knowledge_numericjs_name', description: 'plugin_knowledge_numericjs_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: numericjsKnowledge },
+// FIX: Corrected a typo in the plugin type from "K" to "KNOWLEDGE".
   { id: 'knowledge_lean', name: 'plugin_knowledge_lean_name', description: 'plugin_knowledge_lean_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: leanKnowledge },
-  { id: 'knowledge_biology', name: 'plugin_knowledge_biology_name', description: 'plugin_knowledge_biology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: biologyKnowledge },
-  { id: 'knowledge_chemistry', name: 'plugin_knowledge_chemistry_name', description: 'plugin_knowledge_chemistry_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: chemistryKnowledge },
-  { id: 'knowledge_physics', name: 'plugin_knowledge_physics_name', description: 'plugin_knowledge_physics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: physicsKnowledge },
   { id: 'knowledge_sociology', name: 'plugin_knowledge_sociology_name', description: 'plugin_knowledge_sociology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: sociologyKnowledge },
   { id: 'knowledge_anthropology', name: 'plugin_knowledge_anthropology_name', description: 'plugin_knowledge_anthropology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: anthropologyKnowledge },
   { id: 'knowledge_ecology', name: 'plugin_knowledge_ecology_name', description: 'plugin_knowledge_ecology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: ecologyKnowledge },
@@ -1064,12 +1302,20 @@ export const plugins: Plugin[] = [
   { id: 'knowledge_geology', name: 'plugin_knowledge_geology_name', description: 'plugin_knowledge_geology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: geologyKnowledge },
   { id: 'knowledge_astronomy', name: 'plugin_knowledge_astronomy_name', description: 'plugin_knowledge_astronomy_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: astronomyKnowledge },
   { id: 'knowledge_computer_science', name: 'plugin_knowledge_computer_science_name', description: 'plugin_knowledge_computer_science_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: computerScienceKnowledge },
-  { id: 'knowledge_aesthetics', name: 'plugin_knowledge_aesthetics_name', description: 'plugin_knowledge_aesthetics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: aestheticsKnowledge },
-  { id: 'knowledge_music_theory', name: 'plugin_knowledge_music_theory_name', description: 'plugin_knowledge_music_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: musicTheoryKnowledge },
+  { id: 'knowledge_biology', name: 'plugin_knowledge_biology_name', description: 'plugin_knowledge_biology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: biologyKnowledge },
+  { id: 'knowledge_chemistry', name: 'plugin_knowledge_chemistry_name', description: 'plugin_knowledge_chemistry_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: chemistryKnowledge },
+  { id: 'knowledge_physics', name: 'plugin_knowledge_physics_name', description: 'plugin_knowledge_physics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: physicsKnowledge },
   { id: 'knowledge_economics', name: 'plugin_knowledge_economics_name', description: 'plugin_knowledge_economics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: economicsKnowledge },
   { id: 'knowledge_market_analysis', name: 'plugin_knowledge_market_analysis_name', description: 'plugin_knowledge_market_analysis_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: marketAnalysisKnowledge },
   { id: 'knowledge_history', name: 'plugin_knowledge_history_name', description: 'plugin_knowledge_history_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: historyKnowledge },
   { id: 'knowledge_ethics', name: 'plugin_knowledge_ethics_name', description: 'plugin_knowledge_ethics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: ethicsKnowledge },
   { id: 'knowledge_literary_theory', name: 'plugin_knowledge_literary_theory_name', description: 'plugin_knowledge_literary_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: literaryTheoryKnowledge },
   { id: 'knowledge_organizational_psychology', name: 'plugin_knowledge_organizational_psychology_name', description: 'plugin_knowledge_organizational_psychology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: organizationalPsychologyKnowledge },
+  { id: 'knowledge_aesthetics', name: 'plugin_knowledge_aesthetics_name', description: 'plugin_knowledge_aesthetics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: aestheticsKnowledge },
+  { id: 'knowledge_music_theory', name: 'plugin_knowledge_music_theory_name', description: 'plugin_knowledge_music_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: musicTheoryKnowledge },
+  
+  ...examplePlugins,
+  ...heuristicsPlugins,
+  ...personaPlugins,
+  ...cognitiveStrategyPlugins
 ];

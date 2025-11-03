@@ -19,8 +19,9 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
             };
         }
 
+        // FIX: Renamed from KERNEL/ADD_TASK to KERNEL/QUEUE_TASK
         case 'KERNEL/QUEUE_TASK': {
-            // FIX: Correctly cast `args` to `CognitiveTask` to match the expected type, which uses the `CognitiveTaskType` enum.
+            // FIX: Correctly cast `args` to `KernelTask` to match the expected type.
             const newTask = args as KernelTask;
             // Prevent adding duplicate tasks if one is already queued or running
             if (state.kernelState.runningTask?.type === newTask.type || state.kernelState.taskQueue.some(t => t.type === newTask.type)) {
@@ -35,7 +36,7 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
         }
 
         case 'KERNEL/SET_RUNNING_TASK': {
-            // FIX: Correctly cast `args` to `CognitiveTask` to match the type of `runningTask`.
+            // FIX: Correctly cast `args` to `KernelTask` to match the type of `runningTask`.
             const task = args as KernelTask | null;
             let queue = state.kernelState.taskQueue;
             if (task) {

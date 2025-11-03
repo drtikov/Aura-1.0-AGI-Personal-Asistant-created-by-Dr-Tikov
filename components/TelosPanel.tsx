@@ -1,7 +1,7 @@
 // components/TelosEnginePanel.tsx
 import React from 'react';
 // FIX: Corrected import path for hooks from AuraProvider to AuraContext.
-import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext.tsx';
+import { useCoreState, useLocalization, useAuraDispatch } from '../context/AuraContext';
 import { useModal } from '../context/ModalContext';
 import { CandidateTelos, ValueHierarchy } from '../types';
 

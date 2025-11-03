@@ -92,17 +92,6 @@ export const cosineSimilarity = (v1: MDNAVector, v2: MDNAVector): number => {
 };
 
 /**
- * Finds the n closest vectors in a space to a target vector.
- */
-export const findClosestVectors = (targetVector: MDNAVector, space: Record<string, MDNAVector>, n: number = 1): { name: string, similarity: number }[] => {
-    const similarities = Object.entries(space).map(([name, vector]) => ({
-        name,
-        similarity: cosineSimilarity(targetVector, vector),
-    }));
-    return similarities.sort((a, b) => b.similarity - a.similarity).slice(0, n);
-};
-
-/**
  * Safely extracts the full text content from a GenerateContentResponse.
  * @param response The GenerateContentResponse from the Gemini API.
  * @returns A string containing the text content.
@@ -185,3 +174,24 @@ export const formatTimestamp = (timestamp: number): string => {
     }
     return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss');
 };
+
+/**
+ * Creates a debounced function that delays invoking func until after wait milliseconds have elapsed
+ * since the last time the debounced function was invoked.
+ * @param func The function to debounce.
+ * @param wait The number of milliseconds to delay.
+ * @returns The new debounced function.
+ */
+export function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
+    let timeout: number | null = null;
+    return function(this: any, ...args: Parameters<T>) {
+        const later = () => {
+            timeout = null;
+            func.apply(this, args);
+        };
+        if (timeout !== null) {
+            clearTimeout(timeout);
+        }
+        timeout = window.setTimeout(later, wait);
+    };
+}

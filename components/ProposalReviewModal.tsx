@@ -32,7 +32,8 @@ export const ProposalReviewModal = ({ proposal, onApprove, onReject, onClose }: 
                 ) : (
                     <p><strong>{t('architecturePanel_target')}:</strong> <span className="proposal-target">{proposal.target}</span></p>
                 )}
-                {proposal.newModule && proposal.action !== 'DEPRECATE_SKILL' && (
+                {/* FIX: Removed impossible condition. 'DEPRECATE_SKILL' is not a valid action. */}
+                {proposal.newModule && (
                     <p><strong>{t('proposalReview_resultingSkill')}:</strong> <span className="proposal-new-module">{proposal.newModule}</span></p>
                 )}
             </div>

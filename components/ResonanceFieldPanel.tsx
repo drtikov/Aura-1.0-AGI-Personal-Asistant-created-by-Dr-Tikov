@@ -28,13 +28,13 @@ export const ResonanceFieldPanel = () => {
     const activeFrequencies = useMemo(() => {
         // FIX: Explicitly type parameters in callback functions to resolve 'unknown' type errors from Object.entries.
         return Object.entries(resonanceFieldState.activeFrequencies)
-            .filter(([, data]: [string, any]) => data.intensity > 0.01)
-            .sort(([, a]: [string, any], [, b]: [string, any]) => b.intensity - a.intensity);
+            .filter(([, data]: [string, { intensity: number }]) => data.intensity > 0.01)
+            .sort(([, a]: [string, { intensity: number }], [, b]: [string, { intensity: number }]) => b.intensity - a.intensity);
     }, [resonanceFieldState.activeFrequencies]);
 
     const totalIntensity = useMemo(() => {
         // FIX: Explicitly type parameters in callback functions to resolve 'unknown' type errors.
-        return activeFrequencies.reduce((sum, [, data]: [string, any]) => sum + data.intensity, 0);
+        return activeFrequencies.reduce((sum, [, data]: [string, { intensity: number }]) => sum + data.intensity, 0);
     }, [activeFrequencies]);
 
     const tensegrityIndex = useMemo(() => {

@@ -8,6 +8,17 @@ export const brainstormReducer = (state: AuraState, action: Action): Partial<Aur
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'BRAINSTORM/RESET':
+            return {
+                brainstormState: {
+                    status: 'idle',
+                    topic: null,
+                    ideas: [],
+                    winningIdea: null,
+                    finalProposalId: null,
+                }
+            };
+
         case 'BRAINSTORM/START':
             return {
                 brainstormState: {

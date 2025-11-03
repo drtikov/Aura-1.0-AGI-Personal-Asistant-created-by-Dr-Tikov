@@ -1,5 +1,6 @@
 // state/reducers/planning.ts
-import { AuraState, Action, GoalTree, Goal, GoalType, ConceptualProofStrategy, PreFlightPlan } from '../../types.ts';
+// FIX: Added missing import for ConceptualProofStrategy
+import { AuraState, Action, GoalTree, Goal, GoalType, ConceptualProofStrategy, PreFlightPlan, KernelTask, KernelTaskType, SyscallPayload } from '../../types.ts';
 
 const updateParentProgress = (tree: GoalTree, childId: string): GoalTree => {
     const child = tree[childId];
@@ -114,6 +115,7 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
                 status: 'in_progress',
                 progress: 0,
                 type: GoalType.STRATEGIC,
+                executionMode: decomposition.executionMode,
             };
             
             const newCommittedGoal = {
@@ -205,10 +207,45 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
                 activeStrategicGoalId = null;
             }
 
+            // --- Deduction Engine & Reflective Mentor Logic ---
+            let newKernelState = state.kernelState;
+            let newProactiveUIState = state.proactiveUI;
+            const traceId = (action.payload as SyscallPayload).traceId;
+
+            if (status === 'failed') {
+                const newTask: KernelTask = {
+                    id: `task_deduce_${self.crypto.randomUUID()}`,
+                    type: KernelTaskType.RUN_DEDUCTION_ANALYSIS,
+                    payload: { failedGoal: goal },
+                    timestamp: Date.now(),
+                    traceId,
+                };
+                newKernelState = {
+                    ...state.kernelState,
+                    taskQueue: [...state.kernelState.taskQueue, newTask],
+                };
+            }
+
+            if (status === 'completed' || status === 'failed') {
+                const question = status === 'completed'
+                    ? 'What was the key learning from this task?'
+                    : 'What would you do differently next time?';
+                
+                newProactiveUIState = {
+                    isActive: true,
+                    type: 'reflection_prompt',
+                    question: question,
+                    options: [],
+                    originalPrompt: null,
+                    originalFile: null,
+                };
+            }
 
             return {
                 goalTree: newTree,
                 activeStrategicGoalId,
+                kernelState: newKernelState,
+                proactiveUI: newProactiveUIState,
             };
         }
 
