@@ -103,6 +103,7 @@ export const useAutonomousSystem = ({
                 switch (task.type) {
                     case KernelTaskType.GENERATE_CHAT_RESPONSE: {
                         const { command } = task.payload;
+                        
                         const entryId = self.crypto.randomUUID();
                         
                         // Check for Iterative Refinement strategy
@@ -146,7 +147,7 @@ export const useAutonomousSystem = ({
                             const stream = await geminiAPI.generateChatResponse(state.history, state.internalState.activeCognitiveStrategyId, state.activeCognitiveMode);
                             let fullText = '';
                             for await (const chunk of stream) {
-                                const textChunk = chunk.text;
+                                const textChunk = chunk.text ?? '';
                                 fullText += textChunk;
                                 syscall('APPEND_TO_HISTORY_ENTRY', { id: entryId, textChunk: textChunk }, traceId);
                             }
@@ -154,6 +155,7 @@ export const useAutonomousSystem = ({
                         }
                         
                         syscall('CLEAR_COGNITIVE_MODE', {}, traceId);
+                        syscall('COGNITIVE/SET_STRATEGY', { strategyId: null }, traceId); // Reset strategy after chat
                         syscall('REFINEMENT/RESET', {}); // Always reset after completion
                         break;
                     }
@@ -205,7 +207,7 @@ export const useAutonomousSystem = ({
 
                         const stream = await geminiAPI.analyzeImage(command, file);
                         for await (const chunk of stream) {
-                            syscall('APPEND_TO_HISTORY_ENTRY', { id: entryId, textChunk: chunk.text }, traceId);
+                            syscall('APPEND_TO_HISTORY_ENTRY', { id: entryId, textChunk: chunk.text ?? '' }, traceId);
                         }
                         syscall('FINALIZE_HISTORY_ENTRY', { id: entryId, finalState: { streaming: false } }, traceId);
                         break;

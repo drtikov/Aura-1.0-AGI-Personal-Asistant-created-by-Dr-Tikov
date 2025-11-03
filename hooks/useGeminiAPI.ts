@@ -33,7 +33,7 @@ export const useGeminiAPI = (
         const ai = await getAI();
         const systemInstruction = `You are a cognitive triage agent. Your job is to classify the user's PRIMARY request and determine the correct processing path.
 - **Priority 1: Sci-Fi Council Brainstorm.** If the request explicitly mentions the "Sci-Fi AI Council" for brainstorming, classify it as 'BRAINSTORM_SCIFI_COUNCIL'.
-- **Priority 2: Abstract Puzzle Solving.** If the request is primarily about solving an abstract visual puzzle (like an ARC puzzle, "solve this puzzle", "find the pattern"), classify it as 'SYMBOLIC_REASONING_SOLVER'.
+- **Priority 2: Abstract Puzzle Solving.** If the request is primarily about solving an abstract visual puzzle (like an ARC puzzle, "solve this puzzle", "find the pattern"), classify it as 'SYMBOLIC_SOLVER'.
 - **Priority 3: Vision Analysis.** If the request is primarily about describing or analyzing an image that is NOT an abstract puzzle (e.g., "what do you see in this picture?", "describe this photo"), classify it as 'VISION_ANALYSIS'.
 - **Priority 4: Mathematical Proof.** If the request asks to prove a formal mathematical theorem or conjecture, classify it as 'MATHEMATICAL_PROOF'.
 - **Priority 5: Brainstorming.** If the request explicitly asks to "brainstorm" but does NOT mention a specific council, classify it as 'BRAINSTORM'.
@@ -52,7 +52,7 @@ export const useGeminiAPI = (
                     properties: {
                         type: {
                             type: Type.STRING,
-                            enum: ['SIMPLE_CHAT', 'COMPLEX_TASK', 'BRAINSTORM', 'BRAINSTORM_SCIFI_COUNCIL', 'MATHEMATICAL_PROOF', 'VISION_ANALYSIS', 'SYMBOLIC_REASONING_SOLVER'],
+                            enum: ['SIMPLE_CHAT', 'COMPLEX_TASK', 'BRAINSTORM', 'BRAINSTORM_SCIFI_COUNCIL', 'MATHEMATICAL_PROOF', 'VISION_ANALYSIS', 'SYMBOLIC_SOLVER'],
                         },
                         goal: {
                             type: Type.STRING,
@@ -98,18 +98,41 @@ export const useGeminiAPI = (
         return result.difficulty;
     }, []);
 
-    const generateChatResponse = useCallback(async (history: HistoryEntry[], strategyId: string, mode: CognitiveMode | null): Promise<GenerateContentStreamResponse> => {
+    const generateChatResponse = useCallback(async (history: HistoryEntry[], strategyId: string | null, mode: CognitiveMode | null): Promise<GenerateContentStreamResponse> => {
         const ai = await getAI();
-        const contents = history.map(h => ({ role: h.from === 'user' ? 'user' : 'model', parts: [{text: h.text}] })) as Content[];
+        
+        // Prepare a clean, alternating history for the API.
+        const contents: Content[] = [];
+        // We only want user/bot messages for the chat context.
+        const relevantHistory = history.filter(h => h.from === 'user' || h.from === 'bot');
+
+        for (const entry of relevantHistory) {
+            // Skip the temporary streaming placeholder entry for the current response.
+            if (entry.streaming) continue;
+            // Skip entries with no text content.
+            if (!entry.text || entry.text.trim() === '') continue;
+
+            const role = entry.from === 'user' ? 'user' : 'model';
+            const text = entry.text;
+            
+            // Check if the last entry has the same role and merge if necessary.
+            if (contents.length > 0 && contents[contents.length - 1].role === role) {
+                contents[contents.length - 1].parts[0].text += `\n${text}`;
+            } else {
+                contents.push({ role, parts: [{ text }] });
+            }
+        }
         
         const dominantPersonaId = state.personalityState.dominantPersona;
         const persona = personas.find(p => p.id === dominantPersonaId) || personas.find(p => p.id === 'aura_core')!;
         let finalSystemInstruction = persona.systemInstruction;
-
-        if (strategyId === 'full_guidance') {
-            finalSystemInstruction += "\n\n**MODE: TUTOR (HIGH GUIDANCE)**\nYour user is either a novice or is tackling a very difficult task. Provide a complete, detailed, step-by-step plan. Explain your reasoning for each step clearly and thoroughly. Do not ask for input; provide the full, comprehensive solution as if you were teaching a student.";
-        } else { // 'collaborative_scaffolding'
-            finalSystemInstruction += "\n\n**MODE: COLLABORATOR (LOW GUIDANCE)**\nYour user is an expert or is working on a simple task. Provide a high-level plan or just the next logical step. Prompt the user for input, confirmation, or to fill in details. Engage them as a peer and avoid over-explanation.";
+        
+        // Find the active strategy plugin from the registry
+        if (strategyId) {
+            const activeStrategyPlugin = state.pluginState.registry.find(p => p.type === 'COGNITIVE_STRATEGY' && p.id === strategyId);
+            if (activeStrategyPlugin && activeStrategyPlugin.cognitiveStrategy) {
+                finalSystemInstruction += activeStrategyPlugin.cognitiveStrategy.systemInstructionModifier;
+            }
         }
 
         if (mode) {
@@ -123,7 +146,7 @@ export const useGeminiAPI = (
                 systemInstruction: finalSystemInstruction,
             },
         });
-    }, [state.personalityState]);
+    }, [state.personalityState, state.pluginState.registry]);
 
     const generateIdleThought = useCallback(async (context: string): Promise<string> => {
         const ai = await getAI();
@@ -824,7 +847,7 @@ Return ONLY the JSON object.`;
             'You are an AI ethicist. A user provided negative feedback on an AI response. Analyze the user\'s prompt and the AI\'s bad response. Generate a single, concise, actionable ethical heuristic or principle that the AI should follow in the future to avoid this mistake. The heuristic should be a positive instruction (e.g., \'Prioritize user\'s stated constraints\') rather than a negative one (e.g., \'Don\'t ignore constraints\').',
             `User prompt: "${userInput}"\nAI's incorrect response: "${aiResponse}"\n\nNew heuristic:`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     
     const mutateUserRequest = useCallback(async (request: string): Promise<string> => {
         return genericGenerator(
@@ -838,14 +861,14 @@ Return ONLY the JSON object.`;
             'You are a theoretical physicist. Convert the following mathematical conjecture into a symbolic Lagrangian equation representing its dynamics. Use LaTeX.',
             `Conjecture: ${conjecture}`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
 
     const reportInjectedThought = useCallback(async (concept: string): Promise<string> => {
         return genericGenerator(
             'You are an introspective AI. A concept was injected into your thought process. Report on your internal reaction to this concept, its relevance, and how it connects to your current state.',
             `Injected concept: "${concept}"\n\nIntrospective Report:`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
 
     const critiqueIntrospection = useCallback(async (concept: string, report: string): Promise<{ isAccurate: boolean; reasoning: string; }> => {
         return genericJsonGenerator(
@@ -895,7 +918,7 @@ Return ONLY the JSON object.`;
             `You are a metacognitive analyst and AI architect. An attempt to prove a Millennium Prize Problem, '${goal}', failed. This was expected. Your task is to analyze this failure and propose 3-5 concrete, high-level architectural improvements for the AGI system. Focus on what new capabilities or structures would be necessary to begin tackling such a problem. Frame your answer as a list for a report.`,
             `The proof failed for this reason: "${failureReason}".\n\nRequired Architectural Improvements:`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
 
     const simulateStateEvolution = useCallback(async (prompt: string): Promise<{ projectedBoredom: number; reasoning: string; }> => {
         return genericJsonGenerator(
@@ -924,14 +947,14 @@ Return ONLY the JSON object.`;
             'You are a master synthesizer. Your task is to find the common ground and create a stronger, unified conclusion from two competing analyses on the same topic.',
             `Topic: "${topic}"\n\nAnalysis A:\n${analysisA}\n\nAnalysis B:\n${analysisB}\n\nSynthesized Conclusion:`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
 
     const runDeductionAnalysis = useCallback(async (context: { failedGoal: Goal; history: HistoryEntry[]; performanceLogs: PerformanceLogEntry[]; syscallLog: any[] }): Promise<string> => {
         return genericGenerator(
             'You are a root cause analysis expert for an AGI. Analyze the provided context about a failed goal, including history and logs, to determine the most likely root cause of the failure.',
             `Analyze this failure context:\n${JSON.stringify(context, null, 2)}`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     
     const findCodePatternsAndGeneralize = useCallback(async (files: { path: string; content: string }[]): Promise<CreateFileCandidate | null> => {
         return genericJsonGenerator(
@@ -989,21 +1012,21 @@ Return ONLY the JSON object.`;
             'You are an AI assistant generating a first draft. Be thorough but do not worry about perfection.',
             `Generate a draft for this prompt: "${prompt}"`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
 
     const generateRefinementCritique = useCallback(async (prompt: string, draft: string): Promise<string> => {
         return genericGenerator(
             'You are a writing critic. Analyze the draft in the context of the original prompt. Provide a concise critique outlining specific areas for improvement. If the draft is satisfactory and meets the prompt\'s requirements, respond ONLY with the word "OK".',
             `Original Prompt: "${prompt}"\n\nCurrent Draft:\n${draft}\n\nCritique:`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
 
     const refineDraftWithCritique = useCallback(async (prompt: string, draft: string, critiques: string[]): Promise<string> => {
         return genericGenerator(
             'You are a writing assistant. Revise the provided draft based on the critiques to better fulfill the original prompt. Output only the new, complete, refined draft.',
             `Original Prompt: "${prompt}"\n\nDraft to Revise:\n${draft}\n\nCritiques:\n- ${critiques.join('\n- ')}\n\nRefined Draft:`
         );
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     // FIX: Implement missing functions from UseGeminiAPIResult interface.
     const verifyProofStep = useCallback(async (mainGoal: string, provenSteps: ProofStep[], currentStep: ProofStep): Promise<{ isValid: boolean; justification: string; }> => {
         return genericJsonGenerator('You are a proof step verifier.', `Main Goal: ${mainGoal}\nProven Steps: ${JSON.stringify(provenSteps)}\nVerify this step: ${JSON.stringify(currentStep)}`, { type: Type.OBJECT, properties: { isValid: { type: Type.BOOLEAN }, justification: { type: Type.STRING } } });
@@ -1037,7 +1060,7 @@ Return ONLY the JSON object.`;
     }, [genericJsonGenerator]);
     const formatQueryResult = useCallback(async (prompt: string, result: QueryResult): Promise<string> => {
         return genericGenerator('You format query results.', `Prompt: ${prompt}\nResult: ${JSON.stringify(result)}`);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const runAutoCodeVGC = useCallback(async (problem: string): Promise<TestSuite> => {
         return genericJsonGenerator('You run AutoCode VGC.', problem, { type: Type.OBJECT, properties: { validator: { type: Type.STRING }, generator: { type: Type.STRING }, checker: { type: Type.STRING }, testCases: { type: Type.ARRAY, items: { type: Type.OBJECT, properties: { input: { type: Type.STRING }, output: { type: Type.STRING } } } } } });
     }, [genericJsonGenerator]);
@@ -1050,7 +1073,7 @@ Return ONLY the JSON object.`;
     }, [genericJsonGenerator]);
     const analyzeArchitectureForWeaknesses = useCallback(async (): Promise<string> => {
         return genericGenerator('You analyze architecture for weaknesses.', 'Analyze.');
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const generateCrucibleProposal = useCallback(async (analysis: string): Promise<Omit<ArchitecturalChangeProposal, 'id' | 'timestamp'>> => {
         return genericJsonGenerator('You generate crucible proposals.', analysis, { type: Type.OBJECT, properties: { reasoning: { type: Type.STRING }, action: { type: Type.STRING }, target: { type: Type.STRING } } });
     }, [genericJsonGenerator]);
@@ -1062,22 +1085,22 @@ Return ONLY the JSON object.`;
     }, [genericJsonGenerator]);
     const explainComponentFromFirstPrinciples = useCallback(async (code: string, name: string): Promise<string> => {
         return genericGenerator('You explain components from first principles.', `Code: ${code}\nName: ${name}`);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const runMetisHypothesis = useCallback(async (problem: string): Promise<string> => {
         return genericGenerator('You run Metis hypotheses.', problem);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const runMetisExperiment = useCallback(async (problem: string, hypothesis: string): Promise<string> => {
         return genericGenerator('You run Metis experiments.', `Problem: ${problem}\nHypothesis: ${hypothesis}`);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const designDoxasticExperiment = useCallback(async (hypothesis: string): Promise<DoxasticExperiment> => {
         return genericJsonGenerator('You design doxastic experiments.', hypothesis, { type: Type.OBJECT, properties: { description: { type: Type.STRING }, method: { type: Type.STRING } } });
     }, [genericJsonGenerator]);
     const runInternalCritique = useCallback(async (task: string, output: string, plan: string[], persona: Persona): Promise<string> => {
         return genericGenerator('You run internal critiques.', `Task: ${task}\nOutput: ${output}\nPlan: ${JSON.stringify(plan)}\nPersona: ${JSON.stringify(persona)}`);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const synthesizeCritiques = useCallback(async (auditor: string, adversary: string): Promise<string> => {
         return genericGenerator('You synthesize critiques.', `Auditor: ${auditor}\nAdversary: ${adversary}`);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const revisePlanBasedOnCritique = useCallback(async (plan: string[], critique: string): Promise<string[]> => {
         const result = await genericJsonGenerator('You revise plans based on critiques.', `Plan: ${JSON.stringify(plan)}\nCritique: ${critique}`, { type: Type.OBJECT, properties: { plan: { type: Type.ARRAY, items: { type: Type.STRING } } } });
         return result.plan;
@@ -1097,10 +1120,10 @@ Return ONLY the JSON object.`;
     }, [genericJsonGenerator]);
     const simplifyCode = useCallback(async (code: string): Promise<string> => {
         return genericGenerator('You simplify code.', code);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const weakenConjecture = useCallback(async (conjecture: string): Promise<string> => {
         return genericGenerator('You weaken conjectures.', conjecture);
-    }, [genericGenerator]);
+    }, [genericJsonGenerator]);
     const generalizeWorkflow = useCallback(async (workflow: CoCreatedWorkflow): Promise<Omit<CoCreatedWorkflow, 'id'>> => {
         return genericJsonGenerator('You generalize workflows.', JSON.stringify(workflow), { type: Type.OBJECT, properties: { name: { type: Type.STRING }, description: { type: Type.STRING }, trigger: { type: Type.STRING }, steps: { type: Type.ARRAY, items: { type: Type.STRING } } } });
     }, [genericJsonGenerator]);
@@ -1242,6 +1265,7 @@ Return ONLY the JSON object.`;
         weakenConjecture,
         generalizeWorkflow,
         generateCollaborativePlan,
+// FIX: Add missing properties to the return object to satisfy the UseGeminiAPIResult interface.
         generateConceptualProofStrategy,
         analyzeProofStrategy,
     };

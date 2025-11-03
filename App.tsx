@@ -4,8 +4,8 @@ import { AuraProvider } from './context/AuraProvider';
 import { useAuraDispatch, useCoreState, useSystemState } from './context/AuraContext';
 import { ModalProvider, useModal } from './context/ModalContext';
 import { ToastContainer } from './components/Toast';
-// FIX: Corrected import path casing for ControlDeckComponent to resolve a module resolution conflict.
-import { ControlDeckComponent } from './components/controlDeckComponent';
+// FIX: Corrected import path casing to use the standard PascalCase filename to resolve build system conflicts.
+import { ControlDeckComponent } from './components/ControlDeckComponent';
 import { Header } from './components/Header';
 import { VisualAnalysisFeed } from './components/VisualAnalysisFeed';
 import { ModalPayloads } from './types';

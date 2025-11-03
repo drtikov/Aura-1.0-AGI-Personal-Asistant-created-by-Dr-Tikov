@@ -1,5 +1,5 @@
 // hooks/useAura.ts
-import { useMemo, useEffect, useRef } from 'react';
+import { useMemo, useEffect, useRef, useCallback } from 'react';
 import { useAuraState } from './useAuraState.ts';
 import { useGeminiAPI } from './useGeminiAPI.ts';
 import { useUIHandlers } from './useUIHandlers.ts';
@@ -25,9 +25,9 @@ export const useAura = () => {
         }
     }, [state.language, i18n]);
 
-    const syscall = (call: SyscallCall, args: any, traceId?: string) => {
+    const syscall = useCallback((call: SyscallCall, args: any, traceId?: string) => {
         dispatch({ type: 'SYSCALL', payload: { call, args, traceId } });
-    };
+    }, [dispatch]);
 
     const geminiAPI = useGeminiAPI(state, dispatch, addToast);
     

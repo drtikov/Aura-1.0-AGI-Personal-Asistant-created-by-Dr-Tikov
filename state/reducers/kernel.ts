@@ -36,8 +36,9 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
         }
 
         case 'KERNEL/SET_RUNNING_TASK': {
-            // FIX: Correctly cast `args` to `KernelTask` to match the type of `runningTask`.
-            const task = args as KernelTask | null;
+            // FIX: The payload is an object { task: ... }, not the task itself.
+            // Destructure the task from the arguments.
+            const { task } = args;
             let queue = state.kernelState.taskQueue;
             if (task) {
                 // Remove the task from the queue when it starts running
