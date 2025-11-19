@@ -1,14 +1,11 @@
 // hooks/useAuraState.ts
 import { useReducer, useEffect, useState, useCallback, useRef } from 'react';
-import { getInitialState } from '../state/initialState.ts';
-import { auraReducer } from '../state/reducer.ts';
-import { CURRENT_STATE_VERSION } from '../constants.ts';
-import { migrateState } from '../state/migrations.ts';
-import { HAL } from '../core/hal.ts';
-import { AuraState, HistoryEntry } from '../types.ts';
-import { debounce } from '../utils.ts';
-
-const CONTINUATION_SNAPSHOT_KEY = 'auraContinuationSnapshot';
+import { getInitialState } from '../state/initialState';
+import { auraReducer } from '../state/reducer';
+import { CURRENT_STATE_VERSION } from '../constants';
+import { migrateState } from '../state/migrations';
+import { HAL } from '../core/hal';
+import { AuraState, HistoryEntry } from '../types';
 
 // Custom hook to manage Aura's state, including persistence via the HAL
 export const useAuraState = () => {
@@ -16,41 +13,26 @@ export const useAuraState = () => {
     const [memoryStatus, setMemoryStatus] = useState<'initializing' | 'ready' | 'saving' | 'error'>('initializing');
     const isInitialized = useRef(false);
 
-    const debouncedSave = useRef(
-        debounce((stateToSave: AuraState) => {
-            setMemoryStatus('saving');
-            HAL.Memristor.saveState(stateToSave).then(() => {
-                setMemoryStatus('ready');
-            }).catch(() => {
-                setMemoryStatus('error');
-            });
-        }, 500) // 500ms debounce delay
-    ).current;
+    // Refs to hold the latest state and memoryStatus for the interval closure
+    const stateRef = useRef(state);
+    const memoryStatusRef = useRef(memoryStatus);
+    
+    useEffect(() => {
+        stateRef.current = state;
+    }, [state]);
 
-    // Effect for loading state on initial mount (from seamless reboot or Memristor)
+    useEffect(() => {
+        memoryStatusRef.current = memoryStatus;
+    }, [memoryStatus]);
+
+    // Effect for loading state on initial mount (from Memristor)
     useEffect(() => {
         const initializeState = async () => {
             if (isInitialized.current) return;
             isInitialized.current = true;
 
             try {
-                // 1. Check for seamless reboot snapshot first
-                const snapshot = sessionStorage.getItem(CONTINUATION_SNAPSHOT_KEY);
-                if (snapshot) {
-                    sessionStorage.removeItem(CONTINUATION_SNAPSHOT_KEY); // Crucial: remove after reading
-                    const loadedState = JSON.parse(snapshot);
-                    const systemMessage: HistoryEntry = {
-                        id: self.crypto.randomUUID(),
-                        from: 'system',
-                        text: 'SYSTEM: Seamless reboot complete. State restored.',
-                        timestamp: Date.now()
-                    };
-                    dispatch({ type: 'IMPORT_STATE', payload: { ...loadedState, history: [...(loadedState.history || []), systemMessage] } });
-                    setMemoryStatus('ready');
-                    return; // Initialization is done
-                }
-
-                // 2. If no snapshot, proceed with normal Memristor loading
+                // Only load from the permanent Memristor storage (IndexedDB).
                 let loadedState: AuraState | null = await HAL.Memristor.loadState();
                 if (loadedState) {
                     if (!loadedState.version || loadedState.version < CURRENT_STATE_VERSION) {
@@ -74,10 +56,6 @@ export const useAuraState = () => {
                             history: [...loadedState.history, systemMessage]
                         };
             
-                        // The redundant save operation that caused the stall has been removed.
-                        // The main useEffect that saves on [state] change will now handle persisting the migrated state.
-                        
-                        // Now dispatch the fully prepared and saved state to the UI
                         dispatch({ type: 'IMPORT_STATE', payload: stateToImport });
                     }
                 }
@@ -92,33 +70,71 @@ export const useAuraState = () => {
 
     }, []); // Empty dependency array ensures this runs only once
     
-    // Effect for triggering a seamless reboot when required
+    // Effect for automatic periodic saving
     useEffect(() => {
-        if (state.kernelState?.rebootRequired) {
-            console.log("Seamless reboot triggered...");
-            // Clean the flag before saving to prevent a loop
-            const stateToSave = { ...state, kernelState: { ...state.kernelState, rebootRequired: false } };
-            sessionStorage.setItem(CONTINUATION_SNAPSHOT_KEY, JSON.stringify(stateToSave));
-            window.location.reload();
-        }
-    }, [state.kernelState]);
+        const SAVE_INTERVAL_MS = 30000; // 30 seconds
+        
+        const saveInterval = setInterval(async () => {
+            // Only save if memory is ready and not already saving.
+            if (memoryStatusRef.current === 'ready') {
+                setMemoryStatus('saving');
+                try {
+                    const stateToSave = { ...stateRef.current };
+                    const rebootIsPending = stateToSave.kernelState?.rebootPending;
+
+                    if (rebootIsPending) {
+                        stateToSave.kernelState = { ...stateToSave.kernelState, rebootPending: false };
+                    }
+                    
+                    await HAL.Memristor.saveState(stateToSave);
+                    setMemoryStatus('ready');
+                    
+                    if (rebootIsPending) {
+                        console.log("Reboot triggered by automatic save...");
+                        window.location.reload();
+                    }
+                } catch (error) {
+                    console.error("Failed to auto-save state:", error);
+                    setMemoryStatus('error');
+                }
+            }
+        }, SAVE_INTERVAL_MS);
+
+        return () => {
+            clearInterval(saveInterval);
+        };
+    }, []); // Run only on mount
     
-    // Effect for saving state to Memristor whenever it changes
-    useEffect(() => {
-        // Don't save during initialization or if a reboot is pending.
-        if (memoryStatus === 'initializing' || state.kernelState?.rebootRequired) {
-            return;
+    // Manual save function, no longer called from UI but can be kept for other purposes if any.
+    const saveStateToMemory = useCallback(async () => {
+        setMemoryStatus('saving');
+        try {
+            const rebootIsPending = state.kernelState?.rebootPending;
+            const stateToSave: AuraState = { ...state };
+    
+            if (rebootIsPending) {
+                // Clear the flag in the state object before saving it
+                stateToSave.kernelState = { ...stateToSave.kernelState, rebootPending: false };
+            }
+    
+            await HAL.Memristor.saveState(stateToSave); // Saves to IndexedDB
+            setMemoryStatus('ready');
+    
+            if (rebootIsPending) {
+                console.log("Reboot triggered by manual save...");
+                // Just reload. The app will load the state we just saved from IndexedDB on startup.
+                window.location.reload();
+            }
+        } catch (error) {
+            console.error("Failed to save state to Memristor:", error);
+            setMemoryStatus('error');
         }
-
-        // Instead of saving directly, call the debounced function
-        debouncedSave(state);
-
-    }, [state, memoryStatus, debouncedSave]);
-
+    }, [state]);
+    
     const clearMemoryAndState = useCallback(async () => {
         await HAL.Memristor.clearDB();
         dispatch({ type: 'RESET_STATE' });
     }, []);
 
-    return { state, dispatch, memoryStatus, clearMemoryAndState };
+    return { state, dispatch, memoryStatus, clearMemoryAndState, saveStateToMemory };
 };

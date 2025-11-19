@@ -5,14 +5,14 @@ import {
     SelfProgrammingCandidate, GoalTree, GoalType, UseGeminiAPIResult, 
     CoCreatedWorkflow, CreateFileCandidate, Plugin, HistoryEntry, 
     UIHandlers, PsycheAdaptationProposal, DoxasticExperiment, KnowledgeFact, CognitiveMode, KernelTaskType
-} from '../types.ts';
-import { migrateState } from '../state/migrations.ts';
-import { CURRENT_STATE_VERSION } from '../constants.ts';
-import { HAL } from '../core/hal.ts';
-import { useLocalization } from '../context/AuraContext.tsx';
-import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator.ts';
-import { VIRTUAL_FILE_SYSTEM } from '../core/vfs.ts';
-import { loadSdk } from '../core/sdkLoader.ts';
+} from '../types';
+import { migrateState } from '../state/migrations';
+import { CURRENT_STATE_VERSION } from '../constants';
+import { HAL } from '../core/hal';
+import { useLocalization } from '../context/AuraContext';
+import { generateManifest, generateStateSchema, generateArchitectureSchema, generateSyscallSchema } from '../core/schemaGenerator';
+import { VIRTUAL_FILE_SYSTEM } from '../core/vfs';
+import { loadSdk } from '../core/sdkLoader';
 
 declare const JSZip: any;
 
@@ -446,6 +446,7 @@ export const useUIHandlers = (state: AuraState, dispatch: Dispatch<Action>, sysc
     const handleExplainComponent = useCallback(() => syscall('MODAL/OPEN', { type: 'reflector', payload: {} }), [syscall]);
     const handleStartOptimizationLoop = useCallback((goal: string) => { syscall('TELOS/START_OPTIMIZATION', { goal }); }, [syscall]);
     const handleToggleIdleThought = useCallback(() => { syscall('TOGGLE_IDLE_THOUGHT', {}); }, [syscall]);
+    const handleCollaborate = useCallback(() => addToast(t('toast_not_implemented', { feature: 'Collaboration' }), 'info'), [addToast, t]);
 
 
     return {
@@ -514,6 +515,7 @@ export const useUIHandlers = (state: AuraState, dispatch: Dispatch<Action>, sysc
         handleStartMetisResearch,
         handleStartOptimizationLoop,
         handleToggleIdleThought,
+        handleCollaborate,
         // FIX: Add missing handleStartDialectic to return object
         handleStartDialectic,
     };

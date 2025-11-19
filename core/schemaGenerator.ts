@@ -1,9 +1,8 @@
 // core/schemaGenerator.ts
-import { AuraState, SyscallCall } from '../types';
-// FIX: Imported CURRENT_STATE_VERSION from constants.ts where it is defined, instead of types.ts.
-import { CURRENT_STATE_VERSION } from '../constants';
-import { personas } from '../state/personas';
-import { brainstormPersonas } from '../state/brainstormPersonas';
+import { AuraState, SyscallCall } from '../types.ts';
+import { CURRENT_STATE_VERSION } from '../constants.ts';
+import { personas } from '../state/personas.ts';
+import { brainstormPersonas } from '../state/brainstormPersonas.ts';
 
 export const generateManifest = (state: AuraState): object => ({
     name: "Aura Architectural Schema",

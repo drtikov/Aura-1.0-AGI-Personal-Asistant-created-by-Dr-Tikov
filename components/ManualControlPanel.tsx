@@ -1,7 +1,7 @@
 // components/ManualControlPanel.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext';
-import { useModal } from '../context/ModalContext';
+import { useAuraDispatch, useLocalization, useCoreState } from '../context/AuraContext.tsx';
+import { useModal } from '../context/ModalContext.tsx';
 
 export const ManualControlPanel = () => {
     const { 
@@ -26,10 +26,13 @@ export const ManualControlPanel = () => {
         handleOrchestrateTask,
         handleExplainComponent,
         handleGenerateArchitecturalSchema,
-        handleToggleIdleThought, // Add the new handler
+        handleToggleIdleThought,
+        saveStateToMemory,
+        handleCollaborate,
     } = useAuraDispatch();
     const { t } = useLocalization();
     const modal = useModal();
+    // FIX: Destructure isIdleThoughtEnabled and activeCognitiveMode from useCoreState
     const { isIdleThoughtEnabled, activeCognitiveMode } = useCoreState();
 
     
@@ -38,7 +41,7 @@ export const ManualControlPanel = () => {
             <div className="panel-group-title">{t('coreActions')}</div>
             <div className="button-grid">
                 <button className="control-button" onClick={handleContemplate} title={t('tip_introspect')}>{t('introspect')}</button>
-                <button className="control-button" onClick={() => handleOrchestrateTask()}>{t('orchestrateTask')}</button>
+                <button className="control-button" onClick={() => handleCollaborate()}>{t('collaborate')}</button>
                 <button className="control-button" onClick={() => handleExplainComponent()}>{t('explainComponent')}</button>
                 <button className="control-button" onClick={() => modal.open('whatIf', {})} title={t('tip_whatIf')}>{t('whatIf')}</button>
                 <button className="control-button" onClick={() => modal.open('search', {})} title={t('tip_search')}>{t('search')}</button>
@@ -69,7 +72,7 @@ export const ManualControlPanel = () => {
             <div className="panel-group-title">{t('memoryManagement')}</div>
             <div className="memory-controls">
                 <span>{t('memoryStatus')}:</span>
-                <div className={`memory-status-indicator ${memoryStatus === 'ready' ? 'saved' : memoryStatus}`} />
+                <div className={`memory-status-indicator ${memoryStatus === 'ready' ? 'saved' : memoryStatus}`} title={`Memory Status: ${memoryStatus}. Saving is now automatic.`} />
                 <button className="control-button clear-memory" onClick={handleClearMemory}>{t('clearMemory')}</button>
             </div>
             

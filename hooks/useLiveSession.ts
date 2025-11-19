@@ -1,6 +1,7 @@
 // hooks/useLiveSession.ts
 import React, { useState, useCallback, useRef, useEffect, Dispatch } from 'react';
-import { GoogleGenAI, LiveSession, LiveServerMessage, Modality, Blob, GenerateContentResponse, Part } from '@google/genai';
+// FIX: Removed non-existent 'LiveSession' type from import.
+import { GoogleGenAI, LiveServerMessage, Modality, Blob, GenerateContentResponse, Part } from '@google/genai';
 import { AuraState, Action, SyscallCall } from '../types';
 import { encode, decode, decodeAudioData, getAI } from '../utils';
 
@@ -12,7 +13,8 @@ export const useLiveSession = (
     dispatch: Dispatch<Action>,
     addToast: (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void
 ) => {
-    const sessionPromise = useRef<Promise<LiveSession> | null>(null);
+    // FIX: Replaced 'LiveSession' with 'any' as the type is not exported from the library.
+    const sessionPromise = useRef<Promise<any> | null>(null);
     const mediaStream = useRef<MediaStream | null>(null);
     const inputAudioContext = useRef<AudioContext | null>(null);
     const outputAudioContext = useRef<AudioContext | null>(null);

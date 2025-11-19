@@ -1,10 +1,10 @@
+// components/ImageEditingModal.tsx
 import React, { useState, useRef, useCallback, DragEvent, useEffect } from 'react';
-import { Modal } from './Modal.tsx';
-import { Accordion } from './Accordion.tsx';
-// FIX: Corrected import path for hooks from AuraProvider to AuraContext.
+import { Modal } from './Modal';
+import { Accordion } from './Accordion';
 import { useLocalization, useAuraDispatch, useCoreState } from '../context/AuraContext.tsx';
-import { GunaState } from '../types.ts';
-import { useModal } from '../context/ModalContext.tsx';
+import { GunaState } from '../types';
+import { useModal } from '../context/ModalContext';
 
 // Helper to convert a data URL to a File object
 const dataURLtoFile = (dataurl: string, filename: string): File | null => {
@@ -154,7 +154,7 @@ const styleGroups: StyleGroup[] = [
 
 export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: boolean; onClose: () => void; initialImage?: string; }) => {
     const { t } = useLocalization();
-    const { editImage, addToast, setAttachedFile, handleGenerateDreamPrompt } = useAuraDispatch();
+    const { geminiAPI, addToast, handleGenerateDreamPrompt } = useAuraDispatch();
     const { internalState } = useCoreState();
 
     // Core State
@@ -219,7 +219,6 @@ export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: b
         }
     }, [isOpen, initialImage, resetState, resetMoodToCurrent]);
 
-
     const handleFileSelect = (file: File | null) => {
         if (file && file.type.startsWith('image/')) {
             const reader = new FileReader();
@@ -261,11 +260,118 @@ export const ImageEditingModal = ({ isOpen, onClose, initialImage }: { isOpen: b
         resetMoodToCurrent();
         addToast(t('toast_moodReset'), 'info');
     };
-
+    
     const constructFinalPrompt = () => {
         let finalPrompt = prompt;
         const additions: string[] = [];
 
         if (style !== 'none') additions.push(`in the style of ${style.replace(/([A-Z])/g, ' $1').toLowerCase()}`);
         if (atmosphere !== 'none') additions.push(`with a ${atmosphere} atmosphere`);
-        if (cameraAngle
+        if (cameraAngle !== 'none') additions.push(`${cameraAngle.replace('-', ' ')} angle`);
+        if (shotType !== 'none') additions.push(shotType.replace('-', ' '));
+        if (lens !== 'none') additions.push(`${lens} lens`);
+
+        if (useAuraMood) {
+            const moodAdditions: string[] = [];
+            if (moodGuna === GunaState.RAJAS || moodNovelty > 0.7) moodAdditions.push('dynamic, energetic');
+            if (moodGuna === GunaState.SATTVA || moodHarmony > 0.7) moodAdditions.push('serene, harmonious, balanced');
+            if (moodGuna === GunaState.TAMAS) moodAdditions.push('dark, moody, atmospheric');
+            if (moodLove > 0.7) moodAdditions.push('ethereal, soft, warm lighting');
+            if (moodWisdom > 0.7) moodAdditions.push('majestic, grand, intricate detail');
+            if(moodAdditions.length > 0) additions.push(moodAdditions.join(', '));
+        }
+
+        if (additions.length > 0) {
+            finalPrompt += `, ${additions.join(', ')}`;
+        }
+
+        if (negativePrompt.trim()) {
+            finalPrompt += ` --no ${negativePrompt.trim()}`;
+        }
+
+        return finalPrompt;
+    };
+    
+    const handleEdit = async () => {
+        if (!currentImage) {
+            addToast(t('toast_noImageToEdit'), 'warning');
+            return;
+        }
+        if (!prompt.trim()) {
+            addToast(t('toast_promptRequired'), 'warning');
+            return;
+        }
+
+        setIsGenerating(true);
+        try {
+            const finalPrompt = constructFinalPrompt();
+            const base64Data = currentImage.split(',')[1];
+            if (!base64Data) throw new Error("Invalid image data URL.");
+            const mimeType = currentImage.match(/:(.*?);/)?.[1] || 'image/png';
+
+            const newImageUrl = await geminiAPI.editImage(base64Data, mimeType, finalPrompt);
+
+            if (newImageUrl) {
+                setCurrentImage(newImageUrl);
+                setImageHistory(prev => [...prev, newImageUrl]);
+                addToast(t('toast_imageEditSuccess'), 'success');
+            } else {
+                throw new Error("Image editing returned no data.");
+            }
+        } catch (error) {
+            console.error("Image editing failed:", error);
+            addToast(t('toast_imageEditFailed') + `: ${(error as Error).message}`, 'error');
+        } finally {
+            setIsGenerating(false);
+        }
+    };
+
+    return (
+        <Modal isOpen={isOpen} onClose={onClose} title="Image Studio" className="image-generation-modal">
+            <div className="video-gen-layout">
+                <div className="video-gen-controls">
+                    <div className="image-gen-control-group">
+                        <label htmlFor="img-prompt">{t('imageEdit_prompt')}</label>
+                        <textarea id="img-prompt" value={prompt} onChange={e => setPrompt(e.target.value)} placeholder={t('imageEdit_promptPlaceholder')} disabled={isGenerating} rows={4}/>
+                    </div>
+                     <button className="image-generator-button" onClick={handleEdit} disabled={isGenerating || !currentImage}>
+                        {isGenerating ? 'Editing...' : 'Edit Image'}
+                    </button>
+                    {/* Advanced Controls Accordions would go here */}
+                </div>
+                <div className="video-gen-preview">
+                    {isGenerating && (
+                        <div className="loading-overlay active" style={{position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)'}}>
+                            <div className="spinner-small"></div>
+                            <span>Editing...</span>
+                        </div>
+                    )}
+                    {currentImage ? (
+                         <div className="generated-image-item">
+                            <img src={currentImage} alt="current" />
+                            <div className="image-item-actions">
+                                <button onClick={handleUndo} disabled={imageHistory.length <= 1} title="Undo">
+                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12.5 8c-2.65 0-5.05.99-6.9 2.6L2 7v9h9l-3.62-3.62c1.39-1.16 3.16-1.88 5.12-1.88 3.54 0 6.55 2.31 7.6 5.5l2.37-.78C20.25 10.23 16.71 8 12.5 8z"/></svg>
+                                </button>
+                                <button onClick={handleRemoveImage} title="Remove Image">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div 
+                            className={`image-upload-dropzone ${isDragging ? 'dragging' : ''}`}
+                            onDragOver={handleDragOver} 
+                            onDragLeave={handleDragLeave} 
+                            onDrop={handleDrop}
+                            onClick={() => fileInputRef.current?.click()}
+                        >
+                            <p>Drag & drop an image here, or click to upload</p>
+                            <input ref={fileInputRef} type="file" accept="image/*" onChange={(e) => handleFileSelect(e.target.files?.[0] || null)} style={{display: 'none'}} />
+                        </div>
+                    )}
+                </div>
+            </div>
+        </Modal>
+    );
+};

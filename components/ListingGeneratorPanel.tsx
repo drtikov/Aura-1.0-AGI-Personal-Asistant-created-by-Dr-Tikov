@@ -23,7 +23,8 @@ export const ListingGeneratorPanel = () => {
             - Tone: ${tone}`;
 
             const response = await geminiAPI.generateChatResponse(
-                [{ from: 'user', text: prompt }],
+                // FIX: Added missing id and timestamp to satisfy HistoryEntry type.
+                [{ from: 'user', text: prompt, id: 'temp-id', timestamp: Date.now() }],
                 'collaborative_scaffolding',
                 null
             );

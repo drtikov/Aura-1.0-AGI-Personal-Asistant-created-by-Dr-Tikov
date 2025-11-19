@@ -21,6 +21,11 @@ export const synthesisReducer = (state: AuraState, action: Action): Partial<Aura
                 }
             };
         }
+        case 'GENERATE_EMERGENT_IDEA': {
+            // This is handled by the autonomous system hook, but we can log it here.
+            // In a more complex system, this might set a status.
+            return {};
+        }
         default:
             return {};
     }

@@ -21,6 +21,7 @@ export const PluginManagerPanel = React.memo(() => {
     const groupOrder: { type: Plugin['type'], className: string }[] = [
         { type: 'TOOL', className: 'tools' },
         { type: 'COPROCESSOR', className: 'coprocessors' },
+        { type: 'HEURISTIC_COPROCESSOR', className: 'heuristic' },
         { type: 'KNOWLEDGE', className: 'knowledge' },
         { type: 'HEURISTIC', className: 'heuristic' },
         { type: 'PERSONA', className: 'persona' },
@@ -35,6 +36,7 @@ export const PluginManagerPanel = React.memo(() => {
             case 'HEURISTIC': return 'heuristic';
             case 'PERSONA': return 'persona';
             case 'COGNITIVE_STRATEGY': return 'cognitive-strategy';
+            case 'HEURISTIC_COPROCESSOR': return 'heuristic';
             default: return '';
         }
     };

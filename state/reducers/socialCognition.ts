@@ -22,6 +22,33 @@ export const socialCognitionReducer = (state: AuraState, action: Action): Partia
             };
         }
 
+        case 'SOCIAL/UPDATE_NODE': {
+            const { id, updates } = args;
+            const nodeToUpdate = state.socialCognitionState.socialGraph[id];
+            if (!nodeToUpdate) return {};
+
+            // Special handling for dossier to append rather than overwrite
+            const newDossier = updates.dossier 
+                ? [...new Set([...nodeToUpdate.dossier, ...updates.dossier])] // Append and deduplicate
+                : nodeToUpdate.dossier;
+
+            const updatedNode = {
+                ...nodeToUpdate,
+                ...updates,
+                dossier: newDossier,
+            };
+
+            return {
+                 socialCognitionState: {
+                    ...state.socialCognitionState,
+                    socialGraph: {
+                        ...state.socialCognitionState.socialGraph,
+                        [id]: updatedNode,
+                    }
+                }
+            }
+        }
+
         case 'SOCIAL/ADD_RELATIONSHIP': {
             const { sourceId, relationship } = args;
             const sourceNode = state.socialCognitionState.socialGraph[sourceId];

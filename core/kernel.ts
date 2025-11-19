@@ -1,7 +1,7 @@
 // core/kernel.ts
 import React from 'react';
 // FIX: Import missing types Action, SyscallCall, and SyscallPayload
-import { Action, SyscallCall, SyscallPayload } from '../types';
+import { Action, SyscallCall, SyscallPayload } from '../types.ts';
 
 /**
  * The formal System Call (SYSCALL) interface for Aura's Kernel.

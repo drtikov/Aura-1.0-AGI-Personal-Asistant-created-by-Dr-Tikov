@@ -31,7 +31,8 @@ export const CompsFinderPanel = () => {
             const prompt = `Simulate finding 3 comparable sold properties (comps) for a subject property. The subject property is a ${beds}-bed, ${baths}-bath, ${sqft} sqft house at ${address}. Find comps within a ${radius}-mile radius that have sold in the last 6 months. For each comp, provide a plausible random address, beds, baths, sqft, sale price, and sale date.`;
             
             const response = await geminiAPI.generateChatResponse(
-                [{ from: 'user', text: prompt }],
+                // FIX: Added missing id and timestamp to satisfy HistoryEntry type.
+                [{ from: 'user', text: prompt, id: 'temp-id', timestamp: Date.now() }],
                 'collaborative_scaffolding',
                 null
             );
@@ -43,7 +44,8 @@ export const CompsFinderPanel = () => {
 
             // Now, parse this text into structured JSON
             const jsonResponse = await geminiAPI.generateChatResponse(
-                [{ from: 'user', text: `Extract the comparable properties from the following text into a JSON array. Each object should have these keys: address, beds, baths, sqft, salePrice, saleDate.\n\nText: "${fullText}"` }],
+                // FIX: Added missing id and timestamp to satisfy HistoryEntry type.
+                [{ from: 'user', text: `Extract the comparable properties from the following text into a JSON array. Each object should have these keys: address, beds, baths, sqft, salePrice, saleDate.\n\nText: "${fullText}"`, id: 'temp-id-2', timestamp: Date.now() }],
                 'collaborative_scaffolding',
                 null
             );

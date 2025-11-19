@@ -1,6 +1,6 @@
 // state/reducers/reducer.ts
 // FIX: Added missing imports for AuraState, Action, EventBusMessage, and HistoryEntry from types.ts to resolve module errors.
-import { AuraState, Action, EventBusMessage, HistoryEntry } from '../types.ts';
+import { AuraState, Action, EventBusMessage, HistoryEntry } from '../../types.ts';
 import { getInitialState } from './initialState.ts';
 import { coreReducer } from './reducers/core.ts';
 import { memoryReducer } from './reducers/memory.ts';
@@ -65,6 +65,7 @@ import { axiomaticGenesisForgeReducer } from './reducers/axiomaticGenesisForge.t
 import { ricciFlowReducer } from './reducers/ricciFlow.ts';
 import { introspectionReducer } from './reducers/introspection.ts';
 import { harmonicEngineReducer } from './reducers/harmonicEngine.ts';
+import { heuristicCoprocessorReducer } from './reducers/heuristicCoprocessor.ts';
 
 const reducerMap: { [key: string]: (state: AuraState, action: Action) => Partial<AuraState> } = {
     // This map uses syscall prefixes to route actions to the correct reducer.
@@ -131,6 +132,7 @@ const reducerMap: { [key: string]: (state: AuraState, action: Action) => Partial
     'INTROSPECTION': introspectionReducer,
     'HARMONIC_ENGINE': harmonicEngineReducer,
     'REFINEMENT': coreReducer,
+    'HEURISTIC_COPROCESSOR': heuristicCoprocessorReducer,
 };
 
 export const auraReducer = (state: AuraState, action: Action): AuraState => {

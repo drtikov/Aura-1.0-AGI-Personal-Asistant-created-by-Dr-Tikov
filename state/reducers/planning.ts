@@ -14,7 +14,7 @@ const updateParentProgress = (tree: GoalTree, childId: string): GoalTree => {
     }
 
     const siblings = parent.children.map(id => tree[id]);
-    const completedSiblings = siblings.filter(s => s.status === 'completed');
+    const completedSiblings = siblings.filter(s => s?.status === 'completed');
     const newProgress = siblings.length > 0 ? completedSiblings.length / siblings.length : 0;
     
     const updatedParent = { ...parent, progress: newProgress };
@@ -38,6 +38,14 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
     const { call, args } = action.payload;
 
     switch (call) {
+        case 'PLANNING/CLEAR_ACTIVE_GOAL':
+            return {
+                activeStrategicGoalId: null,
+                disciplineState: {
+                    ...state.disciplineState,
+                    committedGoal: null,
+                }
+            };
         case 'BUILD_GUILD_TASK_TREE': {
             const { plan, rootGoal } = args as { plan: PreFlightPlan, rootGoal: string };
             if (!plan || !rootGoal) return {};
@@ -176,7 +184,7 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
         }
 
         case 'UPDATE_GOAL_STATUS': {
-            const { id, status, failureReason } = args;
+            const { id, status, failureReason, result } = args;
             const goal = state.goalTree[id];
             if (!goal || goal.status === status) {
                 return {};
@@ -186,11 +194,12 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
             // When a proof fails, reset its status to 'not_started' to allow for another attempt
             const finalStatus = status === 'failed' && goal.type === GoalType.MATHEMATICAL_PROOF ? 'not_started' : status;
             
-            const updatedGoal = { 
+            const updatedGoal: Goal = { 
                 ...goal, 
                 status: finalStatus, 
                 progress, 
                 failureReason: failureReason || null,
+                result: result || goal.result,
                 // Increment attempts on failure, reset on other transitions
                 attempts: status === 'failed' ? (goal.attempts || 0) + 1 : goal.attempts,
             };
@@ -200,13 +209,6 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
                 newTree = updateParentProgress(newTree, id);
             }
             
-            // If the root goal is completed, clear the active goal
-            let activeStrategicGoalId = state.activeStrategicGoalId;
-            const rootGoal = newTree[state.activeStrategicGoalId || ''];
-            if (rootGoal?.status === 'completed') {
-                activeStrategicGoalId = null;
-            }
-
             // --- Deduction Engine & Reflective Mentor Logic ---
             let newKernelState = state.kernelState;
             let newProactiveUIState = state.proactiveUI;
@@ -243,7 +245,6 @@ export const planningReducer = (state: AuraState, action: Action): Partial<AuraS
 
             return {
                 goalTree: newTree,
-                activeStrategicGoalId,
                 kernelState: newKernelState,
                 proactiveUI: newProactiveUIState,
             };

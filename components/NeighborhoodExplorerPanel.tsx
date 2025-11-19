@@ -32,7 +32,8 @@ export const NeighborhoodExplorerPanel = () => {
         setResult(null);
         try {
             const response = await geminiAPI.generateChatResponse(
-                [{ from: 'user', text: `Provide hyperlocal data for the address: ${location}. I need school ratings (e.g., 8/10), a general crime index (e.g., Low, Moderate, High), a walkability score (0-100), and a short list of 3-5 nearby amenities (e.g., "City Park", "Main St. Cafe").`}],
+                // FIX: Added missing id and timestamp to satisfy HistoryEntry type.
+                [{ from: 'user', text: `Provide hyperlocal data for the address: ${location}. I need school ratings (e.g., 8/10), a general crime index (e.g., Low, Moderate, High), a walkability score (0-100), and a short list of 3-5 nearby amenities (e.g., "City Park", "Main St. Cafe").`, id: 'temp-id', timestamp: Date.now() }],
                 'collaborative_scaffolding', null
             );
             
@@ -43,7 +44,8 @@ export const NeighborhoodExplorerPanel = () => {
 
             // Extract to JSON
              const jsonResponse = await geminiAPI.generateChatResponse(
-                [{ from: 'user', text: `Extract the following data points from the text below into a JSON object: schoolRating, crimeIndex, walkabilityScore (as a number), nearbyAmenities (as an array of strings).\n\nText: "${fullText}"` }],
+                // FIX: Added missing id and timestamp to satisfy HistoryEntry type.
+                [{ from: 'user', text: `Extract the following data points from the text below into a JSON object: schoolRating, crimeIndex, walkabilityScore (as a number), nearbyAmenities (as an array of strings).\n\nText: "${fullText}"`, id: 'temp-id-2', timestamp: Date.now() }],
                 'collaborative_scaffolding', null
             );
 

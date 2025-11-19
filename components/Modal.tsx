@@ -16,7 +16,6 @@ interface ModalErrorBoundaryProps {
 }
 
 class ModalErrorBoundary extends React.Component<ModalErrorBoundaryProps, ErrorBoundaryState> {
-    // FIX: Reverted to using a constructor for state initialization to resolve a 'props' not found error, which might be caused by a specific linter or TypeScript configuration rule.
     constructor(props: ModalErrorBoundaryProps) {
         super(props);
         this.state = { hasError: false, error: null };

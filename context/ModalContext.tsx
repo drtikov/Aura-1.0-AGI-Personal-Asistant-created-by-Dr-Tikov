@@ -14,9 +14,8 @@ import { ForecastModal } from '../components/ForecastModal.tsx';
 import { CognitiveGainDetailModal } from '../components/CognitiveGainDetailModal.tsx';
 import { MultiverseBranchingModal } from '../components/MultiverseBranchingModal.tsx';
 import { BrainstormModal } from '../components/BrainstormModal.tsx';
-// FIX: Changed import for `ImageGenerationModal` to use `VideoGenerationModal` as a placeholder to resolve a broken/missing file and circular dependencies.
-import { VideoGenerationModal as ImageGenerationModal } from '../components/VideoGenerationModal.tsx';
-import { ImageEditingModal } from '../components/ImageEditingModal.tsx';
+// FIX: Changed import for `ImageGenerationModal` to use its own file now that the empty file is populated.
+import { ImageGenerationModal } from '../components/ImageGenerationModal.tsx';
 import { VideoGenerationModal } from '../components/VideoGenerationModal.tsx';
 import { MusicGenerationModal } from '../components/MusicGenerationModal.tsx';
 import { CoCreatedWorkflowModal } from '../components/CoCreatedWorkflowModal.tsx';
@@ -35,6 +34,7 @@ import { CollaborativeSessionModal } from '../components/CollaborativeSessionMod
 import { TelosEngineModal } from '../components/TelosEngineModal.tsx';
 import { OrchestratorModal } from '../components/OrchestratorModal.tsx';
 import { ReflectorModal } from '../components/ReflectorModal.tsx';
+import { CollaborateModal } from '../components/CollaborateModal.tsx';
 
 
 type ModalType = keyof ModalPayloads;
@@ -59,7 +59,6 @@ const MODAL_MAP: { [key in ModalType]?: React.FC<any> } = {
   multiverseBranching: MultiverseBranchingModal,
   brainstorm: BrainstormModal,
   imageGeneration: ImageGenerationModal,
-  imageEditing: ImageEditingModal,
   videoGeneration: VideoGenerationModal,
   musicGeneration: MusicGenerationModal,
   coCreatedWorkflow: CoCreatedWorkflowModal,
@@ -78,6 +77,7 @@ const MODAL_MAP: { [key in ModalType]?: React.FC<any> } = {
   collaborativeSession: CollaborativeSessionModal,
   orchestrator: OrchestratorModal,
   reflector: ReflectorModal,
+  collaborate: CollaborateModal,
 };
 
 const ModalRenderer = () => {

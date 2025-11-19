@@ -1,24 +1,26 @@
 {
-  "name": "aura-1.2-–-working-prototype-of-the-partner-ai-created-by-dr-tikov---press-pencil-pic-at-right-to-readme-important-info",
-  "private": true,
-  "version": "0.0.0",
-  "type": "module",
+  "name": "aura-web-app",
+  "version": "1.0.0",
+  "description": "Aura Symbiotic AGI Web Application.",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "@google/genai": "^1.17.0",
-    "i18next": "^25.5.2",
-    "react-i18next": "^15.7.3"
-  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "devDependencies": {
-    "@types/node": "^22.14.0",
-    "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.8.2",
-    "vite": "^6.2.0"
+    "@types/react": "^18.2.45",
+    "@types/react-dom": "^18.2.18",
+    "@vitejs/plugin-react": "^4.2.1",
+    "vite": "^5.0.12"
+  },
+  "dependencies": {
+    "@google/genai": "^0.14.0",
+    "i18next": "^23.11.5",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-i18next": "^14.1.2"
   }
 }

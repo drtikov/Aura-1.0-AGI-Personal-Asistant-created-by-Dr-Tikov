@@ -1,5 +1,5 @@
 // state/reducers/granularCortex.ts
-import { AuraState, Action, SensoryEngram, SensoryPrimitive } from '../../types.ts';
+import { AuraState, Action, SensoryEngram, SensoryPrimitive } from '../../types';
 
 // A simple function to compare two engrams and calculate an error score.
 // This is a placeholder for a much more complex algorithm.

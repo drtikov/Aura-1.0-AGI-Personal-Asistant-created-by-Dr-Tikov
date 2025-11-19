@@ -16,9 +16,35 @@ export const collaborativeSessionReducer = (state: AuraState, action: Action): P
                 participants: args.participants,
                 transcript: [],
                 artifacts: [],
+                subTasks: [],
             };
             return {
                 collaborativeSessionState: { activeSession: newSession }
+            };
+        }
+        case 'SESSION/UPDATE': {
+            if (!state.collaborativeSessionState.activeSession) return {};
+            return {
+                collaborativeSessionState: {
+                    activeSession: {
+                        ...state.collaborativeSessionState.activeSession,
+                        ...args,
+                    }
+                }
+            };
+        }
+         case 'SESSION/UPDATE_SUBTASK_STATUS': {
+            if (!state.collaborativeSessionState.activeSession || !state.collaborativeSessionState.activeSession.subTasks) return {};
+            const { taskId, status } = args;
+            return {
+                collaborativeSessionState: {
+                    activeSession: {
+                        ...state.collaborativeSessionState.activeSession,
+                        subTasks: state.collaborativeSessionState.activeSession.subTasks.map(task => 
+                            task.id === taskId ? { ...task, status } : task
+                        ),
+                    }
+                }
             };
         }
         case 'SESSION/POST_MESSAGE': {

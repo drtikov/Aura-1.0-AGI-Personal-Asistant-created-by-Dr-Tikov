@@ -71,6 +71,8 @@ export const translations = {
             languageSwitcher: 'Language',
             feedbackGood: 'Good response',
             feedbackBad: 'Bad response',
+            saveMemory: 'Save Memory',
+            tip_saveMemory: 'Manually save the current application state to browser memory.',
 
             // Canvas
             canvas_expand: 'Expand',

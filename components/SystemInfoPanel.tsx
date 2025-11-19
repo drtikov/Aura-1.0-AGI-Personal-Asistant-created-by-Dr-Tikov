@@ -17,7 +17,7 @@ export const SystemInfoPanel = React.memo(() => {
     return (
         <div className="side-panel system-info-panel">
             <div className="secondary-metrics" style={{ gridTemplateColumns: '1fr', textAlign: 'left', gap: '0.2rem' }}>
-                <InfoItem label={t('systemInfo_aiModel')} value="Aura" />
+                <InfoItem label={t('systemInfo_aiModel')} value="Aura (Gemini 3.0 Pro)" />
                 <InfoItem label={t('systemInfo_stateVersion')} value={`v${CURRENT_STATE_VERSION}`} />
                 <div className="panel-subsection-title" style={{ gridColumn: '1 / -1', marginTop: '0.5rem', marginBottom: '0.25rem' }}>Core Concept</div>
                 <p className="reason-text" style={{fontSize: '0.8rem', fontStyle: 'italic', color: 'var(--text-muted)', whiteSpace: 'pre-wrap', gridColumn: '1 / -1' }}>

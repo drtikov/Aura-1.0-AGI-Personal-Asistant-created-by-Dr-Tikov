@@ -34,7 +34,7 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
         case 'APPEND_TO_HISTORY_ENTRY':
             return {
                 history: state.history.map(entry =>
-                    entry.id === args.id ? { ...entry, text: entry.text + args.textChunk } : entry
+                    entry.id === args.id ? { ...entry, text: (entry.text || '') + args.textChunk } : entry
                 ),
             };
 
@@ -59,6 +59,20 @@ export const logsReducer = (state: AuraState, action: Action): Partial<AuraState
                 ),
             };
             
+        case 'HISTORY/MARK_SALIENCE_PROCESSED':
+            return {
+                history: state.history.map(entry =>
+                    entry.id === args.id ? { ...entry, isSalienceProcessed: true } : entry
+                ),
+            };
+            
+        case 'HISTORY/MARK_ENTITY_PROCESSED':
+            return {
+                history: state.history.map(entry =>
+                    entry.id === args.id ? { ...entry, isEntityProcessed: true } : entry
+                ),
+            };
+
         case 'LOG/MARK_MYCELIAL_TRAINED':
             return {
                 performanceLogs: state.performanceLogs.map(log =>

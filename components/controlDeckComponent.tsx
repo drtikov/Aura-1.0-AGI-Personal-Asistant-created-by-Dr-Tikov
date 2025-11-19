@@ -1,2 +1,3 @@
-// This file's content has been moved to 'ControlDeckComponent.tsx' to resolve a file casing conflict during the build process.
+// This file has been neutralized to resolve file casing issues on case-insensitive filesystems.
+// The active component is now in ./ControlDeckComponent.tsx
 export {};

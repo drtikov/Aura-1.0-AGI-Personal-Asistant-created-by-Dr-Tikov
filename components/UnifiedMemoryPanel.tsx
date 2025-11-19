@@ -6,6 +6,7 @@ import { EpisodicMemoryPanel } from './EpisodicMemoryPanel';
 import { KnowledgeGraphPanel } from './KnowledgeGraphPanel';
 import { MemoryCrystallizationViewer } from './MemoryCrystallizationViewer';
 import { GeometricKnowledgePanel } from './GeometricKnowledgePanel';
+import { EntityNexusPanel } from './EntityNexusPanel.tsx';
 
 export const UnifiedMemoryPanel = () => {
     const { t } = useLocalization();
@@ -14,6 +15,9 @@ export const UnifiedMemoryPanel = () => {
         <>
             <Accordion title={t('episodicMemory')} defaultOpen={true}>
                 <EpisodicMemoryPanel />
+            </Accordion>
+            <Accordion title="Entity Nexus" defaultOpen={false}>
+                <EntityNexusPanel />
             </Accordion>
             <Accordion title={t('geometricKnowledge')} defaultOpen={false}>
                 <GeometricKnowledgePanel />

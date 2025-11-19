@@ -21,10 +21,12 @@ export const DialecticEnginePanel = React.memo(() => {
                         
                         <div className="dialectic-pair">
                             <p className="dialectic-part thesis">
-                                <strong>{t('dialecticEngine_thesis')} ({d.thesis.source}):</strong> "{d.thesis.content}"
+                                {/* FIX: Corrected property access from 'source' to 'personaId' */}
+                                <strong>{t('dialecticEngine_thesis')} ({d.thesis.personaId}):</strong> "{d.thesis.content}"
                             </p>
                              <p className="dialectic-part antithesis">
-                                <strong>{t('dialecticEngine_antithesis')} ({d.antithesis.source}):</strong> "{d.antithesis.content}"
+                                {/* FIX: Corrected property access from 'source' to 'personaId' */}
+                                <strong>{t('dialecticEngine_antithesis')} ({d.antithesis.personaId}):</strong> "{d.antithesis.content}"
                             </p>
                         </div>
 

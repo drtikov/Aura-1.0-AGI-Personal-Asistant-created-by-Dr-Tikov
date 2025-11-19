@@ -20,7 +20,7 @@ export const neuroCortexReducer = (state: AuraState, action: Action): Partial<Au
             return {
                 neuroCortexState: {
                     ...state.neuroCortexState,
-                    activationLog: [...state.neuroCortexState.activationLog, args].slice(-100) // Keep last 100 activations
+                    activationLog: [...(state.neuroCortexState.activationLog || []), args].slice(-100) // Keep last 100 activations
                 }
             };
 

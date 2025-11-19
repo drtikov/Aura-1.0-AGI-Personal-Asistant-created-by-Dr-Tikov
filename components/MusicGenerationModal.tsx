@@ -9,7 +9,8 @@ const abstractConcepts = ['solitude', 'epiphany', 'nostalgia', 'chaos'];
 
 export const MusicGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void; }) => {
     const { t } = useLocalization();
-    const { addToast, handleSendCommand, generateSonicContent, generateMusicalDiceRoll } = useAuraDispatch();
+    // FIX: Destructure geminiAPI from useAuraDispatch to access its methods
+    const { addToast, handleSendCommand, geminiAPI } = useAuraDispatch();
     const { personalityState } = useCoreState();
     const { episodicMemoryState } = useMemoryState();
     
@@ -54,7 +55,8 @@ export const MusicGenerationModal = ({ isOpen, onClose }: { isOpen: boolean; onC
         setGeneratedOutput('');
         
         try {
-            const output = await generateSonicContent(mode, prompt, genre, mood, persona, useAuraMood, memoryContext);
+            // FIX: Access generateSonicContent via geminiAPI
+            const output = await geminiAPI.generateSonicContent(mode, prompt, genre, mood, persona, useAuraMood, memoryContext);
             if (output) {
                 setGeneratedOutput(output);
             } else {
@@ -85,7 +87,8 @@ Now, apply this refinement instruction: "${refinementPrompt}"
 
 Generate ONLY the fully refined piece based on the instruction. Do not explain what you changed.
             `;
-            const refinedOutput = await generateSonicContent(mode, refinementContextPrompt, genre, mood, persona, useAuraMood, memoryContext);
+            // FIX: Access generateSonicContent via geminiAPI
+            const refinedOutput = await geminiAPI.generateSonicContent(mode, refinementContextPrompt, genre, mood, persona, useAuraMood, memoryContext);
              if (refinedOutput) {
                 setGeneratedOutput(refinedOutput); // Replace the output with the refined version
             }
@@ -102,7 +105,8 @@ Generate ONLY the fully refined piece based on the instruction. Do not explain w
         if (mode !== 'soundscape' || !generatedOutput) return;
         setIsGenerating(true);
         try {
-            const theme = await generateSonicContent('theme', generatedOutput, '', '', persona, useAuraMood, '');
+            // FIX: Access generateSonicContent via geminiAPI
+            const theme = await geminiAPI.generateSonicContent('theme', generatedOutput, '', '', persona, useAuraMood, '');
             if (theme) {
                 setGeneratedOutput(prev => `${prev}\n\n--- MUSICAL THEME ---\n${theme}`);
             }
@@ -126,7 +130,8 @@ Generate ONLY the fully refined piece based on the instruction. Do not explain w
     };
     
     const handleRollDice = async () => {
-        const result = await generateMusicalDiceRoll();
+        // FIX: Access generateMusicalDiceRoll via geminiAPI
+        const result = await geminiAPI.generateMusicalDiceRoll();
         if (result) {
             setPrompt(`An interesting piece about a ${result.instrument}.`);
             setGenre(result.key);

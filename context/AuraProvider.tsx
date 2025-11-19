@@ -84,24 +84,31 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         socraticAssessorState: state.socraticAssessorState,
         axiomaticGenesisForgeState: state.axiomaticGenesisForgeState,
         cognitiveRefinementState: state.cognitiveRefinementState,
-        // FIX: Removed the non-existent `cognitiveStrategy` property from this object to align with the corrected `CoreState` type.
+        isIdleThoughtEnabled: state.isIdleThoughtEnabled,
+        activeCognitiveMode: state.activeCognitiveMode,
+        synthesisState: state.synthesisState,
+        autoCodeForgeState: state.autoCodeForgeState,
+        resonanceFieldState: state.resonanceFieldState,
+        ramanujanEngineState: state.ramanujanEngineState,
     }), [
         state.internalState, state.internalStateHistory, state.rieState, state.userModel, 
         state.coreIdentity, state.selfAwarenessState, state.atmanProjector, state.worldModelState, state.curiosityState, 
         state.knownUnknowns, state.theme, state.language, state.limitations, state.causalSelfModel,
         state.developmentalHistory, state.telosEngine, state.boundaryDetectionEngine, state.aspirationalEngine,
         state.noosphereInterface, state.dialecticEngine, state.cognitiveLightCone, state.phenomenologicalEngine,
-        state.situationalAwareness, state.symbioticState, state.humorAndIronyState, state.personalityState,
+        state.situationalAwareness, state.symbioticState, state.humorAndIronyState, 
+        state.personalityState,
         state.gankyilInsights, state.noeticEngramState, state.genialityEngineState, state.noeticMultiverse,
         state.selfAdaptationState, state.psychedelicIntegrationState,
         state.affectiveModulatorState, state.psionicDesynchronizationState, state.satoriState,
         state.doxasticEngineState, state.qualiaSignalProcessorState, state.sensoryIntegration, state.narrativeSummary,
         state.socialCognitionState, state.metaphoricalMapState,
-        state.internalScientistState, state.metisSandboxState, state.spandaState, state.personaState, state.brainstormState,
+        state.internalScientistState, state.metisSandboxState, state.spandaState, state.brainstormState,
         state.liveSessionState, state.proactiveUI, state.strategicCoreState, state.mycelialState, state.semanticWeaverState, state.modalRequest, state.uiCommandRequest,
         state.prometheusState, state.erisEngineState, state.collaborativeSessionState, state.symbioticCanvasState, state.logosState,
         state.lagrangeEngineState, state.artificialScientistState, state.bennettEngineState, state.ockhamEngineState, state.socraticAssessorState,
         state.axiomaticGenesisForgeState, state.cognitiveRefinementState,
+        state.isIdleThoughtEnabled, state.activeCognitiveMode, state.synthesisState, state.autoCodeForgeState, state.resonanceFieldState, state.ramanujanEngineState,
     ]);
 
     const memoryStateValue = useMemo(() => ({
@@ -196,9 +203,16 @@ export const AuraProvider = ({ children }: { children?: ReactNode }) => {
         eventBus: state.eventBus,
         temporalEngineState: state.temporalEngineState,
         autonomousReviewBoardState: state.autonomousReviewBoardState,
-        // FIX: Added missing systemState to the provider value
         systemState: state.systemState,
-    }), [state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState, state.kernelState, state.ipcState, state.eventBus, state.temporalEngineState, state.autonomousReviewBoardState, state.systemState]);
+        // FIX: Add heuristicCoprocessorState to the memoized value
+        heuristicCoprocessorState: state.heuristicCoprocessorState,
+    }), [
+        state.resourceMonitor, state.metacognitiveNexus, state.metacognitiveCausalModel, state.pluginState, 
+        state.kernelState, state.ipcState, state.eventBus, state.temporalEngineState, 
+        state.autonomousReviewBoardState, state.systemState, 
+        // FIX: Add heuristicCoprocessorState to the dependency array
+        state.heuristicCoprocessorState
+    ]);
 
     const localizationValue = useMemo(() => ({ t, language }), [t, language]);
 

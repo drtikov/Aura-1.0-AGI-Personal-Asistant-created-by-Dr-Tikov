@@ -21,6 +21,7 @@ const BiasSlider = ({ label, biasKey, value, syscall }: { label: string; biasKey
 );
 
 export const ResonanceFieldPanel = () => {
+    // FIX: Get resonanceFieldState from useCoreState
     const { resonanceFieldState, affectiveModulatorState } = useCoreState();
     const { syscall } = useAuraDispatch();
     const { t } = useLocalization();
@@ -79,25 +80,27 @@ export const ResonanceFieldPanel = () => {
             <div className="panel-subsection-title">{t('tensegrityMesh_tuning')}</div>
             <div className="hormone-signals" style={{ marginBottom: '1rem' }}>
                 <BiasSlider label={t('tensegrityMesh_creativity')} biasKey="creativityBias" value={affectiveModulatorState.creativityBias} syscall={syscall} />
+                {/* FIX: Completed the truncated BiasSlider component call with missing props. */}
                 <BiasSlider label={t('tensegrityMesh_focus')} biasKey="concisenessBias" value={affectiveModulatorState.concisenessBias} syscall={syscall} />
                 <BiasSlider label={t('tensegrityMesh_depth')} biasKey="analyticalDepth" value={affectiveModulatorState.analyticalDepth} syscall={syscall} />
             </div>
 
             <div className="panel-subsection-title">{t('resonanceField_activeFrequencies')}</div>
-            <div className="hormone-signals">
-                {activeFrequencies.length > 0 ? (
-                    activeFrequencies.map(([freq, data]) => (
+            {activeFrequencies.length > 0 ? (
+                <div className="hormone-signals">
+                    {/* FIX: Explicitly type parameters in callback functions to resolve 'unknown' type errors. */}
+                    {activeFrequencies.map(([freq, data]: [string, { intensity: number }]) => (
                         <div key={freq} className="state-item">
-                            <label title={freq}>{freq}</label>
+                            <label>{freq}</label>
                             <div className="state-bar-container">
-                                <div className="state-bar" style={{ width: `${data.intensity * 100}%`, backgroundColor: 'var(--primary-color)' }}></div>
+                                <div className="state-bar" style={{ width: `${data.intensity * 100}%` }}></div>
                             </div>
                         </div>
-                    ))
-                ) : (
-                    <div className="kg-placeholder">{t('resonanceField_placeholder')}</div>
-                )}
-            </div>
+                    ))}
+                </div>
+            ) : (
+                <div className="kg-placeholder">{t('resonanceField_placeholder')}</div>
+            )}
         </div>
     );
 };

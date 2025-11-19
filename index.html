@@ -12,82 +12,23 @@
     <link rel="preconnect" href="https://unpkg.com">
     <link href="https://fonts.googleapis.com/css2?family=Amatic+SC:wght@700&family=Bungee&family=Chakra+Petch:wght@400;700&family=Cormorant+Garamond&family=EB+Garamond&family=Exo+2:wght@400;700&family=Inter&family=Lato&family=Orbitron&family=Press+Start+2P&family=Roboto+Mono:wght@400;700&family=Space+Mono&family=Uncial+Antiqua&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    
-    <style>
-      /* Robust splash screen styles for immediate render */
-      html, body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        background-color: #000000; /* Force black background */
-      }
-      
-      #splash-screen {
-        position: fixed;
-        inset: 0;
-        z-index: 9999;
-        background-color: #000000; /* Explicit black background */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-direction: column; /* Stack text and spinner */
-        font-family: 'Roboto Mono', monospace; /* Use a reliable preloaded font */
-        opacity: 1;
-        transition: opacity 0.5s ease-out;
-        pointer-events: none;
-      }
-      
-      #splash-screen.fade-out {
-        opacity: 0;
-      }
-      
-      .splash-container {
-        color: #FFFFFF; /* High-contrast white text */
-        font-size: 1.5rem;
-        letter-spacing: 2px;
-        text-align: center;
-        margin-bottom: 2rem; /* Space between text and spinner */
-      }
-
-      .splash-spinner {
-        width: 40px;
-        height: 40px;
-        border: 4px solid rgba(255, 255, 255, 0.2);
-        border-top-color: #FFFFFF;
-        border-radius: 50%;
-        animation: splash-spin 1s linear infinite;
-      }
-
-      @keyframes splash-spin {
-        to {
-          transform: rotate(360deg);
-        }
-      }
-    </style>
-    
   <script type="importmap">
 {
   "imports": {
-    "react/": "https://aistudiocdn.com/react@^19.1.1/",
-    "react": "https://aistudiocdn.com/react@^19.1.1",
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.1.1/",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.17.0",
-    "@/localization": "./localization.ts",
-    "@/initialState": "./state/initialState.ts",
-    "i18next": "https://aistudiocdn.com/i18next@^25.5.2",
-    "react-i18next": "https://aistudiocdn.com/react-i18next@^15.7.3"
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react-i18next": "https://aistudiocdn.com/react-i18next@^16.2.4",
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.28.0",
+    "i18next": "https://aistudiocdn.com/i18next@^25.6.0",
+    "vite": "https://aistudiocdn.com/vite@^7.1.12",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.0"
   }
 }
 </script>
 </head>
   <body>
-    <div id="splash-screen">
-      <div class="splash-container">
-        AURA OS awakening...
-      </div>
-      <div class="splash-spinner"></div>
-    </div>
     <div id="root"></div>
-    <script type="module" src="index.tsx"></script>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>

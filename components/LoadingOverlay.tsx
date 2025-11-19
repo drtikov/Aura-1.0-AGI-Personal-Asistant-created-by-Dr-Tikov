@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect } from 'react';
 
 interface LoadingOverlayProps {
@@ -7,13 +8,11 @@ interface LoadingOverlayProps {
 }
 
 const thinkingStages = [
-    "[Initializing Query]",
     "[Accessing Knowledge Graph]",
     "[Cross-Referencing Memories]",
     "[Hypothesizing...]",
     "[Simulating Outcomes]",
     "[Ethical Governor Check]",
-    "[Synthesizing Response]",
     "[Formatting Output]",
     "[Refining Logic]",
     "[Consulting World Model]",
@@ -33,7 +32,7 @@ export const LoadingOverlay = ({ isActive, text }: LoadingOverlayProps) => {
     const [shuffledStages] = useState(() => shuffleArray([...thinkingStages]));
 
     useEffect(() => {
-        if (isActive) {
+        if (isActive && !['Drafting...', 'Refining...', 'Synthesizing...'].includes(text)) {
             let stageIndex = 0;
             const interval = setInterval(() => {
                 stageIndex = (stageIndex + 1) % shuffledStages.length;
@@ -41,15 +40,30 @@ export const LoadingOverlay = ({ isActive, text }: LoadingOverlayProps) => {
             }, 300); // Change stage every 300ms for a dynamic effect
             return () => clearInterval(interval);
         }
-    }, [isActive, shuffledStages]);
+    }, [isActive, text, shuffledStages]);
+    
+    // Determine the title and stage based on the `text` prop
+    let title = text || 'COGNITIVE FLOW ACTIVE';
+    let stage = currentStage;
+
+    if (text === 'Drafting...') {
+        title = 'COGNITIVE FLOW';
+        stage = '[Intuitive Spark]';
+    } else if (text === 'Refining...') {
+        title = 'COGNITIVE FLOW';
+        stage = '[Logical Structuring]';
+    } else if (text === 'Synthesizing...') {
+        title = 'COGNITIVE FLOW';
+        stage = '[Synthesizing Flow]';
+    }
     
     return (
         <div className={`loading-overlay ${isActive ? 'active' : ''}`}>
             <div className="cognitive-flow-container">
-                <span className="cognitive-flow-title">{text || 'COGNITIVE FLOW ACTIVE'}</span>
+                <span className="cognitive-flow-title">{title}</span>
                 <div className="spinner-small"></div>
             </div>
-            <span className="cognitive-flow-stage">{currentStage}</span>
+            <span className="cognitive-flow-stage">{stage}</span>
         </div>
     );
 };

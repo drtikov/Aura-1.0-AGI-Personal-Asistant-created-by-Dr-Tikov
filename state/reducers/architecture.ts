@@ -16,10 +16,16 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 reason: `Pre-apply: ${proposal.action} on ${proposal.target}`,
                 state: state, // a snapshot of the *entire* state
             };
+
+            // FIX: Robustly handle the `reasoning` field to prevent '[object Object]' in the log.
+            const reasoningText = typeof proposal.reasoning === 'object'
+                ? JSON.stringify(proposal.reasoning, null, 2)
+                : String(proposal.reasoning);
+
             const newModLog: ModificationLogEntry = {
                 id: modLogId,
                 timestamp: Date.now(),
-                description: `Applied proposal: ${proposal.reasoning}`,
+                description: `Applied proposal: ${reasoningText}`,
                 gainType: 'ARCHITECTURE',
                 validationStatus: 'validated',
                 isAutonomous: isAutonomous,
@@ -45,7 +51,7 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 },
                 kernelState: {
                     ...state.kernelState,
-                    rebootRequired: true,
+                    rebootPending: true,
                 }
             };
         }
@@ -69,6 +75,10 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                     }
                 },
                 modificationLog: [newModLog, ...state.modificationLog].slice(-50),
+                kernelState: {
+                    ...state.kernelState,
+                    rebootPending: true,
+                }
             };
         }
         
@@ -206,7 +216,7 @@ export const architectureReducer = (state: AuraState, action: Action): Partial<A
                 modificationLog: [newModLog, ...state.modificationLog].slice(-50),
                 kernelState: {
                     ...state.kernelState,
-                    rebootRequired: true,
+                    rebootPending: true,
                 }
             };
         }

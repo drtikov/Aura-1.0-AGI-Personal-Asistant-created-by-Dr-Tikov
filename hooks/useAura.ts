@@ -7,14 +7,14 @@ import { useToasts } from './useToasts.ts';
 import { useAutonomousSystem } from './useAutonomousSystem.ts';
 import { useToolExecution } from './useToolExecution.ts';
 import { HAL } from '../core/hal.ts';
-import { SyscallCall, HistoryEntry, Hypothesis, HeuristicPlan, DesignHeuristic, Persona, CognitiveStrategy, KernelTaskType, TriageResult } from '../types.ts';
+import { SyscallCall, HistoryEntry, Hypothesis, HeuristicPlan, Persona, CognitiveStrategy, KernelTaskType, TriageResult } from '../types.ts';
 import { useDomObserver } from './useDomObserver.ts';
 import { useLiveSession } from './useLiveSession.ts';
 import { useTranslation } from 'react-i18next';
 import { personas } from '../state/personas.ts';
 
 export const useAura = () => {
-    const { state, dispatch, memoryStatus, clearMemoryAndState } = useAuraState();
+    const { state, dispatch, memoryStatus, clearMemoryAndState, saveStateToMemory } = useAuraState();
     const { toasts, addToast, removeToast } = useToasts();
     const { t, i18n } = useTranslation();
 
@@ -74,7 +74,6 @@ export const useAura = () => {
         let payload: any = { command, file, triageResult };
 
         switch (triageResult.type) {
-            // FIX: Corrected typo from 'SYMBOLIC_REASONING_SOLVER' to 'SYMBOLIC_SOLVER' to match TriageResult type.
             case 'SYMBOLIC_SOLVER':
                 taskType = KernelTaskType.RUN_SYMBOLIC_SOLVER;
                 break;
@@ -88,7 +87,8 @@ export const useAura = () => {
                 taskType = KernelTaskType.RUN_MATHEMATICAL_PROOF;
                 break;
             case 'BRAINSTORM':
-            case 'BRAINSTORM_SCIFI_COUNCIL':
+            // FIX: Corrected typo from BRAINSTORM_SCIFI_COUNCIL to BRAINSTORM_SCI_FI_COUNCIL to match the type definition.
+            case 'BRAINSTORM_SCI_FI_COUNCIL':
                 taskType = KernelTaskType.RUN_BRAINSTORM_SESSION;
                 break;
             case 'SIMPLE_CHAT':
@@ -149,6 +149,7 @@ export const useAura = () => {
         i18n,
         language: i18n.language,
         geminiAPI,
+        saveStateToMemory,
         ...uiHandlers,
         ...liveSession,
         handleSendCommand,

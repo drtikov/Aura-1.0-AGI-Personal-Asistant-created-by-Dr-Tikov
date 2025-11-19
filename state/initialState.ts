@@ -4,11 +4,11 @@ import {
     GunaState, 
     CoprocessorArchitecture,
     KernelTaskType
-} from '../types.ts';
-import { CURRENT_STATE_VERSION } from '../constants.ts';
-import { VIRTUAL_FILE_SYSTEM } from '../core/vfs.ts';
-import { personas } from './personas.ts';
-import { plugins } from './plugins.ts';
+} from '../types';
+import { CURRENT_STATE_VERSION } from '../constants';
+import { VIRTUAL_FILE_SYSTEM } from '../core/vfs';
+import { personas } from './personas';
+import { plugins } from './plugins';
 
 export const getInitialState = (): AuraState => ({
     version: CURRENT_STATE_VERSION,
@@ -213,14 +213,18 @@ export const getInitialState = (): AuraState => ({
         runningTask: null,
         syscallLog: [],
         kernelVersion: '1.0.0',
-        rebootRequired: false,
+        rebootPending: false,
         taskFrequencies: {
             [KernelTaskType.MYCELIAL_PULSE]: 60,
             [KernelTaskType.SEMANTIC_WEAVER_PULSE]: 75,
             [KernelTaskType.CONCEPTUAL_ENTANGLEMENT_PULSE]: 30,
-            [KernelTaskType.AUTONOMOUS_EVOLUTION_PULSE]: 15,
+            // [KernelTaskType.AUTONOMOUS_EVOLUTION_PULSE]: 15,
             [KernelTaskType.QUALIA_TOPOLOGY_PULSE]: 90,
             [KernelTaskType.RUN_PATTERN_ANALYSIS]: 30,
+            [KernelTaskType.RUN_HEURISTIC_SEARCHERS]: 30,
+            [KernelTaskType.PROOF_ORCHESTRATION_PULSE]: 5,
+            [KernelTaskType.CONTEXT_COMPACTION_PULSE]: 20,
+            [KernelTaskType.RUN_HEURISTIC_COPROCESSORS]: 5,
         },
         sandbox: { active: false, status: 'idle', currentPatchId: null, log: [] }
     },
@@ -284,7 +288,6 @@ export const getInitialState = (): AuraState => ({
     proactiveUI: { isActive: false, type: null, question: null, options: [], originalPrompt: null, originalFile: null },
     praxisCoreState: { log: [] },
     subsumptionLogState: { log: [] },
-    strategicCoreState: { log: [], trainingData: [] },
     mycelialState: { modules: {}, log: [] },
     semanticWeaverState: { isTrained: false, accuracy: 0, modelJSON: null, log: [] },
     autonomousReviewBoardState: { isPaused: false, decisionLog: [], agisConfidenceThreshold: 0.85, lastCalibrationReason: 'Initial setting.', recentSuccesses: 0, recentFailures: 0 },
@@ -377,12 +380,18 @@ export const getInitialState = (): AuraState => ({
         status: 'idle',
         log: [],
     },
+    // FIX: Corrected the structure of axiomaticGenesisForgeState to match its type definition.
     axiomaticGenesisForgeState: {
         status: 'idle',
         baseSystemId: 'zfc',
-        currentSystem: { axioms: [] },
+        currentSystem: {
+            axioms: [],
+        },
         mutationLog: [],
-        surveyorResults: { emergentTheorems: [], undecidableStatements: [] },
+        surveyorResults: {
+            emergentTheorems: [],
+            undecidableStatements: [],
+        },
         langlandsCandidates: [],
     },
     
@@ -407,4 +416,13 @@ export const getInitialState = (): AuraState => ({
         activeTraceId: null,
         activeHistoryId: null,
     },
+    // FIX: Add missing 'strategicCoreState' property to the initial state to conform to the AuraState type.
+    strategicCoreState: {
+        log: [],
+        trainingData: [],
+    },
+    heuristicCoprocessorState: {
+        log: [],
+        cooldowns: {},
+    }
 });

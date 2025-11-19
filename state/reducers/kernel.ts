@@ -138,7 +138,8 @@ export const kernelReducer = (state: AuraState, action: Action): Partial<AuraSta
             return {
                 kernelState: {
                     ...state.kernelState,
-                    rebootRequired: true,
+                    // FIX: Corrected property name from rebootRequired to rebootPending to match type definition.
+                    rebootPending: true,
                 }
             };
         }

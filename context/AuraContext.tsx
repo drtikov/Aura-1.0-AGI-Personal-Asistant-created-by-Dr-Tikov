@@ -125,6 +125,9 @@ import {
     SystemState,
     HarmonicEngineState,
     CognitiveRefinementState,
+    // FIX: Added missing types
+    CognitiveMode,
+    HeuristicCoprocessorState,
 } from '../types.ts';
 
 // --- Context for the main dispatcher ---
@@ -167,6 +170,13 @@ type CoreState = Pick<AuraState,
     // FIX: Added missing state slice
     | 'axiomaticGenesisForgeState'
     | 'cognitiveRefinementState'
+    // FIX: Added missing state properties to CoreState type
+    | 'isIdleThoughtEnabled'
+    | 'activeCognitiveMode'
+    | 'synthesisState'
+    | 'autoCodeForgeState'
+    | 'resonanceFieldState'
+    | 'ramanujanEngineState'
     // FIX: Removed 'cognitiveStrategy' as it does not exist on AuraState, causing a type error.
 >;
 export const [CoreStateContext, useCoreState] = createStateContext<CoreState>('CoreStateContext');
@@ -203,7 +213,8 @@ type LogsState = Pick<AuraState, 'history' | 'performanceLogs' | 'commandLog' | 
 export const [LogsStateContext, useLogsState] = createStateContext<LogsState>('LogsStateContext');
 
 // System State
-type SystemStateContextType = Pick<AuraState, 'resourceMonitor' | 'metacognitiveNexus' | 'metacognitiveCausalModel' | 'pluginState' | 'kernelState' | 'ipcState' | 'eventBus' | 'temporalEngineState' | 'autonomousReviewBoardState' | 'systemState'>;
+// FIX: Added heuristicCoprocessorState to the SystemStateContextType
+type SystemStateContextType = Pick<AuraState, 'resourceMonitor' | 'metacognitiveNexus' | 'metacognitiveCausalModel' | 'pluginState' | 'kernelState' | 'ipcState' | 'eventBus' | 'temporalEngineState' | 'autonomousReviewBoardState' | 'systemState' | 'heuristicCoprocessorState'>;
 // FIX: The useSystemState hook was using a generic T which was not defined, now using a specific type.
 export const [SystemStateContext, useSystemState] = createStateContext<SystemStateContextType>('SystemStateContext');
 

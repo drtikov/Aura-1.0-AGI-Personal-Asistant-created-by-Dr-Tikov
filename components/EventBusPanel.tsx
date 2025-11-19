@@ -1,6 +1,6 @@
 // components/EventBusPanel.tsx
 import React from 'react';
-import { useAuraDispatch, useLocalization, useArchitectureState, useSystemState } from '../context/AuraContext';
+import { useAuraDispatch, useLocalization, useArchitectureState, useSystemState } from '../context/AuraContext.tsx';
 import { CoprocessorArchitecture, EventBusMessage, GunaState } from '../types.ts';
 
 const getGunaColor = (guna: GunaState | undefined) => {

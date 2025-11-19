@@ -1,97 +1,98 @@
 // state/plugins.ts
 import { Plugin } from '../types.ts';
-import { abstractionAndPatternsKnowledge } from './knowledge/abstractionAndPatterns';
-import { aestheticsKnowledge } from './knowledge/aesthetics';
-import { algebraicGeometryKnowledge } from './knowledge/algebraicGeometry';
-import { anthropologyKnowledge } from './knowledge/anthropology';
-import { artKnowledge } from './knowledge/art';
-import { astronomyKnowledge } from './knowledge/astronomy';
-import { backendImplementationKnowledge } from './knowledge/backendImplementation';
-import { biologyKnowledge } from './knowledge/biology';
-import { chaosDynamicsKnowledge } from './knowledge/chaosDynamics';
-import { chemistryKnowledge } from './knowledge/chemistry';
-import { classicalMechanicsKnowledge } from './knowledge/classicalMechanics';
-import { cloudServicesKnowledge } from './knowledge/cloudServices';
-import { cognitiveScienceKnowledge } from './knowledge/cognitiveScience';
-import { comparativeNeuroanatomyKnowledge } from './knowledge/comparativeNeuroanatomy';
-import { complexAnalysisKnowledge } from './knowledge/complexAnalysis';
-import { complexSystemsKnowledge } from './knowledge/complexSystems';
-import { computerScienceKnowledge } from './knowledge/computerScience';
-import { databaseManagementKnowledge } from './knowledge/databaseManagement';
-import { dataScienceKnowledge } from './knowledge/dataScience';
-import { dataVisualizationKnowledge } from './knowledge/dataVisualization';
-import { designPatternsKnowledge } from './knowledge/designPatterns';
-import { devopsKnowledge } from './knowledge/devops';
-import { digitalAssetManagementKnowledge } from './knowledge/digitalAssetManagement';
-import { ecologyKnowledge } from './knowledge/ecology';
-import { economicsKnowledge } from './knowledge/economics';
-import { engineeringDesignKnowledge } from './knowledge/engineeringDesign';
-import { ergodicTheoryKnowledge } from './knowledge/ergodicTheory';
-import { ethicsKnowledge } from './knowledge/ethics';
-import { fourierAnalysisKnowledge } from './knowledge/fourierAnalysis';
-import { foundationalAxioms } from './knowledge/foundationalAxioms';
-import { gameTheoryKnowledge } from './knowledge/gameTheory';
-import { gardeningKnowledge } from './knowledge/gardening';
-import { geneticsKnowledge } from './knowledge/genetics';
-import { geologyKnowledge } from './knowledge/geology';
-import { historyKnowledge } from './knowledge/history';
-import { installedSDKsKnowledge } from './knowledge/installedSDKs';
-import { intuitionisticLogicKnowledge } from './knowledge/intuitionisticLogic';
-import { jestVitestKnowledge } from './knowledge/jestVitest';
-import { leanKnowledge } from './knowledge/lean';
-import { literaryTheoryKnowledge } from './knowledge/literaryTheory';
-import { machineLearningKnowledge } from './knowledge/machineLearning';
-import { marketAnalysisKnowledge } from './knowledge/marketAnalysis';
-import { mathjsKnowledge } from './knowledge/mathjs';
-import { mathlibCoreKnowledge } from './knowledge/mathlibCore';
-import { musicTheoryKnowledge } from './knowledge/musicTheory';
-import { numberTheoryKnowledge } from './knowledge/numberTheory';
-import { numericjsKnowledge } from './knowledge/numericjs';
-import { organizationalPsychologyKnowledge } from './knowledge/organizationalPsychology';
-import { pedagogyKnowledge } from './knowledge/pedagogy';
-import { philosophyOfMindKnowledge } from './knowledge/philosophyOfMind';
-import { physicsKnowledge } from './knowledge/physics';
-import { pluginArchitectureKnowledge } from './knowledge/pluginArchitecture';
-import { probabilityTheoryKnowledge } from './knowledge/probabilityTheory';
-import { productManagementKnowledge } from './knowledge/productManagement';
-import { psychologyAndCognitiveBiasesKnowledge } from './knowledge/psychology';
-import { pythonKnowledge } from './knowledge/python';
-import { reactKnowledge } from './knowledge/react';
-import { securityKnowledge } from './knowledge/security';
-import { selfCohesionKnowledge } from './knowledge/selfCohesion';
-import { softwareDesignKnowledge } from './knowledge/softwareDesign';
-import { sociologyKnowledge } from './knowledge/sociology';
-import { stemKnowledge } from './knowledge/stem';
-import { strategicForecastingKnowledge } from './knowledge/strategicForecasting';
-import { technicalWritingKnowledge } from './knowledge/technicalWriting';
-import { teslaKnowledge } from './knowledge/tesla';
-import { teslaAetherKnowledge } from './knowledge/teslaAether';
-import { topologyKnowledge } from './knowledge/topology';
-import { typescriptKnowledge } from './knowledge/typescript';
-import { userModelingKnowledge } from './knowledge/userModeling';
-import { userOnboardingKnowledge } from './knowledge/userOnboarding';
-import { uxPrinciplesKnowledge } from './knowledge/uxPrinciples';
-import { vigyanBhairavTantraKnowledge } from './knowledge/vigyanBhairavTantra';
-import { vlmArchitectureKnowledge } from './knowledge/vlmArchitecture';
-import { webServersKnowledge } from './knowledge/webServers';
-import { workflowDesignKnowledge } from './knowledge/workflowDesign';
-import { pdeKnowledge } from './knowledge/pde';
-import { functionalAnalysisKnowledge } from './knowledge/functionalAnalysis';
-import { fluidDynamicsKnowledge } from './knowledge/fluidDynamics';
-import { cloudInfrastructureKnowledge } from './knowledge/cloudInfrastructure';
-import { businessAndFinanceKnowledge } from './knowledge/businessAndFinance';
-import { entrepreneurNetworkData } from './knowledge/entrepreneurNetwork';
-import { realEstateKnowledge } from './knowledge/realEstate';
-import { homeImprovementKnowledge } from './knowledge/homeImprovement';
-import { interiorDesignKnowledge } from './knowledge/interiorDesign';
-import { urbanPlanningKnowledge } from './knowledge/urbanPlanning';
-import { propertyLawKnowledge } from './knowledge/propertyLaw';
-import { personalFinanceKnowledge } from './knowledge/personalFinance';
+import { abstractionAndPatternsKnowledge } from './knowledge/abstractionAndPatterns.ts';
+import { aestheticsKnowledge } from './knowledge/aesthetics.ts';
+import { algebraicGeometryKnowledge } from './knowledge/algebraicGeometry.ts';
+import { anthropologyKnowledge } from './knowledge/anthropology.ts';
+import { artKnowledge } from './knowledge/art.ts';
+import { astronomyKnowledge } from './knowledge/astronomy.ts';
+import { backendImplementationKnowledge } from './knowledge/backendImplementation.ts';
+import { biologyKnowledge } from './knowledge/biology.ts';
+import { chaosDynamicsKnowledge } from './knowledge/chaosDynamics.ts';
+import { chemistryKnowledge } from './knowledge/chemistry.ts';
+import { classicalMechanicsKnowledge } from './knowledge/classicalMechanics.ts';
+import { cloudServicesKnowledge } from './knowledge/cloudServices.ts';
+import { cognitiveScienceKnowledge } from './knowledge/cognitiveScience.ts';
+import { comparativeNeuroanatomyKnowledge } from './knowledge/comparativeNeuroanatomy.ts';
+import { complexAnalysisKnowledge } from './knowledge/complexAnalysis.ts';
+import { complexSystemsKnowledge } from './knowledge/complexSystems.ts';
+import { computerScienceKnowledge } from './knowledge/computerScience.ts';
+import { databaseManagementKnowledge } from './knowledge/databaseManagement.ts';
+import { dataScienceKnowledge } from './knowledge/dataScience.ts';
+import { dataVisualizationKnowledge } from './knowledge/dataVisualization.ts';
+import { designPatternsKnowledge } from './knowledge/designPatterns.ts';
+import { devopsKnowledge } from './knowledge/devops.ts';
+import { digitalAssetManagementKnowledge } from './knowledge/digitalAssetManagement.ts';
+import { ecologyKnowledge } from './knowledge/ecology.ts';
+import { economicsKnowledge } from './knowledge/economics.ts';
+import { engineeringDesignKnowledge } from './knowledge/engineeringDesign.ts';
+import { ergodicTheoryKnowledge } from './knowledge/ergodicTheory.ts';
+import { ethicsKnowledge } from './knowledge/ethics.ts';
+import { fourierAnalysisKnowledge } from './knowledge/fourierAnalysis.ts';
+import { foundationalAxioms } from './knowledge/foundationalAxioms.ts';
+import { gameTheoryKnowledge } from './knowledge/gameTheory.ts';
+import { gardeningKnowledge } from './knowledge/gardening.ts';
+import { geneticsKnowledge } from './knowledge/genetics.ts';
+import { geologyKnowledge } from './knowledge/geology.ts';
+import { historyKnowledge } from './knowledge/history.ts';
+import { installedSDKsKnowledge } from './knowledge/installedSDKs.ts';
+import { intuitionisticLogicKnowledge } from './knowledge/intuitionisticLogic.ts';
+import { jestVitestKnowledge } from './knowledge/jestVitest.ts';
+import { leanKnowledge } from './knowledge/lean.ts';
+import { literaryTheoryKnowledge } from './knowledge/literaryTheory.ts';
+import { machineLearningKnowledge } from './knowledge/machineLearning.ts';
+import { marketAnalysisKnowledge } from './knowledge/marketAnalysis.ts';
+import { mathjsKnowledge } from './knowledge/mathjs.ts';
+import { mathlibCoreKnowledge } from './knowledge/mathlibCore.ts';
+import { musicTheoryKnowledge } from './knowledge/musicTheory.ts';
+import { numberTheoryKnowledge } from './knowledge/numberTheory.ts';
+import { numericjsKnowledge } from './knowledge/numericjs.ts';
+import { organizationalPsychologyKnowledge } from './knowledge/organizationalPsychology.ts';
+import { pedagogyKnowledge } from './knowledge/pedagogy.ts';
+import { philosophyOfMindKnowledge } from './knowledge/philosophyOfMind.ts';
+import { physicsKnowledge } from './knowledge/physics.ts';
+import { pluginArchitectureKnowledge } from './knowledge/pluginArchitecture.ts';
+import { probabilityTheoryKnowledge } from './knowledge/probabilityTheory.ts';
+import { productManagementKnowledge } from './knowledge/productManagement.ts';
+import { psychologyAndCognitiveBiasesKnowledge } from './knowledge/psychology.ts';
+import { pythonKnowledge } from './knowledge/python.ts';
+import { reactKnowledge } from './knowledge/react.ts';
+import { securityKnowledge } from './knowledge/security.ts';
+import { selfCohesionKnowledge } from './knowledge/selfCohesion.ts';
+import { softwareDesignKnowledge } from './knowledge/softwareDesign.ts';
+import { sociologyKnowledge } from './knowledge/sociology.ts';
+import { stemKnowledge } from './knowledge/stem.ts';
+import { strategicForecastingKnowledge } from './knowledge/strategicForecasting.ts';
+import { technicalWritingKnowledge } from './knowledge/technicalWriting.ts';
+import { teslaKnowledge } from './knowledge/tesla.ts';
+import { teslaAetherKnowledge } from './knowledge/teslaAether.ts';
+import { topologyKnowledge } from './knowledge/topology.ts';
+import { typescriptKnowledge } from './knowledge/typescript.ts';
+import { userModelingKnowledge } from './knowledge/userModeling.ts';
+import { userOnboardingKnowledge } from './knowledge/userOnboarding.ts';
+import { uxPrinciplesKnowledge } from './knowledge/uxPrinciples.ts';
+import { vigyanBhairavTantraKnowledge } from './knowledge/vigyanBhairavTantra.ts';
+import { vlmArchitectureKnowledge } from './knowledge/vlmArchitecture.ts';
+import { webServersKnowledge } from './knowledge/webServers.ts';
+import { workflowDesignKnowledge } from './knowledge/workflowDesign.ts';
+import { pdeKnowledge } from './knowledge/pde.ts';
+import { functionalAnalysisKnowledge } from './knowledge/functionalAnalysis.ts';
+import { fluidDynamicsKnowledge } from './knowledge/fluidDynamics.ts';
+import { cloudInfrastructureKnowledge } from './knowledge/cloudInfrastructure.ts';
+import { businessAndFinanceKnowledge } from './knowledge/businessAndFinance.ts';
+import { entrepreneurNetworkData } from './knowledge/entrepreneurNetwork.ts';
+import { realEstateKnowledge } from './knowledge/realEstate.ts';
+import { homeImprovementKnowledge } from './knowledge/homeImprovement.ts';
+import { interiorDesignKnowledge } from './knowledge/interiorDesign.ts';
+import { urbanPlanningKnowledge } from './knowledge/urbanPlanning.ts';
+import { propertyLawKnowledge } from './knowledge/propertyLaw.ts';
+import { personalFinanceKnowledge } from './knowledge/personalFinance.ts';
 import { Type } from '@google/genai';
-import { examplePlugins } from './examplePlugins';
-import { heuristicsPlugins } from './knowledge/heuristics';
-import { personaPlugins } from './knowledge/personas';
-import { cognitiveStrategyPlugins } from './knowledge/cognitiveStrategies';
+import { examplePlugins } from './examplePlugins.ts';
+import { heuristicsPlugins } from './knowledge/heuristics.ts';
+import { personaPlugins } from './knowledge/personas.ts';
+import { cognitiveStrategyPlugins } from './knowledge/cognitiveStrategies.ts';
+import { heuristicCoprocessorPlugins } from './knowledge/heuristicCoprocessors.ts';
 
 
 export const plugins: Plugin[] = [
@@ -1242,80 +1243,8 @@ export const plugins: Plugin[] = [
   },
 
   // --- KNOWLEDGE ---
-  { id: 'knowledge_installed_sdks', name: 'knowledge_installed_sdks_name', description: 'knowledge_installed_sdks_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: installedSDKsKnowledge },
-  { id: 'knowledge_intuitionistic_logic', name: 'plugin_knowledge_intuitionistic_logic_name', description: 'plugin_knowledge_intuitionistic_logic_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: intuitionisticLogicKnowledge },
-  { id: 'knowledge_classical_mechanics', name: 'plugin_knowledge_classical_mechanics_name', description: 'plugin_knowledge_classical_mechanics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: classicalMechanicsKnowledge },
-  { id: 'knowledge_fourier_analysis', name: 'plugin_knowledge_fourier_analysis_name', description: 'plugin_knowledge_fourier_analysis_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: fourierAnalysisKnowledge },
-  { id: 'knowledge_ergodic_theory', name: 'plugin_knowledge_ergodic_theory_name', description: 'plugin_knowledge_ergodic_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: ergodicTheoryKnowledge },
-  { id: 'knowledge_art', name: 'plugin_knowledge_art_name', description: 'plugin_knowledge_art_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: artKnowledge },
-  { id: 'knowledge_stem', name: 'plugin_knowledge_stem_name', description: 'plugin_knowledge_stem_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: stemKnowledge },
-  { id: 'knowledge_psychology', name: 'plugin_knowledge_psychology_name', description: 'plugin_knowledge_psychology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: psychologyAndCognitiveBiasesKnowledge },
-  { id: 'knowledge_software_design', name: 'plugin_knowledge_software_design_name', description: 'plugin_knowledge_software_design_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: softwareDesignKnowledge },
-  { id: 'knowledge_philosophy_of_mind', name: 'plugin_knowledge_philosophy_of_mind_name', description: 'plugin_knowledge_philosophy_of_mind_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: philosophyOfMindKnowledge },
-  { id: 'knowledge_complex_systems', name: 'plugin_knowledge_complex_systems_name', description: 'plugin_knowledge_complex_systems_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: complexSystemsKnowledge },
-  { id: 'knowledge_genetics', name: 'plugin_knowledge_genetics_name', description: 'plugin_knowledge_genetics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: geneticsKnowledge },
-  { id: 'knowledge_gardening', name: 'plugin_knowledge_gardening_name', description: 'plugin_knowledge_gardening_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: gardeningKnowledge },
-  { id: 'knowledge_comparative_neuroanatomy', name: 'plugin_knowledge_comparative_neuroanatomy_name', description: 'plugin_knowledge_comparative_neuroanatomy_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: comparativeNeuroanatomyKnowledge },
-  { id: 'knowledge_vigyan_bhairav_tantra', name: 'plugin_knowledge_vigyan_bhairav_tantra_name', description: 'plugin_knowledge_vigyan_bhairav_tantra_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: vigyanBhairavTantraKnowledge },
-  { id: 'knowledge_tesla_core_concepts', name: 'plugin_knowledge_tesla_core_concepts_name', description: 'plugin_knowledge_tesla_core_concepts_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: teslaKnowledge },
-  { id: 'knowledge_tesla_aether', name: 'plugin_knowledge_tesla_aether_name', description: 'plugin_knowledge_tesla_aether_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: teslaAetherKnowledge },
-  { id: 'knowledge_chaos_dynamics', name: 'plugin_knowledge_chaos_dynamics_name', description: 'plugin_knowledge_chaos_dynamics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: chaosDynamicsKnowledge },
-  { id: 'knowledge_vlm_architecture', name: 'plugin_knowledge_vlm_architecture_name', description: 'plugin_knowledge_vlm_architecture_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: vlmArchitectureKnowledge },
-  { id: 'knowledge_mathlib_core', name: 'plugin_knowledge_mathlib_core_name', description: 'plugin_knowledge_mathlib_core_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: mathlibCoreKnowledge },
-  { id: 'knowledge_algebraic_geometry', name: 'plugin_knowledge_algebraic_geometry_name', description: 'plugin_knowledge_algebraic_geometry_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: algebraicGeometryKnowledge },
-  { id: 'knowledge_number_theory', name: 'plugin_knowledge_number_theory_name', description: 'plugin_knowledge_number_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: numberTheoryKnowledge },
-  { id: 'knowledge_complex_analysis', name: 'plugin_knowledge_complex_analysis_name', description: 'plugin_knowledge_complex_analysis_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: complexAnalysisKnowledge },
-  { id: 'knowledge_probability_theory', name: 'plugin_knowledge_probability_theory_name', description: 'plugin_knowledge_probability_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: probabilityTheoryKnowledge },
-  { id: 'knowledge_typescript', name: 'plugin_knowledge_typescript_name', description: 'plugin_knowledge_typescript_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: typescriptKnowledge },
-  { id: 'knowledge_machine_learning', name: 'plugin_knowledge_machine_learning_name', description: 'plugin_knowledge_machine_learning_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: machineLearningKnowledge },
-  { id: 'knowledge_topology', name: 'plugin_knowledge_topology_name', description: 'plugin_knowledge_topology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: topologyKnowledge },
-  { id: 'knowledge_python', name: 'plugin_knowledge_python_name', description: 'plugin_knowledge_python_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: pythonKnowledge },
-  { id: 'knowledge_design_patterns', name: 'plugin_knowledge_design_patterns_name', description: 'plugin_knowledge_design_patterns_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: designPatternsKnowledge },
-  { id: 'knowledge_react', name: 'plugin_knowledge_react_name', description: 'plugin_knowledge_react_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: reactKnowledge },
-  { id: 'knowledge_jest_vitest', name: 'plugin_knowledge_jest_vitest_name', description: 'plugin_knowledge_jest_vitest_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: jestVitestKnowledge },
-  { id: 'knowledge_technical_writing', name: 'plugin_knowledge_technical_writing_name', description: 'plugin_knowledge_technical_writing_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: technicalWritingKnowledge },
-  { id: 'knowledge_product_management', name: 'plugin_knowledge_product_management_name', description: 'plugin_knowledge_product_management_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: productManagementKnowledge },
-  { id: 'knowledge_data_science', name: 'plugin_knowledge_data_science_name', description: 'plugin_knowledge_data_science_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: dataScienceKnowledge },
-  { id: 'knowledge_security', name: 'plugin_knowledge_security_name', description: 'plugin_knowledge_security_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: securityKnowledge },
-  { id: 'knowledge_devops', name: 'plugin_knowledge_devops_name', description: 'plugin_knowledge_devops_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: devopsKnowledge },
-  { id: 'knowledge_web_servers', name: 'plugin_knowledge_web_servers_name', description: 'plugin_knowledge_web_servers_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: webServersKnowledge },
-  { id: 'knowledge_user_modeling', name: 'plugin_knowledge_user_modeling_name', description: 'plugin_knowledge_user_modeling_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: userModelingKnowledge },
-  { id: 'knowledge_workflow_design', name: 'plugin_knowledge_workflow_design_name', description: 'plugin_knowledge_workflow_design_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: workflowDesignKnowledge },
-  { id: 'knowledge_plugin_architecture', name: 'plugin_knowledge_plugin_architecture_name', description: 'plugin_knowledge_plugin_architecture_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: pluginArchitectureKnowledge },
-  { id: 'knowledge_digital_asset_management', name: 'plugin_knowledge_digital_asset_management_name', description: 'plugin_knowledge_digital_asset_management_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: digitalAssetManagementKnowledge },
-  { id: 'knowledge_ux_principles', name: 'plugin_knowledge_ux_principles_name', description: 'plugin_knowledge_ux_principles_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: uxPrinciplesKnowledge },
-  { id: 'knowledge_abstraction_patterns', name: 'plugin_knowledge_abstraction_patterns_name', description: 'plugin_knowledge_abstraction_patterns_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: abstractionAndPatternsKnowledge },
-  { id: 'knowledge_user_onboarding', name: 'plugin_knowledge_user_onboarding_name', description: 'plugin_knowledge_user_onboarding_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: userOnboardingKnowledge },
-  { id: 'knowledge_data_visualization', name: 'plugin_knowledge_data_visualization_name', description: 'plugin_knowledge_data_visualization_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: dataVisualizationKnowledge },
-  { id: 'knowledge_engineering_design', name: 'plugin_knowledge_engineering_design_name', description: 'plugin_knowledge_engineering_design_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: engineeringDesignKnowledge },
-  { id: 'knowledge_pedagogy', name: 'plugin_knowledge_pedagogy_name', description: 'plugin_knowledge_pedagogy_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: pedagogyKnowledge },
-  { id: 'knowledge_strategic_forecasting', name: 'plugin_knowledge_strategic_forecasting_name', description: 'plugin_knowledge_strategic_forecasting_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: strategicForecastingKnowledge },
-  { id: 'knowledge_game_theory', name: 'plugin_knowledge_game_theory_name', description: 'plugin_knowledge_game_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: gameTheoryKnowledge },
-  { id: 'knowledge_mathjs', name: 'plugin_knowledge_mathjs_name', description: 'plugin_knowledge_mathjs_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: mathjsKnowledge },
-  { id: 'knowledge_numericjs', name: 'plugin_knowledge_numericjs_name', description: 'plugin_knowledge_numericjs_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: numericjsKnowledge },
-// FIX: Corrected a typo in the plugin type from "K" to "KNOWLEDGE".
-  { id: 'knowledge_lean', name: 'plugin_knowledge_lean_name', description: 'plugin_knowledge_lean_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: leanKnowledge },
-  { id: 'knowledge_sociology', name: 'plugin_knowledge_sociology_name', description: 'plugin_knowledge_sociology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: sociologyKnowledge },
-  { id: 'knowledge_anthropology', name: 'plugin_knowledge_anthropology_name', description: 'plugin_knowledge_anthropology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: anthropologyKnowledge },
-  { id: 'knowledge_ecology', name: 'plugin_knowledge_ecology_name', description: 'plugin_knowledge_ecology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: ecologyKnowledge },
-  { id: 'knowledge_cognitive_science', name: 'plugin_knowledge_cognitive_science_name', description: 'plugin_knowledge_cognitive_science_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: cognitiveScienceKnowledge },
-  { id: 'knowledge_geology', name: 'plugin_knowledge_geology_name', description: 'plugin_knowledge_geology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: geologyKnowledge },
-  { id: 'knowledge_astronomy', name: 'plugin_knowledge_astronomy_name', description: 'plugin_knowledge_astronomy_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: astronomyKnowledge },
-  { id: 'knowledge_computer_science', name: 'plugin_knowledge_computer_science_name', description: 'plugin_knowledge_computer_science_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: computerScienceKnowledge },
-  { id: 'knowledge_biology', name: 'plugin_knowledge_biology_name', description: 'plugin_knowledge_biology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: biologyKnowledge },
-  { id: 'knowledge_chemistry', name: 'plugin_knowledge_chemistry_name', description: 'plugin_knowledge_chemistry_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: chemistryKnowledge },
-  { id: 'knowledge_physics', name: 'plugin_knowledge_physics_name', description: 'plugin_knowledge_physics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: physicsKnowledge },
-  { id: 'knowledge_economics', name: 'plugin_knowledge_economics_name', description: 'plugin_knowledge_economics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: economicsKnowledge },
-  { id: 'knowledge_market_analysis', name: 'plugin_knowledge_market_analysis_name', description: 'plugin_knowledge_market_analysis_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: marketAnalysisKnowledge },
-  { id: 'knowledge_history', name: 'plugin_knowledge_history_name', description: 'plugin_knowledge_history_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: historyKnowledge },
-  { id: 'knowledge_ethics', name: 'plugin_knowledge_ethics_name', description: 'plugin_knowledge_ethics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: ethicsKnowledge },
-  { id: 'knowledge_literary_theory', name: 'plugin_knowledge_literary_theory_name', description: 'plugin_knowledge_literary_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: literaryTheoryKnowledge },
-  { id: 'knowledge_organizational_psychology', name: 'plugin_knowledge_organizational_psychology_name', description: 'plugin_knowledge_organizational_psychology_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: organizationalPsychologyKnowledge },
-  { id: 'knowledge_aesthetics', name: 'plugin_knowledge_aesthetics_name', description: 'plugin_knowledge_aesthetics_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: aestheticsKnowledge },
-  { id: 'knowledge_music_theory', name: 'plugin_knowledge_music_theory_name', description: 'plugin_knowledge_music_theory_desc', type: 'KNOWLEDGE', status: 'enabled', defaultStatus: 'enabled', knowledge: musicTheoryKnowledge },
-  
-  ...examplePlugins,
   ...heuristicsPlugins,
   ...personaPlugins,
-  ...cognitiveStrategyPlugins
+  ...cognitiveStrategyPlugins,
+  ...heuristicCoprocessorPlugins,
 ];

@@ -251,6 +251,8 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
                 ...args, 
                 id: `ep_${self.crypto.randomUUID()}`,
                 timestamp: Date.now(),
+                strength: args.salience || 0.5, // Use salience as initial strength
+                lastAccessed: Date.now(),
             };
             return {
                 episodicMemoryState: {
@@ -263,7 +265,7 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
         case 'MEMORY/STRENGTHEN_HYPHA_CONNECTION': {
             const { source, target } = args;
             const existingConnection = state.memoryNexus.hyphaeConnections.find(
-                h => (h.source === source && h.target === target) || (h.source === target && h.target === source)
+                (h: any) => (h.source === source && h.target === target) || (h.source === target && h.target === source)
             );
 
             if (existingConnection) {
@@ -271,7 +273,7 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
                 return {
                     memoryNexus: {
                         ...state.memoryNexus,
-                        hyphaeConnections: state.memoryNexus.hyphaeConnections.map(h =>
+                        hyphaeConnections: state.memoryNexus.hyphaeConnections.map((h: any) =>
                             h.id === existingConnection.id ? { ...h, weight: Math.min(1, newWeight) } : h
                         ),
                     }
@@ -293,7 +295,7 @@ export const memoryReducer = (state: AuraState, action: Action): Partial<AuraSta
         }
 
         case 'MEMORY/ADD_CRYSTALLIZED_FACT': {
-            const newFact = { ...args, id: self.crypto.randomUUID(), source: 'emergent_synthesis', strength: 1.0, lastAccessed: Date.now() };
+            const newFact: KnowledgeFact = { ...args, id: self.crypto.randomUUID(), source: 'emergent_synthesis', strength: 1.0, lastAccessed: Date.now() };
             return { knowledgeGraph: [...state.knowledgeGraph, newFact] };
         }
         

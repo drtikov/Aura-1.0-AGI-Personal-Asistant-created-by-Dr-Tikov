@@ -37,7 +37,8 @@ export const MarketAnalyzerPanel = () => {
             // Now, we need to parse the natural language response into structured data.
             // We can ask another LLM call to do this reliably.
             const structuredDataResponse = await geminiAPI.generateChatResponse(
-                [{ from: 'user', text: `Extract the following data points from the text below into a JSON object: medianSalePrice, averageDaysOnMarket, pricePerSquareFoot, marketStatus, oneYearPriceChange.\n\nText: "${response.summary}"` }],
+                // FIX: Added missing id and timestamp properties to the HistoryEntry object.
+                [{ from: 'user', text: `Extract the following data points from the text below into a JSON object: medianSalePrice, averageDaysOnMarket, pricePerSquareFoot, marketStatus, oneYearPriceChange.\n\nText: "${response.summary}"`, id: 'temp-id', timestamp: Date.now() }],
                 'collaborative_scaffolding', // strategy
                 null // mode
             );

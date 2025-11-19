@@ -1,7 +1,7 @@
 // state/migrations.ts
-import { AuraState, UserModel, InternalState, HistoryEntry, ArchitecturalChangeProposal, PsycheAdaptationProposal, UnifiedProposal } from '../types.ts';
-import { getInitialState } from './initialState.ts';
-import { CURRENT_STATE_VERSION } from '../constants.ts';
+import { AuraState, UserModel, InternalState, HistoryEntry, ArchitecturalChangeProposal, PsycheAdaptationProposal, UnifiedProposal } from '../types';
+import { getInitialState } from './initialState';
+import { CURRENT_STATE_VERSION } from '../constants';
 
 // Define interfaces for past versions to ensure type safety during migration.
 // V2 is the state *before* our changes.

@@ -1,12 +1,13 @@
 // utils.ts
 import { MDNAVector } from './types.ts';
-import { GenerateContentResponse } from "@google/genai";
-import type { GoogleGenAI } from '@google/genai';
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 
+// Singleton instances to avoid re-initialization
 let aiInstance: GoogleGenAI | null = null;
 
 /**
  * Dynamically loads the GoogleGenAI module and returns a singleton instance.
+ * It securely fetches the API key from the process environment.
  * @returns A promise that resolves to the GoogleGenAI instance.
  */
 export const getAI = async (): Promise<GoogleGenAI> => {
@@ -14,19 +15,22 @@ export const getAI = async (): Promise<GoogleGenAI> => {
         return aiInstance;
     }
 
-    const { GoogleGenAI } = await import('@google/genai');
+    // The API key MUST be obtained exclusively from the environment variable process.env.API_KEY.
+    const apiKey = process.env.API_KEY;
 
-    if (process.env.API_KEY) {
+    if (apiKey) {
         try {
-            aiInstance = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const { GoogleGenAI } = await import('@google/genai');
+            aiInstance = new GoogleGenAI({ apiKey: apiKey });
             return aiInstance;
         } catch (error) {
             console.error("Failed to initialize GoogleGenAI:", error);
-            throw new Error("Failed to initialize Gemini API. Check API Key.");
+            throw new Error("Failed to initialize Gemini API. The provided API Key may be invalid.");
         }
     }
-    console.error("API_KEY environment variable not set.");
-    throw new Error("API_KEY environment variable not set.");
+    
+    console.error("API_KEY not found. Ensure it is available in the environment.");
+    throw new Error("API_KEY is not configured in the application's environment.");
 };
 
 declare const dayjs: any;
@@ -97,7 +101,8 @@ export const cosineSimilarity = (v1: MDNAVector, v2: MDNAVector): number => {
  * @returns A string containing the text content.
  */
 export function getText(response: GenerateContentResponse): string {
-    return response.text ?? "";
+    // FIX: Per guidelines, access the .text property directly. The type ensures it's a string.
+    return response.text;
 }
 
 
@@ -174,24 +179,3 @@ export const formatTimestamp = (timestamp: number): string => {
     }
     return dayjs(timestamp).format('YYYY-MM-DD HH:mm:ss');
 };
-
-/**
- * Creates a debounced function that delays invoking func until after wait milliseconds have elapsed
- * since the last time the debounced function was invoked.
- * @param func The function to debounce.
- * @param wait The number of milliseconds to delay.
- * @returns The new debounced function.
- */
-export function debounce<T extends (...args: any[]) => void>(func: T, wait: number): (...args: Parameters<T>) => void {
-    let timeout: number | null = null;
-    return function(this: any, ...args: Parameters<T>) {
-        const later = () => {
-            timeout = null;
-            func.apply(this, args);
-        };
-        if (timeout !== null) {
-            clearTimeout(timeout);
-        }
-        timeout = window.setTimeout(later, wait);
-    };
-}

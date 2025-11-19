@@ -1,4 +1,4 @@
-import { AuraState, Action } from '../../types.ts';
+import { AuraState, Action } from '../../types';
 
 export const enginesReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {

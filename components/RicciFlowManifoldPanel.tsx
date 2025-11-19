@@ -1,6 +1,6 @@
 // components/RicciFlowManifoldPanel.tsx
 import React from 'react';
-import { useArchitectureState, useLocalization } from '../context/AuraContext';
+import { useArchitectureState, useLocalization } from '../context/AuraContext.tsx';
 
 export const RicciFlowManifoldPanel = React.memo(() => {
     const { ricciFlowManifoldState: state } = useArchitectureState();

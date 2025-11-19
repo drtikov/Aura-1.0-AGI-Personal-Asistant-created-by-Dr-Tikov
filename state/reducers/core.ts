@@ -1,7 +1,7 @@
 // state/reducers/core.ts
-import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown, UnifiedProposal } from '../../types.ts';
-import { clamp } from '../../utils.ts';
-import { AuraConfig } from '../../constants.ts';
+import { AuraState, Action, CoCreatedWorkflow, GenialityImprovementProposal, KnownUnknown, UnifiedProposal } from '../../types';
+import { clamp } from '../../utils';
+import { AuraConfig } from '../../constants';
 
 export const coreReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -172,7 +172,7 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
             const { updates } = args as { updates: { id: string; priority: number }[] };
             const priorityMap = new Map(updates.map(u => [u.id, u.priority]));
             
-            const newKnownUnknowns = state.knownUnknowns.map(ku => {
+            const newKnownUnknowns = state.knownUnknowns.map((ku: KnownUnknown) => {
                 if (priorityMap.has(ku.id)) {
                     return { ...ku, priority: priorityMap.get(ku.id)! };
                 }
@@ -244,7 +244,7 @@ export const coreReducer = (state: AuraState, action: Action): Partial<AuraState
              return {
                 ontogeneticArchitectState: {
                     ...state.ontogeneticArchitectState,
-                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map(p => {
+                    proposalQueue: state.ontogeneticArchitectState.proposalQueue.map((p: UnifiedProposal) => {
                         if (p.id === args.id && p.proposalType === 'geniality') {
                             const updated: UnifiedProposal = { ...p, status: args.status };
                             return updated;

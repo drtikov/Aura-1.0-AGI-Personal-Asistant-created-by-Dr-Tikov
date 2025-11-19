@@ -1,6 +1,6 @@
 // state/reducers/system.ts
 // FIX: Replaced the incorrect 'CognitiveTask' with the correct 'KernelTask' type.
-import { AuraState, Action, AGISDecision, MetacognitiveLink, KernelTask, ModificationLogEntry, KernelPatchProposal } from '../../types';
+import { AuraState, Action, AGISDecision, MetacognitiveLink, KernelTask, ModificationLogEntry, KernelPatchProposal, UnifiedProposal } from '../../types';
 
 export const systemReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {
@@ -135,8 +135,9 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
         }
 
         case 'KERNEL/SET_RUNNING_TASK': {
-            // FIX: Correctly cast `args` to `KernelTask` to match the type of `runningTask`.
-            const task = args as KernelTask | null;
+            // FIX: The payload is an object { task: ... }, not the task itself.
+            // Destructure the task from the arguments.
+            const { task } = args;
             let queue = state.kernelState.taskQueue;
             if (task) {
                 // Remove the task from the queue when it starts running
@@ -161,7 +162,8 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
             
         case 'KERNEL/BEGIN_SANDBOX_TEST': {
             const patchId = args.patchId as string;
-            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === patchId) as KernelPatchProposal | undefined;
+            // FIX: Added type guard to ensure `id` property exists for comparison.
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find((p: UnifiedProposal) => p.id === patchId) as KernelPatchProposal | undefined;
             if (!proposal) return {};
 
             return {
@@ -193,7 +195,8 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
 
         case 'KERNEL/APPLY_PATCH': {
             const patchId = state.kernelState.sandbox.currentPatchId;
-            const proposal = state.ontogeneticArchitectState.proposalQueue.find(p => p.id === patchId) as KernelPatchProposal | undefined;
+            // FIX: Added type guard to ensure `id` property exists for comparison.
+            const proposal = state.ontogeneticArchitectState.proposalQueue.find((p: UnifiedProposal) => p.id === patchId) as KernelPatchProposal | undefined;
             if (!proposal || state.kernelState.sandbox.status !== 'passed') return {};
 
             const { task, newFrequency } = proposal.patch.payload;
@@ -234,7 +237,8 @@ export const systemReducer = (state: AuraState, action: Action): Partial<AuraSta
             return {
                 kernelState: {
                     ...state.kernelState,
-                    rebootRequired: true,
+                    // FIX: Corrected property name from rebootRequired to rebootPending to match type definition.
+                    rebootPending: true,
                 }
             };
         }

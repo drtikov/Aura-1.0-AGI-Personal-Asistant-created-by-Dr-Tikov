@@ -1,5 +1,5 @@
 // state/reducers/introspection.ts
-import { AuraState, Action, IntrospectionLogEntry } from '../../types';
+import { AuraState, Action, IntrospectionLogEntry } from '../../types.ts';
 
 export const introspectionReducer = (state: AuraState, action: Action): Partial<AuraState> => {
     if (action.type !== 'SYSCALL') {

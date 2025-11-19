@@ -2,8 +2,9 @@
 import React, { useState } from 'react';
 import { useAuraDispatch, useLocalization } from '../context/AuraContext.tsx';
 import { Accordion } from './Accordion.tsx';
+import { SafeMarkdown } from './SafeMarkdown.tsx';
 
-type ActionType = 'explain' | 'refactor' | 'test' | 'creative';
+type ActionType = 'explain' | 'refactor' | 'test' | 'critique_ui';
 
 const DiffViewer = ({ oldCode, newCode }: { oldCode: string; newCode: string }) => {
     // This is a simplified diff viewer. A real implementation might use a library like diff-match-patch.
@@ -43,9 +44,11 @@ export const SymbioticCoderPanel = React.memo(() => {
     const [explanation, setExplanation] = useState('');
     const [testResult, setTestResult] = useState('');
     const [refactorDiff, setRefactorDiff] = useState<{ old: string; new: string } | null>(null);
+    const [critique, setCritique] = useState('');
 
     const handleExecute = async () => {
-        if (action !== 'creative' && !inputCode.trim()) {
+        // FIX: Removed check for non-existent 'creative' action type.
+        if (!inputCode.trim()) {
             addToast(t('symbioticCoder_inputCode_placeholder'), 'warning');
             return;
         }
@@ -54,6 +57,7 @@ export const SymbioticCoderPanel = React.memo(() => {
         setExplanation('');
         setTestResult('');
         setRefactorDiff(null);
+        setCritique('');
 
         try {
             switch(action) {
@@ -74,10 +78,9 @@ export const SymbioticCoderPanel = React.memo(() => {
                     const refactoredCode = await geminiAPI.refactorCode(inputCode, refactorInstruction);
                     setRefactorDiff({ old: inputCode, new: refactoredCode });
                     break;
-                case 'creative':
-                    // This is a placeholder for creative coding.
-                    // The actual implementation would use a different set of inputs.
-                    addToast('Creative coding mode is a concept.', 'info');
+                case 'critique_ui':
+                    const uiCritique = await geminiAPI.critiqueUIVisually(inputCode);
+                    setCritique(uiCritique);
                     break;
             }
         } catch(e) {
@@ -97,13 +100,13 @@ export const SymbioticCoderPanel = React.memo(() => {
                     <button className={action === 'explain' ? 'active' : ''} onClick={() => setAction('explain')}>{t('symbioticCoder_explain')}</button>
                     <button className={action === 'refactor' ? 'active' : ''} onClick={() => setAction('refactor')}>{t('symbioticCoder_refactor')}</button>
                     <button className={action === 'test' ? 'active' : ''} onClick={() => setAction('test')}>{t('symbioticCoder_generateTest')}</button>
-                    <button className={action === 'creative' ? 'active' : ''} onClick={() => setAction('creative')}>Creative</button>
+                    <button className={action === 'critique_ui' ? 'active' : ''} onClick={() => setAction('critique_ui')}>{t('symbioticCoder_critique_ui')}</button>
                 </div>
             </div>
 
              <div className="image-gen-control-group">
-                <label htmlFor="coder-input">{action === 'creative' ? 'Prompt' : t('symbioticCoder_inputCode')}</label>
-                <textarea id="coder-input" value={inputCode} onChange={e => setInputCode(e.target.value)} placeholder={action === 'creative' ? 'e.g., A mesmerizing spiral of circles' : t('symbioticCoder_inputCode_placeholder')} disabled={isProcessing} rows={8} />
+                <label htmlFor="coder-input">{t('symbioticCoder_inputCode')}</label>
+                <textarea id="coder-input" value={inputCode} onChange={e => setInputCode(e.target.value)} placeholder={t('symbioticCoder_inputCode_placeholder')} disabled={isProcessing} rows={8} />
             </div>
 
             {action === 'refactor' && (
@@ -127,7 +130,7 @@ export const SymbioticCoderPanel = React.memo(() => {
                 {!isProcessing && explanation && (
                     <div className="explanation-output">
                          <div className="panel-subsection-title">{t('symbioticCoder_explanation')}</div>
-                         <pre><code>{explanation}</code></pre>
+                         <SafeMarkdown text={explanation} />
                     </div>
                 )}
                 {!isProcessing && testResult && (
@@ -143,6 +146,12 @@ export const SymbioticCoderPanel = React.memo(() => {
                          <div className="panel-subsection-title">{t('symbioticCoder_refactorSuggestion')}</div>
                          <DiffViewer oldCode={refactorDiff.old} newCode={refactorDiff.new} />
                      </div>
+                )}
+                 {!isProcessing && critique && (
+                    <div className="critique-output">
+                        <div className="panel-subsection-title">{t('symbioticCoder_visual_critique')}</div>
+                        <SafeMarkdown text={critique} />
+                    </div>
                 )}
             </div>
         </div>
